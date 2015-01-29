@@ -23,6 +23,9 @@
 *.lib
 
 # Executables
-*.exe
-*.out
-*.app
+Build
+
+# Vim
+*.swo
+*.swp
+
