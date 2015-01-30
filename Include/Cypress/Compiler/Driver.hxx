@@ -20,11 +20,13 @@ class Driver
 
   private:
     void buildInvocationOptionDescriptions();
+    void compileInputFiles();
 
     int argc;
     char **argv;
     boost::program_options::options_description opt_desc;
     boost::program_options::variables_map opt_vmap;
+    boost::program_options::positional_options_description popt_desc;
 };
 
 }}
