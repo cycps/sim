@@ -1,0 +1,32 @@
+#ifndef CYPRESS_COMPILE_DRIVER_HXX
+#define CYPRESS_COMPILE_DRIVER_HXX
+
+#include "Grammar.hxx"
+#include <boost/program_options.hpp>
+
+namespace cypress { namespace compile {
+
+static constexpr unsigned short 
+  COMPILER_VERSION_MAJOR{0},
+  COMPILER_VERSION_MINOR{1};
+
+class Driver
+{
+  public:
+    Driver(int argc, char **argv);
+    void showHelp();
+    void showVersion();
+    void run();
+
+  private:
+    void buildInvocationOptionDescriptions();
+
+    int argc;
+    char **argv;
+    boost::program_options::options_description opt_desc;
+    boost::program_options::variables_map opt_vmap;
+};
+
+}}
+
+#endif
