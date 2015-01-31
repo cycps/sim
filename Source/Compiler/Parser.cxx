@@ -4,6 +4,8 @@
 using namespace cypress::compile;
 
 using std::string;
+using std::cout;
+using std::endl;
 
 Parser::Parser(string source)
   : source_{source}
@@ -11,5 +13,26 @@ Parser::Parser(string source)
 
 void Parser::run()
 {
-  //TODO: You are here, it is time to find objects
+  while(pos < source_.length())
+  {
+    while(pos < source_.length() && source_.substr(pos, 6) != "Object") nextLine();
+    if(pos >= source_.length()) break;
+
+    size_t obj_begin = line;
+    nextLine();
+    while(pos < source_.length() && std::isspace(source_[pos])) nextLine();
+    size_t obj_end = line;
+
+    if(pos < source_.length())
+    {
+      cout << "Object @(" << obj_begin << "," << obj_end << ")" << endl;
+    }
+  }
+}
+
+void Parser::nextLine()
+{
+  while(pos < source_.length() && source_[pos] != '\n') ++pos;  
+  ++pos;
+  ++line;
 }

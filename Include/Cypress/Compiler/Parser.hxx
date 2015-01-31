@@ -17,7 +17,9 @@ class Parser
     std::vector<std::shared_ptr<Object>> objects;
 
   private:
+    size_t pos{0}, line{0};
     std::string source_;
+    void nextLine();
 };
 
 }}

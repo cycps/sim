@@ -8,14 +8,17 @@ using std::endl;
 int main(int argc, char **argv)
 {
   Driver driver(argc, argv);
+  driver.run();
+  /*
   try
   {
-    driver.run();
   }
   catch(std::exception &e)
   {
-    cout << e.what() << endl;
+    cout << "Shit! -- " << e.what() << endl;
+    throw;
     return -1;
   }
+  */
 
 }
