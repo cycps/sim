@@ -1,8 +1,11 @@
 #ifndef CYPRESS_COMPILE_DRIVER_HXX
 #define CYPRESS_COMPILE_DRIVER_HXX
 
-#include "Grammar.hxx"
+//#include "Grammar.hxx"
+#include "AST.hxx"
+#include "Parser.hxx"
 #include <boost/program_options.hpp>
+#include <string>
 
 namespace cypress { namespace compile {
 
@@ -21,6 +24,7 @@ class Driver
   private:
     void buildInvocationOptionDescriptions();
     void compileInputFiles();
+    std::string readSource(std::string file);
 
     int argc;
     char **argv;

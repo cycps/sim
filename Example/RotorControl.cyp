@@ -5,8 +5,8 @@ Object Rotor(H)
   a = τ - H*ω^2
 
 Controller RotorSpeedControler[ω](ωt) -> τ
-  a' = ωt - ω;
-  τ = a;
+  a' = ωt - ω
+  τ = a
 
 Experiment RotorControl
   Rotor rotor(H=2.5)

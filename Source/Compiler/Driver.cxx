@@ -1,7 +1,9 @@
-#include <Cypress/Compiler/Driver.hxx>
+#include "Cypress/Compiler/Driver.hxx"
 
 #include <boost/exception/info.hpp>
 #include <iostream>
+#include <fstream>
+#include <streambuf>
 
 using namespace cypress::compile;
 namespace po = boost::program_options;
@@ -60,7 +62,28 @@ void Driver::run()
 void Driver::compileInputFiles()
 {
   auto input_files = opt_vmap["input-file"].as<vector<string>>();
-  cout << "Compiling " << endl;
+
+  cout << "Compiling ..." << endl;
   for(const auto& inf : input_files)
-    cout << "\t" << inf << endl;
+  {
+    cout << inf << endl;
+    string inp = readSource(inf);
+    Parser p(inp);
+    p.run();
+  }
+}
+
+string Driver::readSource(string file)
+{
+  std::ifstream ifs(file);
+  std::string source_text;
+
+  ifs.seekg(0, std::ios::end);
+  source_text.reserve(ifs.tellg());
+  ifs.seekg(0, std::ios::beg);
+
+  source_text.assign((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+
+  return source_text;
 }
