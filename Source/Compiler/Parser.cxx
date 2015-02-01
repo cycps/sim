@@ -139,7 +139,7 @@ bool Parser::isCode(const string &s)
 
 bool Parser::isComment(const string &s)
 {
-  regex rx{"//.*"};
+  regex rx{"\\s*//.*"};
   return regex_match(s, rx);
 }
 
