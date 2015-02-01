@@ -69,7 +69,11 @@ size_t Parser::parseObject(size_t at)
   { 
     if(isEmpty(lines[idx])) cout << "o" << endl;
     else if(isComment(lines[idx])) cout << "/" << endl;
-    else cout << "." << endl; 
+    else 
+    {
+      if(isEqtn(lines[idx])) cout << "e" << endl;
+      else cout << "." << endl; 
+    }
     ++idx; 
     if(idx >= lines.size()) break;
   }
@@ -84,7 +88,11 @@ size_t Parser::parseController(size_t at)
   { 
     if(isEmpty(lines[idx])) cout << "o" << endl;
     else if(isComment(lines[idx])) cout << "/" << endl;
-    else cout << "." << endl; 
+    else 
+    {
+      if(isEqtn(lines[idx])) cout << "e" << endl;
+      else cout << "." << endl; 
+    }
     ++idx; 
     if(idx >= lines.size()) break;
   }
@@ -99,7 +107,11 @@ size_t Parser::parseExperiment(size_t at)
   { 
     if(isEmpty(lines[idx])) cout << "o" << endl;
     else if(isComment(lines[idx])) cout << "/" << endl;
-    else cout << "." << endl; 
+    else 
+    {
+      if(isEqtn(lines[idx])) cout << "e" << endl;
+      else cout << "." << endl; 
+    }
     ++idx; 
     if(idx >= lines.size()) break;
   }
@@ -146,6 +158,12 @@ bool Parser::isComment(const string &s)
 bool Parser::isEmpty(const string &s)
 {
   regex rx{"\\s*"};
+  return regex_match(s, rx);
+}
+    
+bool Parser::isEqtn(const std::string &s)
+{
+  regex rx{".*=.*"};
   return regex_match(s, rx);
 }
 

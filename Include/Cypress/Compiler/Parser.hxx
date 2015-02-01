@@ -28,6 +28,7 @@ class Parser
     bool isCode(const std::string &);
     bool isComment(const std::string &);
     bool isEmpty(const std::string &);
+    bool isEqtn(const std::string &);
 
     size_t parseDecl(size_t at, DeclType dt);
     size_t parseObject(size_t at);
