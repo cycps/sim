@@ -8,6 +8,9 @@
 
 namespace cypress { namespace compile {
 
+enum class DeclType { Object, Controller, Experiment };
+enum class LineType { Decl, Code, Comment, Empty, SomethingElse };
+
 class Parser
 {
   public:
@@ -17,10 +20,26 @@ class Parser
     std::vector<std::shared_ptr<Object>> objects;
 
   private:
-    size_t pos{0}, line{0};
-    std::string source_;
-    void nextLine();
+    std::vector<std::string> lines;
+    std::string source;
+
+    LineType classifyLine(const std::string &, DeclType &dt);
+    bool isDecl(const std::string &, DeclType &);
+    bool isCode(const std::string &);
+    bool isComment(const std::string &);
+    bool isEmpty(const std::string &);
+
+    size_t parseDecl(size_t at, DeclType dt);
+    size_t parseObject(size_t at);
+    size_t parseController(size_t at);
+    size_t parseExperiment(size_t at);
 };
+
+std::vector<std::string> &
+split(const std::string &s, char delim, std::vector<std::string> &elems);
+
+std::vector<std::string> 
+split(const std::string &s, char delim);
 
 }}
 
