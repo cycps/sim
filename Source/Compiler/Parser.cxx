@@ -17,6 +17,12 @@ using std::regex_match;
 using std::to_string;
 using std::smatch;
 using std::shared_ptr;
+using std::make_shared;
+using std::vector;
+using std::copy_if;
+using std::back_inserter;
+using std::for_each;
+using std::remove_if;
 
 Parser::Parser(string source)
   : source{source}
@@ -189,9 +195,22 @@ Equation Parser::parseEqtn(const string &s)
     
 shared_ptr<Expression> Parser::parseExpr(const std::string &s)
 {
-  regex rx{"(.+)([\+\-])*"};  
+  //remove white space
+  std::string s_{s};
+  s_.erase(remove_if(s_.begin(), s_.end(), isspace), s_.end());
+  regex rx{"([a-zA-Zα-ωΑ-Ω0-9\\*\\^ ]+)(?:([\\+\\-])([ a-zA-Zα-ωΑ-Ω0-9\\*\\^]+))*"};
   smatch sm;
-  regex_match(s, sm, rx);
+  regex_match(s_, sm, rx);
+  cout << "expr match '" << s_ << "'" << endl;
+  vector<string> matches;
+  if(sm.size()>1)
+  {
+    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), [](const string &m){ return !m.empty(); });
+    for(const string &m : matches)
+        cout << "`" << m << "`" << endl;
+  }
+
+  return make_shared<Add>();
 }
 
 std::vector<std::string> &

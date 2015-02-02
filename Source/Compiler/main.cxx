@@ -7,6 +7,7 @@ using std::endl;
 
 int main(int argc, char **argv)
 {
+  std::locale::global(std::locale("en_US.UTF-8"));
   Driver driver(argc, argv);
   driver.run();
   /*
