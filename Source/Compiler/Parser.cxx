@@ -15,6 +15,8 @@ using std::runtime_error;
 using std::regex;
 using std::regex_match;
 using std::to_string;
+using std::smatch;
+using std::shared_ptr;
 
 Parser::Parser(string source)
   : source{source}
@@ -71,7 +73,11 @@ size_t Parser::parseObject(size_t at)
     else if(isComment(lines[idx])) cout << "/" << endl;
     else 
     {
-      if(isEqtn(lines[idx])) cout << "e" << endl;
+      if(isEqtn(lines[idx])) 
+      {
+        Equation eqtn = parseEqtn(lines[idx]);
+        cout << "e" << endl;
+      }
       else cout << "." << endl; 
     }
     ++idx; 
@@ -161,10 +167,31 @@ bool Parser::isEmpty(const string &s)
   return regex_match(s, rx);
 }
     
-bool Parser::isEqtn(const std::string &s)
+bool Parser::isEqtn(const string &s)
 {
   regex rx{".*=.*"};
   return regex_match(s, rx);
+}
+
+Equation Parser::parseEqtn(const string &s)
+{
+  regex rx{"(.*)=(.*)"};
+  smatch sm;
+  regex_match(s, sm, rx);
+  
+  Equation eqtn;
+  if(sm.size() != 3) throw runtime_error("disformed equation");
+  eqtn.lhs = parseExpr(sm[1]);
+  eqtn.rhs = parseExpr(sm[2]);
+
+  return eqtn;
+}
+    
+shared_ptr<Expression> Parser::parseExpr(const std::string &s)
+{
+  regex rx{"(.+)([\+\-])*"};  
+  smatch sm;
+  regex_match(s, sm, rx);
 }
 
 std::vector<std::string> &
