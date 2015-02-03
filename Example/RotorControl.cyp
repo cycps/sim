@@ -1,6 +1,6 @@
 //Cypress Rotor Controller Experiment
 
-Object Rotor(H,I,J,η,λ,Ξ)
+Object Rotor(H)
   ω = θ'
   a = τ - H*ω^2
   a = ω

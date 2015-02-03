@@ -14,6 +14,8 @@ ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
     o << "    " << *obj << endl;
 
   o << "  " << "[controller]" << endl;
+  for(shared_ptr<Controller> controller : decls.controllers)
+    o << "    " << *controller << endl;
 
   o << "  " << "[experiment]" << endl;
   return o;
@@ -34,6 +36,16 @@ ostream& cypress::compile::operator << (ostream &o, const Object &obj)
     showEqtn(o, *eqtn);
   }
 
+  return o;
+}
+
+ostream& cypress::compile::operator << (ostream &o, const Controller &controller)
+{
+  o << "      [equation]" << endl;
+  for(const shared_ptr<Equation> eqtn : controller.eqtns)
+  {
+    showEqtn(o, *eqtn);
+  }
   return o;
 }
 

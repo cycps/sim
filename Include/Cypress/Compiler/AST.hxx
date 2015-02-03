@@ -144,6 +144,7 @@ struct Decls
 
 std::ostream& operator << (std::ostream &o, const Decls &d);
 std::ostream& operator << (std::ostream &o, const Object &obj);
+std::ostream& operator << (std::ostream &o, const Controller &controller);
 void showEqtn(std::ostream &, const Equation &);
 void showExpr(size_t indent, std::ostream &o, const Expression &expr);
   

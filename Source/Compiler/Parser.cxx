@@ -141,7 +141,12 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
     else if(isComment(lines[idx])) cout << "/" << endl;
     else 
     {
-      if(isEqtn(lines[idx])) cout << "e" << endl;
+      if(isEqtn(lines[idx])) 
+      {
+        shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
+        controller->eqtns.push_back(eqtn);
+        cout << "e" << endl;
+      }
       else cout << "." << endl; 
     }
     ++idx; 
