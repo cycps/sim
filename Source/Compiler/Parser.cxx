@@ -187,30 +187,56 @@ Equation Parser::parseEqtn(const string &s)
   
   Equation eqtn;
   if(sm.size() != 3) throw runtime_error("disformed equation");
-  eqtn.lhs = parseExpr(sm[1]);
-  eqtn.rhs = parseExpr(sm[2]);
+  string lhs = sm[1],
+         rhs = sm[2];
+
+  //remove whitespace
+  lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
+  rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
+
+  cout << "[eqtn]: " << lhs << "=" << rhs << endl;
+
+  eqtn.lhs = parseExpr(lhs);
+  eqtn.rhs = parseExpr(rhs);
 
   return eqtn;
 }
     
 shared_ptr<Expression> Parser::parseExpr(const std::string &s)
 {
-  //remove white space
-  std::string s_{s};
-  s_.erase(remove_if(s_.begin(), s_.end(), isspace), s_.end());
-  regex rx{"([a-zA-Zα-ωΑ-Ω0-9\\*\\^ ]+)(?:([\\+\\-])([ a-zA-Zα-ωΑ-Ω0-9\\*\\^]+))*"};
+  cout << "[expr]: '" << s << "'" << endl;
+  regex rx{"([a-zA-Zα-ωΑ-Ω0-9\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
-  regex_match(s_, sm, rx);
-  cout << "expr match '" << s_ << "'" << endl;
+  regex_match(s, sm, rx);
   vector<string> matches;
+  shared_ptr<Term> lhs{nullptr};
+  shared_ptr<Expression> rhs{nullptr};
   if(sm.size()>1)
   {
     copy_if(sm.begin()+1, sm.end(), back_inserter(matches), [](const string &m){ return !m.empty(); });
-    for(const string &m : matches)
-        cout << "`" << m << "`" << endl;
+    switch(matches.size())
+    {
+      //Unary Term
+      case 1: return parseTerm(matches[0]); 
+      //Binary Term
+      case 3: lhs = parseTerm(matches[0]);
+              rhs = parseExpr(matches[2]);
+              switch(matches[1][0])
+              {
+                case '+' : return make_shared<Add>(lhs, rhs);
+                case '-' : return make_shared<Subtract>(lhs, rhs);
+              }
+    }
   }
+  return nullptr;
+  //throw runtime_error("unresolved equation, matches = " + to_string(matches.size()));
+}
+    
+std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
+{
+  cout << "[term]: '" << s << "'" << endl;
 
-  return make_shared<Add>();
+  return make_shared<Multiply>(nullptr, nullptr);
 }
 
 std::vector<std::string> &

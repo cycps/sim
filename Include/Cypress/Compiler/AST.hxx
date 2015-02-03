@@ -25,34 +25,44 @@ struct Term : public Expression {};
 
 struct GroupOp : public Expression 
 { 
-  std::shared_ptr<Term> lhs, rhs; 
+  std::shared_ptr<Term> lhs;
+  std::shared_ptr<Expression> rhs;
+  GroupOp(std::shared_ptr<Term> lhs, std::shared_ptr<Expression> rhs) 
+    : lhs{lhs}, rhs{rhs} {}
 };
 
 struct Add : public GroupOp 
 { 
   Kind kind(){ return Kind::Add; } 
+  using GroupOp::GroupOp;
 };
 
 struct Subtract : public GroupOp 
 {
   Kind kind(){ return Kind::Subtract; }
+  using GroupOp::GroupOp;
 };
 
 struct Factor : public Term {};
 
 struct RingOp : public Term
 {
-  std::shared_ptr<Factor> lhs, rhs;
+  std::shared_ptr<Factor> lhs;
+  std::shared_ptr<Term> rhs;
+  RingOp(std::shared_ptr<Factor> lhs, std::shared_ptr<Term> rhs)
+    : lhs{lhs}, rhs{rhs} {}
 };
 
 struct Multiply : public RingOp
 {
   Kind kind(){ return Kind::Multiply; }
+  using RingOp::RingOp;
 };
 
 struct Divide : public RingOp
 {
   Kind kind(){ return Kind::Divide; }
+  using RingOp::RingOp;
 };
 
 struct Atom : public Factor {};

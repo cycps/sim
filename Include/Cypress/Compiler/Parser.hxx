@@ -36,6 +36,7 @@ class Parser
     size_t parseExperiment(size_t at);
     Equation parseEqtn(const std::string &);
     std::shared_ptr<Expression> parseExpr(const std::string &);
+    std::shared_ptr<Term> parseTerm(const std::string &);
 };
 
 std::vector<std::string> &
