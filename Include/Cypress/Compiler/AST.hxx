@@ -71,24 +71,29 @@ struct Pow : public Factor
 {
   std::shared_ptr<Atom> lhs, rhs;
   Kind kind(){ return Kind::Pow; }
-};
-
-struct Differentiate : public Factor
-{
-  std::shared_ptr<Atom> arg;
-  Kind kind(){ return Kind::Differentiate; }
+  Pow(std::shared_ptr<Atom> lhs, std::shared_ptr<Atom> rhs)
+    : lhs{lhs}, rhs{rhs} {}
 };
 
 struct Symbol : public Atom
 {
   std::string name;
   Kind kind(){ return Kind::Symbol; }
+  Symbol(std::string name) : name{name} {}
+};
+
+struct Differentiate : public Factor
+{
+  std::shared_ptr<Symbol> arg;
+  Kind kind(){ return Kind::Differentiate; }
+  Differentiate(std::shared_ptr<Symbol> arg) : arg{arg} {}
 };
 
 struct Real : public Atom
 {
   double value;
   Kind kind(){ return Kind::Real; }
+  Real(double value) : value{value} {}
 };
 
 struct SubExpression : public Atom

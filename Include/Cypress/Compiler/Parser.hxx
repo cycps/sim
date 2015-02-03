@@ -37,6 +37,10 @@ class Parser
     Equation parseEqtn(const std::string &);
     std::shared_ptr<Expression> parseExpr(const std::string &);
     std::shared_ptr<Term> parseTerm(const std::string &);
+    std::shared_ptr<Factor> parseFactor(const std::string &);
+    std::shared_ptr<Atom> parseAtom(const std::string &);
+    std::shared_ptr<Differentiate> parseDerivative(const std::string &);
+    std::shared_ptr<Pow> parsePow(const std::string &, const std::string &);
 };
 
 std::vector<std::string> &

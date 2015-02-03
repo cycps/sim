@@ -12,6 +12,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::runtime_error;
+using std::invalid_argument;
 using std::regex;
 using std::regex_match;
 using std::to_string;
@@ -204,8 +205,8 @@ Equation Parser::parseEqtn(const string &s)
     
 shared_ptr<Expression> Parser::parseExpr(const std::string &s)
 {
-  cout << "[expr]: '" << s << "'" << endl;
-  regex rx{"([a-zA-Zα-ωΑ-Ω0-9\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
+  cout << "[expr]: " << s << endl;
+  regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
@@ -213,7 +214,8 @@ shared_ptr<Expression> Parser::parseExpr(const std::string &s)
   shared_ptr<Expression> rhs{nullptr};
   if(sm.size()>1)
   {
-    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), [](const string &m){ return !m.empty(); });
+    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
+        [](const string &m){ return !m.empty(); });
     switch(matches.size())
     {
       //Unary Term
@@ -229,14 +231,97 @@ shared_ptr<Expression> Parser::parseExpr(const std::string &s)
     }
   }
   return nullptr;
-  //throw runtime_error("unresolved equation, matches = " + to_string(matches.size()));
 }
     
 std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
 {
-  cout << "[term]: '" << s << "'" << endl;
+  cout << "[term]: " << s << endl;
 
-  return make_shared<Multiply>(nullptr, nullptr);
+  regex rx{"([a-zA-Zα-ωΑ-Ω0-9'\\^ ]+)(?:([\\*/])(.*))?"};
+  smatch sm;
+  regex_match(s, sm, rx);
+  vector<string> matches;
+  shared_ptr<Factor> lhs{nullptr};
+  shared_ptr<Term> rhs{nullptr};
+  if(sm.size()>1)
+  {
+    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
+        [](const string &m){ return !m.empty(); });
+    switch(matches.size())
+    {
+      case 1: return parseFactor(matches[0]);
+      case 3: lhs = parseFactor(matches[0]);
+              rhs = parseTerm(matches[2]);
+              switch(matches[1][0])
+              {
+                case '*' : return make_shared<Multiply>(lhs, rhs);
+                case '/' : return make_shared<Divide>(lhs, rhs);
+              }
+    }
+  }
+  return nullptr;
+}
+    
+std::shared_ptr<Factor> Parser::parseFactor(const std::string &s)
+{
+  cout << "[fact]: " << s << endl;
+  regex rx{"([a-zA-Zα-ωΑ-Ω0-9]+)(?:(['\\^])(.*))?"};
+  smatch sm;
+  regex_match(s, sm, rx);
+  vector<string> matches;
+  shared_ptr<Factor> lhs{nullptr};
+  shared_ptr<Term> rhs{nullptr};
+  if(sm.size()>1)
+  {
+    copy_if(sm.begin()+1, sm.end(), back_inserter(matches),
+        [](const string &m){ return !m.empty(); });
+    if(matches.size()==1)
+      return parseAtom(matches[0]);
+
+    else if(matches.size()==2 && matches[1][0] == '\'')
+      return parseDerivative(matches[0]);
+
+    else if(matches.size()==3 && matches[1][0] == '^')
+      return parsePow(matches[0], matches[2]);
+
+    throw runtime_error("disformed factor");
+  }
+
+  return nullptr;
+}
+    
+std::shared_ptr<Atom> Parser::parseAtom(const std::string &s)
+{
+  cout << "[atom]: " << s << endl;
+
+  double value{0}; 
+  try
+  { 
+    value = stod(s); 
+    cout << "[real]: " << s << endl;
+    return make_shared<Real>(value);
+  }
+  catch(const invalid_argument &e)
+  {
+    cout << "[symb]: " << s << endl;
+    return make_shared<Symbol>(s);
+  }
+
+  return nullptr;
+}
+    
+std::shared_ptr<Differentiate> Parser::parseDerivative(const std::string &s)
+{
+  cout << "[der]: " << s << endl;
+
+  return make_shared<Differentiate>(make_shared<Symbol>(s));
+}
+    
+std::shared_ptr<Pow> Parser::parsePow(const std::string &lower, const std::string &upper)
+{
+  cout << "[pow]: " << lower << "^" << upper << endl;
+
+  return make_shared<Pow>(make_shared<Symbol>(lower), parseAtom(upper));
 }
 
 std::vector<std::string> &
