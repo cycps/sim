@@ -30,11 +30,11 @@ class Parser
     bool isEmpty(const std::string &);
     bool isEqtn(const std::string &);
 
-    size_t parseDecl(size_t at, DeclType dt);
-    size_t parseObject(size_t at);
-    size_t parseController(size_t at);
-    size_t parseExperiment(size_t at);
-    Equation parseEqtn(const std::string &);
+    size_t parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls);
+    std::shared_ptr<Object> parseObject(size_t at, size_t &lc);
+    std::shared_ptr<Controller> parseController(size_t at, size_t &lc);
+    std::shared_ptr<Experiment> parseExperiment(size_t at, size_t &lc);
+    std::shared_ptr<Equation> parseEqtn(const std::string &);
     std::shared_ptr<Expression> parseExpr(const std::string &);
     std::shared_ptr<Term> parseTerm(const std::string &);
     std::shared_ptr<Factor> parseFactor(const std::string &);

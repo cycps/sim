@@ -24,6 +24,7 @@ using std::copy_if;
 using std::back_inserter;
 using std::for_each;
 using std::remove_if;
+using std::transform;
 
 Parser::Parser(string source)
   : source{source}
@@ -32,6 +33,7 @@ Parser::Parser(string source)
 void Parser::run()
 {
   split(source, '\n', lines);
+  auto decls = make_shared<Decls>();
 
   for(size_t i=0; i<lines.size(); ++i)
   {
@@ -39,7 +41,7 @@ void Parser::run()
     LineType lt = classifyLine(lines[i], dt);
     switch(lt)
     {
-      case LineType::Decl : i += parseDecl(i, dt); break;
+      case LineType::Decl : i += parseDecl(i, dt, decls); break;
       case LineType::Code : 
         throw runtime_error("[" + to_string(i+1) + "] orphan code");
       case LineType::Comment : break;
@@ -49,15 +51,35 @@ void Parser::run()
             "[" + to_string(i+1) + "] not sure what this line is doing");
     }
   }
+
+  cout << *decls << endl;
 }
 
-size_t Parser::parseDecl(size_t at, DeclType dt)
+size_t Parser::parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls)
 {
+  size_t advance{0};
   switch(dt)
   {
-    case DeclType::Object : return parseObject(at);
-    case DeclType::Controller: return parseController(at);
-    case DeclType::Experiment: return parseExperiment(at);
+    case DeclType::Object : 
+    {
+      auto obj = parseObject(at, advance);
+      decls->objects.push_back(obj);
+      return advance;
+    }
+
+    case DeclType::Controller: 
+    {
+      auto controller = parseController(at, advance);
+      decls->controllers.push_back(controller);
+      return advance;
+    }
+
+    case DeclType::Experiment: 
+    {
+      auto experiment = parseExperiment(at, advance);
+      decls->experiments.push_back(experiment);
+      return advance;
+    }
   }
 }
     
@@ -70,9 +92,22 @@ LineType Parser::classifyLine(const std::string &s, DeclType &dt)
   return LineType::SomethingElse;
 }
 
-size_t Parser::parseObject(size_t at)
+shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
 {
   cout << "Parsing Object : `" << lines[at] << "`" << endl;
+  smatch sm;
+  regex_match(lines[at], sm, objrx);
+  auto object = make_shared<Object>(make_shared<Symbol>(sm[1]));
+
+  //Parse the parameters
+  string _pstr = sm[2];
+  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
+  auto params = split(pstr, ',');
+
+  transform(params.begin(), params.end(), back_inserter(object->params),
+      [](const string &ps){ return make_shared<Symbol>(ps); });
+
+
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
@@ -82,7 +117,8 @@ size_t Parser::parseObject(size_t at)
     {
       if(isEqtn(lines[idx])) 
       {
-        Equation eqtn = parseEqtn(lines[idx]);
+        shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
+        object->eqtns.push_back(eqtn);
         cout << "e" << endl;
       }
       else cout << "." << endl; 
@@ -90,12 +126,14 @@ size_t Parser::parseObject(size_t at)
     ++idx; 
     if(idx >= lines.size()) break;
   }
-  return idx - at - 1;
+  lc = idx - at - 1;
+  return object;
 }
     
-size_t Parser::parseController(size_t at)
+shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 {
   cout << "Parsing Controller : `" << lines[at] << "`" << endl;
+  auto controller = make_shared<Controller>();
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
@@ -109,12 +147,14 @@ size_t Parser::parseController(size_t at)
     ++idx; 
     if(idx >= lines.size()) break;
   }
-  return idx - at - 1;
+  lc = idx - at - 1;
+  return controller;
 }
 
-size_t Parser::parseExperiment(size_t at)
+shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 {
   cout << "Parsing Experiment : `" << lines[at] << "`" << endl;
+  auto experiment = make_shared<Experiment>();
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
@@ -128,7 +168,8 @@ size_t Parser::parseExperiment(size_t at)
     ++idx; 
     if(idx >= lines.size()) break;
   }
-  return idx - at - 1;
+  lc = idx - at - 1;
+  return experiment;
 }
 
 bool Parser::isDecl(const string &s, DeclType &dt)
@@ -137,7 +178,10 @@ bool Parser::isDecl(const string &s, DeclType &dt)
          Controller{"Controller"},
          Experiment{"Experiment"};
 
-  if(s.compare(0, Object.length(), Object) == 0)
+  smatch sm;
+
+  //if(s.compare(0, Object.length(), Object) == 0)
+  if(regex_match(s, sm, objrx))
   {
     dt = DeclType::Object;
     return true;
@@ -180,13 +224,13 @@ bool Parser::isEqtn(const string &s)
   return regex_match(s, rx);
 }
 
-Equation Parser::parseEqtn(const string &s)
+shared_ptr<Equation> Parser::parseEqtn(const string &s)
 {
   regex rx{"(.*)=(.*)"};
   smatch sm;
   regex_match(s, sm, rx);
   
-  Equation eqtn;
+  auto eqtn = make_shared<Equation>();
   if(sm.size() != 3) throw runtime_error("disformed equation");
   string lhs = sm[1],
          rhs = sm[2];
@@ -197,8 +241,8 @@ Equation Parser::parseEqtn(const string &s)
 
   cout << "[eqtn]: " << lhs << "=" << rhs << endl;
 
-  eqtn.lhs = parseExpr(lhs);
-  eqtn.rhs = parseExpr(rhs);
+  eqtn->lhs = parseExpr(lhs);
+  eqtn->rhs = parseExpr(rhs);
 
   return eqtn;
 }
