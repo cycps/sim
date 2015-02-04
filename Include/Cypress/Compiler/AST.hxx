@@ -126,8 +126,11 @@ struct Object : public Decl
 
 struct Controller : public Decl
 {
+  std::shared_ptr<Symbol> name;
+  std::vector<std::shared_ptr<Symbol>> params;
   std::vector<std::shared_ptr<Equation>> eqtns;
   Kind kind() const override { return Kind::Controller; }
+  Controller(std::shared_ptr<Symbol> name) : name{name} {}
 };
 
 struct Experiment : public Decl
@@ -149,8 +152,9 @@ void showEqtn(std::ostream &, const Equation &);
 void showExpr(size_t indent, std::ostream &o, const Expression &expr);
   
 static std::regex objrx{"Object\\s*([a-zA-Z_]+)(\\(.*\\))"};
-static std::regex paramsrx{"\\(([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*)"
-                           "(?:,([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*))*\\)"};
+//static std::regex paramsrx{"\\(([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*)"
+//                           "(?:,([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*))*\\)"};
+static std::regex contrx{"Controller\\s*([a-zA-Z_]+)(\\(.*\\))"};
 
 }}
 

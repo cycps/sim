@@ -133,7 +133,17 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
 shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 {
   cout << "Parsing Controller : `" << lines[at] << "`" << endl;
-  auto controller = make_shared<Controller>();
+  smatch sm;
+  regex_match(lines[at], sm, contrx);
+  auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1]));
+
+  string _pstr = sm[2];
+  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
+  auto params = split(pstr, ',');
+
+  transform(params.begin(), params.end(), back_inserter(controller->params),
+      [](const string &ps){ return make_shared<Symbol>(ps); });
+
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 

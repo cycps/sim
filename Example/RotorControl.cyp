@@ -5,7 +5,7 @@ Object Rotor(H)
   a = τ - H*ω^2
   a = ω
 
-Controller RotorSpeedControler[ω](ωt) -> τ
+Controller RotorSpeedControler(ωt)
   a' = ωt - ω
   τ = a
 

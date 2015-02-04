@@ -41,6 +41,12 @@ ostream& cypress::compile::operator << (ostream &o, const Object &obj)
 
 ostream& cypress::compile::operator << (ostream &o, const Controller &controller)
 {
+  o << "name=" << controller.name->value << ", ";
+  o << "params={";
+  for(size_t i=0; i<controller.params.size()-1; ++i)
+    o << controller.params[i]->value << ",";
+  o << controller.params.back()->value << "}" << endl;
+
   o << "      [equation]" << endl;
   for(const shared_ptr<Equation> eqtn : controller.eqtns)
   {
