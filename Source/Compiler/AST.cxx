@@ -65,7 +65,9 @@ ostream& cypress::compile::operator << (ostream &o, const Experiment &expr)
   o << "      [components]" << endl;
   for(auto cp : expr.components)
     o << *cp;
-  o << "      [connections]" << endl;
+  o << "      [links]" << endl;
+  for(auto lk : expr.links)
+    o << *lk;
   return o;
 }
 
@@ -81,12 +83,28 @@ ostream& cypress::compile::operator << (ostream &o, const Component &cp)
   for(auto it = vparams.begin(); it != vparams.end()-1; ++it)
     o << it->first->value << ":" << it->second->value << ", ";
   o << vparams.back().first->value << ":" << vparams.back().second->value;
-    
 
   o << "}" << endl;
 
+  return o;
+}
 
-  
+ostream& cypress::compile::operator << (ostream &o, const Link &lnk)
+{
+  o << "      "
+    << lnk.from << " > " << lnk.to;
+
+  return o;
+}
+
+ostream& cypress::compile::operator << (ostream &o, const Linkable &lkb)
+{
+  switch(lkb.kind())
+  {
+    case Linkable::Kind::Thing:
+      o << static_cast<const Thing &>(lkb).name->value;
+      break;
+  }
   return o;
 }
 
@@ -97,7 +115,7 @@ void cypress::compile::showEqtn(ostream &o, const Equation &eqtn)
   showExpr(10, o, *eqtn.rhs);
 }
 
-void cypress::compile::showExpr(size_t indent, std::ostream &o, const Expression &expr)
+void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &expr)
 {
   const string I(indent, ' ');
   switch(expr.kind())

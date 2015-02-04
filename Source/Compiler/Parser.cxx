@@ -98,7 +98,7 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
 {
   cout << "Parsing Object : `" << lines[at] << "`" << endl;
   smatch sm;
-  regex_match(lines[at], sm, objrx);
+  regex_match(lines[at], sm, objrx());
   auto object = make_shared<Object>(make_shared<Symbol>(sm[1]));
 
   //Parse the parameters
@@ -136,7 +136,7 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 {
   cout << "Parsing Controller : `" << lines[at] << "`" << endl;
   smatch sm;
-  regex_match(lines[at], sm, contrx);
+  regex_match(lines[at], sm, contrx());
   auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1]));
 
   string _pstr = sm[2];
@@ -172,19 +172,26 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 {
   cout << "Parsing Experiment : `" << lines[at] << "`" << endl;
   smatch sm;
-  regex_match(lines[at], sm, exprx);
+  regex_match(lines[at], sm, exprx());
   auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1]));
   size_t idx = at+1;
+
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
     if(isEmpty(lines[idx])) cout << "o" << endl;
     else if(isComment(lines[idx])) cout << "/" << endl;
     else 
     {
-      if(regex_match(lines[idx], sm, comprx)) 
+      if(regex_match(lines[idx], sm, comprx())) 
       {
         shared_ptr<Component> cp = parseComponent(lines[idx]);
         experiment->components.push_back(cp);
+      }
+      else if(regex_match(lines[idx], sm, lnkrx()))
+      {
+        vector<shared_ptr<Link>> lnks = parseLinkStmt(lines[idx]);
+        experiment->links.insert(experiment->links.end(), lnks.begin(), lnks.end());
+        cout << "~" << endl;
       }
       else cout << "." << endl; 
     }
@@ -195,6 +202,45 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
   return experiment;
 }
 
+
+vector<shared_ptr<Link>> Parser::parseLinkStmt(const string &s)
+{
+  cout << "[link]: " << s << endl;
+  auto links = split(s, '>');
+  for(string &l : links)
+    l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
+
+  smatch sm;
+  for(size_t i=0; i<links.size()-1; ++i)
+  {
+    shared_ptr<Linkable> from, to;
+
+    if(regex_match(links[i], sm, thingrx()))
+      cout << "thing";
+    else if(regex_match(links[i], sm, subthingrx()))
+      cout << "subthing";
+    else if(regex_match(links[i], sm, atodrx()))
+      cout << "atod";
+    else
+      throw runtime_error{"disformed linkable : " + links[i]};
+
+    cout << " > ";
+    
+    if(regex_match(links[i+1], sm, thingrx()))
+      cout << "thing";
+    else if(regex_match(links[i+1], sm, subthingrx()))
+      cout << "subthing";
+    else if(regex_match(links[i+1], sm, atodrx()))
+      cout << "atod";
+    else
+      throw runtime_error{"disformed linkable" + links[i+1]};
+
+    cout << endl;
+  }
+
+  return {};
+}
+
 bool Parser::isDecl(const string &s, DeclType &dt)
 {
   string Object{"Object"}, 
@@ -203,9 +249,9 @@ bool Parser::isDecl(const string &s, DeclType &dt)
 
   smatch sm;
 
-  if(regex_match(s, sm, objrx)) { dt = DeclType::Object; return true; }
-  if(regex_match(s, sm, contrx)) { dt = DeclType::Controller; return true; }
-  if(regex_match(s, sm, exprx)) { dt = DeclType::Experiment; return true; }
+  if(regex_match(s, sm, objrx())) { dt = DeclType::Object; return true; }
+  if(regex_match(s, sm, contrx())) { dt = DeclType::Controller; return true; }
+  if(regex_match(s, sm, exprx())) { dt = DeclType::Experiment; return true; }
   
   return false;
 }
@@ -383,7 +429,7 @@ shared_ptr<Component> Parser::parseComponent(const string &s)
   cout << "[component]: " << s << endl;
 
   smatch sm;
-  regex_match(s, sm, comprx);
+  regex_match(s, sm, comprx());
   if(sm.size() < 3) throw runtime_error("disformed component instance");
   
   auto cp = make_shared<Component>(
