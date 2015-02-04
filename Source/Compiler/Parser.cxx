@@ -25,6 +25,8 @@ using std::back_inserter;
 using std::for_each;
 using std::remove_if;
 using std::transform;
+using std::stringstream;
+using std::getline;
 
 Parser::Parser(string source)
   : source{source}
@@ -169,7 +171,9 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 {
   cout << "Parsing Experiment : `" << lines[at] << "`" << endl;
-  auto experiment = make_shared<Experiment>();
+  smatch sm;
+  regex_match(lines[at], sm, exprx);
+  auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1]));
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
@@ -177,7 +181,11 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
     else if(isComment(lines[idx])) cout << "/" << endl;
     else 
     {
-      if(isEqtn(lines[idx])) cout << "e" << endl;
+      if(regex_match(lines[idx], sm, comprx)) 
+      {
+        shared_ptr<Component> cp = parseComponent(lines[idx]);
+        experiment->components.push_back(cp);
+      }
       else cout << "." << endl; 
     }
     ++idx; 
@@ -195,22 +203,9 @@ bool Parser::isDecl(const string &s, DeclType &dt)
 
   smatch sm;
 
-  //if(s.compare(0, Object.length(), Object) == 0)
-  if(regex_match(s, sm, objrx))
-  {
-    dt = DeclType::Object;
-    return true;
-  }
-  if(s.compare(0, Controller.length(), Controller) == 0)
-  {
-    dt = DeclType::Controller;
-    return true;
-  }
-  if(s.compare(0, Experiment.length(), Experiment) == 0)
-  {
-    dt = DeclType::Experiment;
-    return true;
-  }
+  if(regex_match(s, sm, objrx)) { dt = DeclType::Object; return true; }
+  if(regex_match(s, sm, contrx)) { dt = DeclType::Controller; return true; }
+  if(regex_match(s, sm, exprx)) { dt = DeclType::Experiment; return true; }
   
   return false;
 }
@@ -376,30 +371,56 @@ std::shared_ptr<Differentiate> Parser::parseDerivative(const std::string &s)
   return make_shared<Differentiate>(make_shared<Symbol>(s));
 }
     
-std::shared_ptr<Pow> Parser::parsePow(const std::string &lower, const std::string &upper)
+shared_ptr<Pow> Parser::parsePow(const string &lower, const string &upper)
 {
   cout << "[pow]: " << lower << "^" << upper << endl;
 
   return make_shared<Pow>(make_shared<Symbol>(lower), parseAtom(upper));
 }
 
-std::vector<std::string> &
-cypress::compile::split( const std::string &s, char delim, 
-    std::vector<std::string> &elems) 
+shared_ptr<Component> Parser::parseComponent(const string &s)
 {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
+  cout << "[component]: " << s << endl;
+
+  smatch sm;
+  regex_match(s, sm, comprx);
+  if(sm.size() < 3) throw runtime_error("disformed component instance");
+  
+  auto cp = make_shared<Component>(
+              make_shared<Symbol>(sm[1]),
+              make_shared<Symbol>(sm[2]));
+
+  string _pstr = sm[3];
+  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
+  auto params = split(pstr, ',');
+  for(const string &p : params)
+  {
+    auto ps = split(p, ':');
+    ps[0].erase(remove_if(ps[0].begin(), ps[0].end(), isspace), ps[0].end());
+    cp->params[make_shared<Symbol>(ps[0])] = make_shared<Real>(stod(ps[1]));
+  }
+
+
+  return cp;
+}
+
+vector<string> &
+cypress::compile::split( const string &s, char delim, 
+    vector<string> &elems) 
+{
+    stringstream ss(s);
+    string item;
+    while (getline(ss, item, delim)) {
         elems.push_back(item);
     }
     return elems;
 }
 
 
-std::vector<std::string> 
-cypress::compile::split(const std::string &s, char delim) 
+vector<string> 
+cypress::compile::split(const string &s, char delim) 
 {
-    std::vector<std::string> elems;
+    vector<string> elems;
     split(s, delim, elems);
     return elems;
 }

@@ -5,6 +5,8 @@ using std::endl;
 using std::shared_ptr;
 using std::string;
 using std::static_pointer_cast;
+using std::vector;
+using std::pair;
 
 ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
 {
@@ -18,6 +20,8 @@ ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
     o << "    " << *controller << endl;
 
   o << "  " << "[experiment]" << endl;
+  for(shared_ptr<Experiment> expr : decls.experiments)
+    o << "    " << *expr << endl;
   return o;
 }
 
@@ -52,6 +56,37 @@ ostream& cypress::compile::operator << (ostream &o, const Controller &controller
   {
     showEqtn(o, *eqtn);
   }
+  return o;
+}
+
+ostream& cypress::compile::operator << (ostream &o, const Experiment &expr)
+{
+  o << "name=" << expr.name->value << endl;
+  o << "      [components]" << endl;
+  for(auto cp : expr.components)
+    o << *cp;
+  o << "      [connections]" << endl;
+  return o;
+}
+
+ostream& cypress::compile::operator << (ostream &o, const Component &cp)
+{
+  o << "        "
+    << "kind=" << cp.kind->value << " name=" << cp.name->value << " prams={";
+
+  vector<pair<shared_ptr<Symbol>, shared_ptr<Real>>> vparams;
+  vparams.reserve(cp.params.size());
+
+  for(auto pr : cp.params) vparams.push_back(pr);
+  for(auto it = vparams.begin(); it != vparams.end()-1; ++it)
+    o << it->first->value << ":" << it->second->value << ", ";
+  o << vparams.back().first->value << ":" << vparams.back().second->value;
+    
+
+  o << "}" << endl;
+
+
+  
   return o;
 }
 

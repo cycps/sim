@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <regex>
+#include <unordered_map>
 
 namespace cypress { namespace compile {
 
@@ -133,9 +134,20 @@ struct Controller : public Decl
   Controller(std::shared_ptr<Symbol> name) : name{name} {}
 };
 
+struct Component
+{
+  std::shared_ptr<Symbol> kind, name;
+  std::unordered_map<std::shared_ptr<Symbol>, std::shared_ptr<Real>> params;
+  Component(std::shared_ptr<Symbol> kind, std::shared_ptr<Symbol> name)
+    : kind{kind}, name{name} {}
+};
+
 struct Experiment : public Decl
 {
+  std::shared_ptr<Symbol> name;
+  std::vector<std::shared_ptr<Component>> components;
   Kind kind() const override { return Kind::Experiment; }
+  Experiment(std::shared_ptr<Symbol> name) : name{name} {}
 };
 
 struct Decls
@@ -148,13 +160,15 @@ struct Decls
 std::ostream& operator << (std::ostream &o, const Decls &d);
 std::ostream& operator << (std::ostream &o, const Object &obj);
 std::ostream& operator << (std::ostream &o, const Controller &controller);
+std::ostream& operator << (std::ostream &o, const Experiment &expr);
+std::ostream& operator << (std::ostream &o, const Component &cp);
 void showEqtn(std::ostream &, const Equation &);
 void showExpr(size_t indent, std::ostream &o, const Expression &expr);
   
-static std::regex objrx{"Object\\s*([a-zA-Z_]+)(\\(.*\\))"};
-//static std::regex paramsrx{"\\(([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*)"
-//                           "(?:,([a-zA-Zα-ωΑ-Ω_][a-zA-Zα-ωΑ-Ω_0-9_]*))*\\)"};
-static std::regex contrx{"Controller\\s*([a-zA-Z_]+)(\\(.*\\))"};
+static std::regex objrx{"Object\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))"};
+static std::regex contrx{"Controller\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))"};
+static std::regex exprx{"Experiment\\s+([a-zA-Z_][a-zA-Z0-9_]*)"};
+static std::regex comprx{"\\s\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))*"};
 
 }}
 

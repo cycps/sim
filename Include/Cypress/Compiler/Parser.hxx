@@ -41,6 +41,8 @@ class Parser
     std::shared_ptr<Atom> parseAtom(const std::string &);
     std::shared_ptr<Differentiate> parseDerivative(const std::string &);
     std::shared_ptr<Pow> parsePow(const std::string &, const std::string &);
+
+    std::shared_ptr<Component> parseComponent(const std::string &);
 };
 
 std::vector<std::string> &
