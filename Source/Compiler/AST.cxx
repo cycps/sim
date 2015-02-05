@@ -182,6 +182,7 @@ void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &exp
   }
 }
 
+/*
 set<shared_ptr<Symbol>, SymbolCompare> Object::vars()
 {
   set<shared_ptr<Symbol>, SymbolCompare> vs;
@@ -193,3 +194,4 @@ set<shared_ptr<Symbol>, SymbolCompare> Object::vars()
 
   return vs;
 }
+*/

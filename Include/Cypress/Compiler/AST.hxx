@@ -32,35 +32,35 @@ struct SubExpression;
 
 struct Visitor
 {
-  virtual void visit(Equation*) {}
-  virtual void leave(Equation*) {}
+  virtual void visit(std::shared_ptr<Equation>) {}
+  virtual void leave(std::shared_ptr<Equation>) {}
 
-  virtual void visit(Add*) {}
-  virtual void leave(Add*) {}
+  virtual void visit(std::shared_ptr<Add>) {}
+  virtual void leave(std::shared_ptr<Add>) {}
 
-  virtual void visit(Subtract*) {}
-  virtual void leave(Subtract*) {}
+  virtual void visit(std::shared_ptr<Subtract>) {}
+  virtual void leave(std::shared_ptr<Subtract>) {}
 
-  virtual void visit(Multiply*) {}
-  virtual void leave(Multiply*) {}
+  virtual void visit(std::shared_ptr<Multiply>) {}
+  virtual void leave(std::shared_ptr<Multiply>) {}
 
-  virtual void visit(Divide*) {}
-  virtual void leave(Divide*) {}
+  virtual void visit(std::shared_ptr<Divide>) {}
+  virtual void leave(std::shared_ptr<Divide>) {}
 
-  virtual void visit(Pow*) {}
-  virtual void leave(Pow*) {}
+  virtual void visit(std::shared_ptr<Pow>) {}
+  virtual void leave(std::shared_ptr<Pow>) {}
 
-  virtual void visit(Differentiate*) {}
-  virtual void leave(Differentiate*) {}
+  virtual void visit(std::shared_ptr<Differentiate>) {}
+  virtual void leave(std::shared_ptr<Differentiate>) {}
 
-  virtual void visit(Symbol*) {}
-  virtual void leave(Symbol*) {}
+  virtual void visit(std::shared_ptr<Symbol>) {}
+  virtual void leave(std::shared_ptr<Symbol>) {}
   
-  virtual void visit(Real*) {}
-  virtual void leave(Real*) {}
+  virtual void visit(std::shared_ptr<Real>) {}
+  virtual void leave(std::shared_ptr<Real>) {}
   
-  virtual void visit(SubExpression*) {}
-  virtual void leave(SubExpression*) {}
+  virtual void visit(std::shared_ptr<SubExpression>) {}
+  virtual void leave(std::shared_ptr<SubExpression>) {}
 };
 
 struct Expression : public ASTNode
@@ -87,29 +87,29 @@ struct GroupOp : public Expression
     : lhs{lhs}, rhs{rhs} {}
 };
 
-struct Add : public GroupOp 
+struct Add : public GroupOp, public std::enable_shared_from_this<Add> 
 { 
   Kind kind() const{ return Kind::Add; } 
   using GroupOp::GroupOp;
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
-struct Subtract : public GroupOp 
+struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
 {
   Kind kind() const{ return Kind::Subtract; }
   using GroupOp::GroupOp;
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
@@ -123,35 +123,35 @@ struct RingOp : public Term
     : lhs{lhs}, rhs{rhs} {}
 };
 
-struct Multiply : public RingOp
+struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
 {
   Kind kind() const{ return Kind::Multiply; }
   using RingOp::RingOp;
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
-struct Divide : public RingOp
+struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
 {
   Kind kind() const{ return Kind::Divide; }
   using RingOp::RingOp;
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
 struct Atom : public Factor {};
 
-struct Pow : public Factor
+struct Pow : public Factor, public std::enable_shared_from_this<Pow>
 {
   std::shared_ptr<Atom> lhs, rhs;
   Kind kind() const{ return Kind::Pow; }
@@ -160,22 +160,22 @@ struct Pow : public Factor
   
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
-struct Symbol : public Atom
+struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
 {
   std::string value;
   Kind kind() const{ return Kind::Symbol; }
   Symbol(std::string value) : value{value} {}
   void accept(Visitor &v) override
   {
-    v.visit(this);
-    v.leave(this);
+    v.visit(shared_from_this());
+    v.leave(shared_from_this());
   }
 };
 
@@ -188,40 +188,42 @@ struct SymbolCompare
   }
 };
 
-struct Differentiate : public Factor
+struct Differentiate : public Factor, 
+                       public std::enable_shared_from_this<Differentiate>
 {
   std::shared_ptr<Symbol> arg;
   Kind kind() const{ return Kind::Differentiate; }
   Differentiate(std::shared_ptr<Symbol> arg) : arg{arg} {}
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     arg->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
-struct Real : public Atom
+struct Real : public Atom, public std::enable_shared_from_this<Real>
 {
   double value;
   Kind kind() const{ return Kind::Real; }
   Real(double value) : value{value} {}
   void accept(Visitor &v) override
   {
-    v.visit(this);
-    v.leave(this);
+    v.visit(shared_from_this());
+    v.leave(shared_from_this());
   }
 };
 
-struct SubExpression : public Atom
+struct SubExpression : public Atom, 
+                       public std::enable_shared_from_this<SubExpression>
 {
   std::shared_ptr<Expression> value;
   Kind kind() const{ return Kind::SubExpression; }
   void accept(Visitor &v) override
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     //TODO
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
@@ -231,16 +233,16 @@ struct Decl
   virtual Kind kind() const = 0;
 };
 
-struct Equation : public ASTNode
+struct Equation : public ASTNode, public std::enable_shared_from_this<Equation>
 {
   std::shared_ptr<Expression> lhs, rhs;
 
   void accept(Visitor &v) 
   {
-    v.visit(this);
+    v.visit(shared_from_this());
     lhs->accept(v);
     rhs->accept(v);
-    v.leave(this);
+    v.leave(shared_from_this());
   }
 };
 
@@ -251,7 +253,7 @@ struct Object : public Decl
   std::vector<std::shared_ptr<Equation>> eqtns; 
   Kind kind() const override { return Kind::Object; }
   Object(std::shared_ptr<Symbol> name) : name{name} {}
-  std::set<std::shared_ptr<Symbol>, SymbolCompare> vars();
+  //std::set<std::shared_ptr<Symbol>, SymbolCompare> vars();
 };
 
 struct Controller : public Decl
