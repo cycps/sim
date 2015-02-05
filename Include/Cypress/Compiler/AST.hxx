@@ -179,12 +179,21 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
   }
 };
 
-struct SymbolCompare
+struct SymbolHash
 {
-  bool operator()(const std::shared_ptr<Symbol> a, 
-      const std::shared_ptr<Symbol> b)
+  static const std::hash<std::string> hsh;
+  size_t operator()(std::shared_ptr<Symbol> a)
   {
-    return a->value == b->value;
+    return hsh(a->value);
+  }
+};
+
+struct SymbolEq
+{
+  SymbolHash sh{};
+  bool operator()(std::shared_ptr<Symbol> a, std::shared_ptr<Symbol> b)
+  {
+    return sh(a) == sh(b);
   }
 };
 

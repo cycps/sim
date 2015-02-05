@@ -15,7 +15,7 @@ class Parser
 {
   public:
     explicit Parser(std::string source);
-    void run();
+    std::shared_ptr<Decls> run();
 
     std::vector<std::shared_ptr<Object>> objects;
 

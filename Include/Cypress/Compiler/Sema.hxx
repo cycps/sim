@@ -2,14 +2,19 @@
 #define CYPRESS_COMPILE_SEMA
 
 #include "AST.hxx"
-#include <set>
+#include <unordered_set>
+#include <vector>
+
+using std::vector;
+using std::shared_ptr;
 
 namespace cypress { namespace compile {
 
 struct VarCollector : public Visitor
 {
-  std::set<std::shared_ptr<Symbol>, SymbolCompare> vars;
-  void visit(std::shared_ptr<Symbol>) override;
+  std::unordered_set<std::shared_ptr<Symbol>, SymbolHash, SymbolEq> vars;
+  //vector<shared_ptr<Symbol>> vars;
+  void visit(shared_ptr<Symbol>) override;
 };
 
 }}

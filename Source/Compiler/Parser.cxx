@@ -32,7 +32,7 @@ Parser::Parser(string source)
   : source{source}
 {}
 
-void Parser::run()
+std::shared_ptr<Decls> Parser::run()
 {
   split(source, '\n', lines);
   auto decls = make_shared<Decls>();
@@ -55,6 +55,7 @@ void Parser::run()
   }
 
   cout << *decls;
+  return decls;
 }
 
 size_t Parser::parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls)

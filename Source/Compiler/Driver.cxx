@@ -1,4 +1,5 @@
 #include "Cypress/Compiler/Driver.hxx"
+#include "Cypress/Compiler/Sema.hxx"
 
 #include <boost/exception/info.hpp>
 #include <iostream>
@@ -68,7 +69,13 @@ void Driver::compileInputFiles()
     cout << "Compiling '" << inf << "'" << endl;
     string inp = readSource(inf);
     Parser p(inp);
-    p.run();
+    auto decls = p.run();
+    
+    VarCollector vc;
+    decls->objects[0]->eqtns[1]->accept(vc);
+    cout << "vars:" << endl;
+    for(auto v : vc.vars)
+      cout << "`" << v->value << "` : " << std::hash<string>{}(v->value) << endl;
   }
 }
 
