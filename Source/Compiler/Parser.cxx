@@ -210,35 +210,59 @@ vector<shared_ptr<Link>> Parser::parseLinkStmt(const string &s)
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
 
+  vector<shared_ptr<Link>> lnks;
   smatch sm;
   for(size_t i=0; i<links.size()-1; ++i)
   {
     shared_ptr<Linkable> from, to;
 
     if(regex_match(links[i], sm, thingrx()))
+    {
+      from = make_shared<Thing>(make_shared<Symbol>(sm[1]));
       cout << "thing";
+    }
     else if(regex_match(links[i], sm, subthingrx()))
+    {
+      from = make_shared<SubThing>(
+          make_shared<Symbol>(sm[1]),
+          make_shared<Symbol>(sm[2]));
       cout << "subthing";
+    }
     else if(regex_match(links[i], sm, atodrx()))
+    {
+      from = make_shared<AtoD>(stod(sm[1]));
       cout << "atod";
+    }
     else
       throw runtime_error{"disformed linkable : " + links[i]};
 
     cout << " > ";
     
     if(regex_match(links[i+1], sm, thingrx()))
+    {
+      to = make_shared<Thing>(make_shared<Symbol>(sm[1]));
       cout << "thing";
+    }
     else if(regex_match(links[i+1], sm, subthingrx()))
+    {
+      to = make_shared<SubThing>(
+          make_shared<Symbol>(sm[1]),
+          make_shared<Symbol>(sm[2]));
       cout << "subthing";
+    }
     else if(regex_match(links[i+1], sm, atodrx()))
+    {
+      to = make_shared<AtoD>(stod(sm[1]));
       cout << "atod";
+    }
     else
       throw runtime_error{"disformed linkable" + links[i+1]};
 
+    lnks.push_back(make_shared<Link>(from, to));
     cout << endl;
   }
 
-  return {};
+  return lnks;
 }
 
 bool Parser::isDecl(const string &s, DeclType &dt)

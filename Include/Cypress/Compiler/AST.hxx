@@ -173,6 +173,8 @@ struct AtoD : public Linkable
 struct Link
 {
   std::shared_ptr<Linkable> from, to;  
+  Link(std::shared_ptr<Linkable> from, std::shared_ptr<Linkable> to)
+    : from{from}, to{to} {}
 };
 
 struct Experiment : public Decl

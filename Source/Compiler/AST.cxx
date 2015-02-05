@@ -91,8 +91,8 @@ ostream& cypress::compile::operator << (ostream &o, const Component &cp)
 
 ostream& cypress::compile::operator << (ostream &o, const Link &lnk)
 {
-  o << "      "
-    << lnk.from << " > " << lnk.to;
+  o << "        "
+    << *lnk.from << " > " << *lnk.to << endl;
 
   return o;
 }
@@ -103,6 +103,14 @@ ostream& cypress::compile::operator << (ostream &o, const Linkable &lkb)
   {
     case Linkable::Kind::Thing:
       o << static_cast<const Thing &>(lkb).name->value;
+      break;
+    case Linkable::Kind::SubThing:
+      o << static_cast<const SubThing &>(lkb).name->value
+        << "."
+        << static_cast<const SubThing &>(lkb).subname->value;
+      break;
+    case Linkable::Kind::AtoD:
+      o << "|" << static_cast<const AtoD &>(lkb).rate << "|";
       break;
   }
   return o;
