@@ -63,10 +63,9 @@ void Driver::compileInputFiles()
 {
   auto input_files = opt_vmap["input-file"].as<vector<string>>();
 
-  cout << "Compiling ..." << endl;
   for(const auto& inf : input_files)
   {
-    cout << inf << endl;
+    cout << "Compiling '" << inf << "'" << endl;
     string inp = readSource(inf);
     Parser p(inp);
     p.run();

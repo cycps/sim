@@ -1,5 +1,8 @@
 #include "Cypress/Compiler/AST.hxx"
 
+#include <set>
+#include <algorithm>
+
 using std::ostream;
 using std::endl;
 using std::shared_ptr;
@@ -7,6 +10,12 @@ using std::string;
 using std::static_pointer_cast;
 using std::vector;
 using std::pair;
+using std::back_inserter;
+using std::copy;
+using std::set;
+
+using namespace cypress;
+using namespace cypress::compile;
 
 ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
 {
@@ -173,3 +182,14 @@ void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &exp
   }
 }
 
+set<shared_ptr<Symbol>, SymbolCompare> Object::vars()
+{
+  set<shared_ptr<Symbol>, SymbolCompare> vs;
+
+  for(const shared_ptr<Equation> eq : eqtns)
+  {
+    //TODO: Need to make generic visitor    
+  }
+
+  return vs;
+}

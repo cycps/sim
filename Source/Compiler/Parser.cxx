@@ -54,7 +54,7 @@ void Parser::run()
     }
   }
 
-  cout << *decls << endl;
+  cout << *decls;
 }
 
 size_t Parser::parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls)
@@ -96,7 +96,6 @@ LineType Parser::classifyLine(const std::string &s, DeclType &dt)
 
 shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
 {
-  cout << "Parsing Object : `" << lines[at] << "`" << endl;
   smatch sm;
   regex_match(lines[at], sm, objrx());
   auto object = make_shared<Object>(make_shared<Symbol>(sm[1]));
@@ -113,17 +112,15 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
-    if(isEmpty(lines[idx])) cout << "o" << endl;
-    else if(isComment(lines[idx])) cout << "/" << endl;
+    if(isEmpty(lines[idx])) {}
+    else if(isComment(lines[idx])) {}
     else 
     {
       if(isEqtn(lines[idx])) 
       {
         shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
         object->eqtns.push_back(eqtn);
-        cout << "e" << endl;
       }
-      else cout << "." << endl; 
     }
     ++idx; 
     if(idx >= lines.size()) break;
@@ -134,7 +131,6 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
     
 shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 {
-  cout << "Parsing Controller : `" << lines[at] << "`" << endl;
   smatch sm;
   regex_match(lines[at], sm, contrx());
   auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1]));
@@ -149,17 +145,15 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
   size_t idx = at+1;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
-    if(isEmpty(lines[idx])) cout << "o" << endl;
-    else if(isComment(lines[idx])) cout << "/" << endl;
+    if(isEmpty(lines[idx])) {}
+    else if(isComment(lines[idx])) {}
     else 
     {
       if(isEqtn(lines[idx])) 
       {
         shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
         controller->eqtns.push_back(eqtn);
-        cout << "e" << endl;
       }
-      else cout << "." << endl; 
     }
     ++idx; 
     if(idx >= lines.size()) break;
@@ -170,7 +164,6 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
 
 shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 {
-  cout << "Parsing Experiment : `" << lines[at] << "`" << endl;
   smatch sm;
   regex_match(lines[at], sm, exprx());
   auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1]));
@@ -178,8 +171,8 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
-    if(isEmpty(lines[idx])) cout << "o" << endl;
-    else if(isComment(lines[idx])) cout << "/" << endl;
+    if(isEmpty(lines[idx])) {}
+    else if(isComment(lines[idx])) {}
     else 
     {
       if(regex_match(lines[idx], sm, comprx())) 
@@ -191,9 +184,7 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
       {
         vector<shared_ptr<Link>> lnks = parseLinkStmt(lines[idx]);
         experiment->links.insert(experiment->links.end(), lnks.begin(), lnks.end());
-        cout << "~" << endl;
       }
-      else cout << "." << endl; 
     }
     ++idx; 
     if(idx >= lines.size()) break;
@@ -205,7 +196,6 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 
 vector<shared_ptr<Link>> Parser::parseLinkStmt(const string &s)
 {
-  cout << "[link]: " << s << endl;
   auto links = split(s, '>');
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
@@ -219,47 +209,39 @@ vector<shared_ptr<Link>> Parser::parseLinkStmt(const string &s)
     if(regex_match(links[i], sm, thingrx()))
     {
       from = make_shared<Thing>(make_shared<Symbol>(sm[1]));
-      cout << "thing";
     }
     else if(regex_match(links[i], sm, subthingrx()))
     {
       from = make_shared<SubThing>(
           make_shared<Symbol>(sm[1]),
           make_shared<Symbol>(sm[2]));
-      cout << "subthing";
     }
     else if(regex_match(links[i], sm, atodrx()))
     {
       from = make_shared<AtoD>(stod(sm[1]));
-      cout << "atod";
     }
     else
       throw runtime_error{"disformed linkable : " + links[i]};
 
-    cout << " > ";
     
     if(regex_match(links[i+1], sm, thingrx()))
     {
       to = make_shared<Thing>(make_shared<Symbol>(sm[1]));
-      cout << "thing";
     }
     else if(regex_match(links[i+1], sm, subthingrx()))
     {
       to = make_shared<SubThing>(
           make_shared<Symbol>(sm[1]),
           make_shared<Symbol>(sm[2]));
-      cout << "subthing";
     }
     else if(regex_match(links[i+1], sm, atodrx()))
     {
       to = make_shared<AtoD>(stod(sm[1]));
-      cout << "atod";
     }
     else
       throw runtime_error{"disformed linkable" + links[i+1]};
 
     lnks.push_back(make_shared<Link>(from, to));
-    cout << endl;
   }
 
   return lnks;
@@ -319,8 +301,6 @@ shared_ptr<Equation> Parser::parseEqtn(const string &s)
   lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
   rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
 
-  cout << "[eqtn]: " << lhs << "=" << rhs << endl;
-
   eqtn->lhs = parseExpr(lhs);
   eqtn->rhs = parseExpr(rhs);
 
@@ -329,7 +309,6 @@ shared_ptr<Equation> Parser::parseEqtn(const string &s)
     
 shared_ptr<Expression> Parser::parseExpr(const std::string &s)
 {
-  cout << "[expr]: " << s << endl;
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
@@ -359,8 +338,6 @@ shared_ptr<Expression> Parser::parseExpr(const std::string &s)
     
 std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
 {
-  cout << "[term]: " << s << endl;
-
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9'\\^ ]+)(?:([\\*/])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
@@ -388,7 +365,6 @@ std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
     
 std::shared_ptr<Factor> Parser::parseFactor(const std::string &s)
 {
-  cout << "[fact]: " << s << endl;
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9]+)(?:(['\\^])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
@@ -416,18 +392,14 @@ std::shared_ptr<Factor> Parser::parseFactor(const std::string &s)
     
 std::shared_ptr<Atom> Parser::parseAtom(const std::string &s)
 {
-  cout << "[atom]: " << s << endl;
-
   double value{0}; 
   try
   { 
     value = stod(s); 
-    cout << "[real]: " << s << endl;
     return make_shared<Real>(value);
   }
   catch(const invalid_argument &e)
   {
-    cout << "[symb]: " << s << endl;
     return make_shared<Symbol>(s);
   }
 
@@ -436,22 +408,16 @@ std::shared_ptr<Atom> Parser::parseAtom(const std::string &s)
     
 std::shared_ptr<Differentiate> Parser::parseDerivative(const std::string &s)
 {
-  cout << "[der]: " << s << endl;
-
   return make_shared<Differentiate>(make_shared<Symbol>(s));
 }
     
 shared_ptr<Pow> Parser::parsePow(const string &lower, const string &upper)
 {
-  cout << "[pow]: " << lower << "^" << upper << endl;
-
   return make_shared<Pow>(make_shared<Symbol>(lower), parseAtom(upper));
 }
 
 shared_ptr<Component> Parser::parseComponent(const string &s)
 {
-  cout << "[component]: " << s << endl;
-
   smatch sm;
   regex_match(s, sm, comprx());
   if(sm.size() < 3) throw runtime_error("disformed component instance");
