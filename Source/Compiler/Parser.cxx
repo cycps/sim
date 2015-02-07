@@ -54,7 +54,7 @@ std::shared_ptr<Decls> Parser::run()
     }
   }
 
-  cout << *decls;
+  //cout << *decls;
   return decls;
 }
 

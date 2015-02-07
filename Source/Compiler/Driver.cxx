@@ -12,6 +12,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
+using std::shared_ptr;
 
 Driver::Driver(int argc, char **argv)
 {
@@ -76,6 +77,17 @@ void Driver::compileInputFiles()
     for(shared_ptr<Object> obj : decls->objects)
     {
       for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(vc);
+    }
+
+    EqtnPrinter eqp;
+
+    for(shared_ptr<Object> obj : decls->objects)
+    {
+      for(shared_ptr<Equation> eqtn : obj->eqtns) 
+      {
+        eqtn->accept(eqp);
+        cout << endl;
+      }
     }
 
     cout << "vars:" << endl;

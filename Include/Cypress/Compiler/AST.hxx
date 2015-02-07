@@ -33,33 +33,43 @@ struct SubExpression;
 struct Visitor
 {
   virtual void visit(std::shared_ptr<Equation>) {}
+  virtual void in(std::shared_ptr<Equation>) {}
   virtual void leave(std::shared_ptr<Equation>) {}
 
   virtual void visit(std::shared_ptr<Add>) {}
+  virtual void in(std::shared_ptr<Add>) {}
   virtual void leave(std::shared_ptr<Add>) {}
 
   virtual void visit(std::shared_ptr<Subtract>) {}
+  virtual void in(std::shared_ptr<Subtract>) {}
   virtual void leave(std::shared_ptr<Subtract>) {}
 
   virtual void visit(std::shared_ptr<Multiply>) {}
+  virtual void in(std::shared_ptr<Multiply>) {}
   virtual void leave(std::shared_ptr<Multiply>) {}
 
   virtual void visit(std::shared_ptr<Divide>) {}
+  virtual void in(std::shared_ptr<Divide>) {}
   virtual void leave(std::shared_ptr<Divide>) {}
 
   virtual void visit(std::shared_ptr<Pow>) {}
+  virtual void in(std::shared_ptr<Pow>) {}
   virtual void leave(std::shared_ptr<Pow>) {}
 
   virtual void visit(std::shared_ptr<Differentiate>) {}
+  virtual void in(std::shared_ptr<Differentiate>) {}
   virtual void leave(std::shared_ptr<Differentiate>) {}
 
   virtual void visit(std::shared_ptr<Symbol>) {}
+  virtual void in(std::shared_ptr<Symbol>) {}
   virtual void leave(std::shared_ptr<Symbol>) {}
   
   virtual void visit(std::shared_ptr<Real>) {}
+  virtual void in(std::shared_ptr<Real>) {}
   virtual void leave(std::shared_ptr<Real>) {}
   
   virtual void visit(std::shared_ptr<SubExpression>) {}
+  virtual void in(std::shared_ptr<SubExpression>) {}
   virtual void leave(std::shared_ptr<SubExpression>) {}
 };
 
@@ -95,6 +105,7 @@ struct Add : public GroupOp, public std::enable_shared_from_this<Add>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
@@ -108,6 +119,7 @@ struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
@@ -131,6 +143,7 @@ struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
@@ -144,6 +157,7 @@ struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
@@ -162,6 +176,7 @@ struct Pow : public Factor, public std::enable_shared_from_this<Pow>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
@@ -175,6 +190,7 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
   void accept(Visitor &v) override
   {
     v.visit(shared_from_this());
+    v.in(shared_from_this());
     v.leave(shared_from_this());
   }
 };
@@ -207,6 +223,7 @@ struct Differentiate : public Factor,
   {
     v.visit(shared_from_this());
     arg->accept(v);
+    v.in(shared_from_this());
     v.leave(shared_from_this());
   }
 };
@@ -219,6 +236,7 @@ struct Real : public Atom, public std::enable_shared_from_this<Real>
   void accept(Visitor &v) override
   {
     v.visit(shared_from_this());
+    v.in(shared_from_this());
     v.leave(shared_from_this());
   }
 };
@@ -231,6 +249,7 @@ struct SubExpression : public Atom,
   void accept(Visitor &v) override
   {
     v.visit(shared_from_this());
+    v.in(shared_from_this());
     //TODO
     v.leave(shared_from_this());
   }
@@ -250,6 +269,7 @@ struct Equation : public ASTNode, public std::enable_shared_from_this<Equation>
   {
     v.visit(shared_from_this());
     lhs->accept(v);
+    v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
   }
