@@ -72,10 +72,20 @@ void Driver::compileInputFiles()
     auto decls = p.run();
     
     VarCollector vc;
-    decls->objects[0]->eqtns[1]->accept(vc);
+
+    for(shared_ptr<Object> obj : decls->objects)
+    {
+      for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(vc);
+    }
+
     cout << "vars:" << endl;
     for(auto v : vc.vars)
-      cout << "`" << v->value << "` : " << std::hash<string>{}(v->value) << endl;
+      cout << v->value << endl;
+    cout << endl;
+
+    cout << "derivs:" << endl;
+    for(auto d : vc.derivs)
+      cout << d->value << endl;
   }
 }
 

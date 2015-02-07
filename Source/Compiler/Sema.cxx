@@ -7,6 +7,16 @@ using std::shared_ptr;
 
 void VarCollector::visit(shared_ptr<Symbol> s)
 {
-   vars.insert(s); 
-   //vars.push_back(s);
+   if(!dblock) vars.insert(s); 
+}
+
+void VarCollector::leave(shared_ptr<Differentiate> s)
+{
+  dblock = false;
+}
+
+void VarCollector::visit(shared_ptr<Differentiate> s)
+{
+  derivs.insert(s->arg);
+  dblock = true;
 }

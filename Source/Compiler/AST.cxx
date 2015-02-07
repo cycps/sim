@@ -181,17 +181,3 @@ void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &exp
                                    << endl; break;
   }
 }
-
-/*
-set<shared_ptr<Symbol>, SymbolCompare> Object::vars()
-{
-  set<shared_ptr<Symbol>, SymbolCompare> vs;
-
-  for(const shared_ptr<Equation> eq : eqtns)
-  {
-    //TODO: Need to make generic visitor    
-  }
-
-  return vs;
-}
-*/
