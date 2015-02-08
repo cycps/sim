@@ -86,18 +86,24 @@ void Driver::compileInputFiles()
 
     cout << endl;
     cout << "vars:" << endl;
-    for(auto v : vc.vars)
-      cout << v->value << endl;
+
+    for(auto p : vc.vars)
+      for(auto v : p.second)
+        cout << p.first->name->value << "." << v->value << endl;
+
     cout << endl;
 
     cout << "derivs:" << endl;
-    for(auto d : vc.derivs)
-      cout << d->value << endl;
+    for(auto p : vc.derivs)
+      for(auto d : p.second)
+        cout << p.first->name->value << "." << d->value << endl;
     cout << endl;
 
     cout << "unknowns: " << vc.vars.size() + vc.derivs.size() << endl;
 
     cout << endl;
+    
+    //TODO: You are here, need to qualify eqtns for use in global ctx
 
     EqtnPrinter eqp;
     for(shared_ptr<Object> obj : decls->objects)
@@ -105,19 +111,24 @@ void Driver::compileInputFiles()
       for(shared_ptr<Equation> eqtn : obj->eqtns) 
       {
         setToZero(eqtn);
-        eqtn->accept(eqp);
-        cout << endl;
+        //eqtn->accept(eqp);
+        //cout << endl;
       }
+      eqp.run(obj, true);
+      cout << endl;
     }
     
     for(shared_ptr<Controller> ct : decls->controllers)
     {
+      //qualifyEqtns(ct);
       for(shared_ptr<Equation> eqtn : ct->eqtns) 
       {
         setToZero(eqtn);
-        eqtn->accept(eqp);
-        cout << endl;
+        //eqtn->accept(eqp);
+        //cout << endl;
       }
+      eqp.run(ct, true);
+      cout << endl;
     }
 
   }

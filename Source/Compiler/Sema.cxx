@@ -20,7 +20,7 @@ void VarCollector::visit(shared_ptr<Symbol> s)
          != elem->params.end())
      return;
 
-   vars.insert(s); 
+   vars[elem].insert(s); 
 }
 
 void VarCollector::leave(shared_ptr<Differentiate> s)
@@ -30,11 +30,23 @@ void VarCollector::leave(shared_ptr<Differentiate> s)
 
 void VarCollector::visit(shared_ptr<Differentiate> s)
 {
-  derivs.insert(s->arg);
+  //TODO dupcheck?
+  derivs[elem].insert(s->arg);
   dblock = true;
 }
 
 // Eqtn Printer ---------------------------------------------------------------
+void EqtnPrinter::run(shared_ptr<Element> e, bool qualified)
+{
+  elem = e;
+  this->qualified = qualified;
+  for(shared_ptr<Equation> eqtn : elem->eqtns) 
+  {
+    eqtn->accept(*this);
+    std::cout << std::endl;
+  }
+}
+
 void EqtnPrinter::in(shared_ptr<Equation> ep)
 {
   std::cout << " = ";
@@ -61,6 +73,8 @@ void EqtnPrinter::in(shared_ptr<Divide> dp)
 
 void EqtnPrinter::in(shared_ptr<Symbol> sp)
 {
+  if(qualified)
+    std::cout << elem->name->value << ".";
   std::cout << sp->value;
 }
 
@@ -88,3 +102,4 @@ void EqtnPrinter::leave(shared_ptr<SubExpression> sp)
 {
   std::cout << ") ";
 }
+

@@ -16,3 +16,8 @@ shared_ptr<Equation> cypress::setToZero(shared_ptr<Equation> eq)
   eq->rhs = new_rhs;
   return eq;
 }
+
+shared_ptr<Element> cypress::qualifyEqtns(shared_ptr<Element> e)
+{
+  return e;
+}
