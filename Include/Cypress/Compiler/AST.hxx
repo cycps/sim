@@ -91,9 +91,9 @@ struct Term : public Expression {};
 
 struct GroupOp : public Expression 
 { 
-  std::shared_ptr<Term> lhs;
-  std::shared_ptr<Expression> rhs;
-  GroupOp(std::shared_ptr<Term> lhs, std::shared_ptr<Expression> rhs) 
+  std::shared_ptr<Expression> lhs, rhs;
+  //std::shared_ptr<Expression> rhs;
+  GroupOp(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs) 
     : lhs{lhs}, rhs{rhs} {}
 };
 
@@ -245,12 +245,13 @@ struct SubExpression : public Atom,
                        public std::enable_shared_from_this<SubExpression>
 {
   std::shared_ptr<Expression> value;
+  SubExpression(std::shared_ptr<Expression> value) : value{value} {}
   Kind kind() const{ return Kind::SubExpression; }
   void accept(Visitor &v) override
   {
     v.visit(shared_from_this());
+    value->accept(v);
     v.in(shared_from_this());
-    //TODO
     v.leave(shared_from_this());
   }
 };
@@ -282,7 +283,6 @@ struct Object : public Decl
   std::vector<std::shared_ptr<Equation>> eqtns; 
   Kind kind() const override { return Kind::Object; }
   Object(std::shared_ptr<Symbol> name) : name{name} {}
-  //std::set<std::shared_ptr<Symbol>, SymbolCompare> vars();
 };
 
 struct Controller : public Decl

@@ -1,5 +1,6 @@
 #include "Cypress/Compiler/Driver.hxx"
 #include "Cypress/Compiler/Sema.hxx"
+#include "Cypress/Core/Eqtn.hxx"
 
 #include <boost/exception/info.hpp>
 #include <iostream>
@@ -71,16 +72,32 @@ void Driver::compileInputFiles()
     string inp = readSource(inf);
     Parser p(inp);
     auto decls = p.run();
-    
-    VarCollector vc;
 
     for(shared_ptr<Object> obj : decls->objects)
     {
-      for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(vc);
+      for(shared_ptr<Equation> eqtn : obj->eqtns) setToZero(eqtn);
+    }
+    
+    for(shared_ptr<Object> obj : decls->objects)
+    {
+      VarCollector vc{obj};
+      vc.run();
+      //for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(vc);
+
+      cout << endl;
+      cout << "vars:" << endl;
+      for(auto v : vc.vars)
+        cout << v->value << endl;
+      cout << endl;
+
+      cout << "derivs:" << endl;
+      for(auto d : vc.derivs)
+        cout << d->value << endl;
+
+      cout << endl;
     }
 
     EqtnPrinter eqp;
-
     for(shared_ptr<Object> obj : decls->objects)
     {
       for(shared_ptr<Equation> eqtn : obj->eqtns) 
@@ -90,14 +107,6 @@ void Driver::compileInputFiles()
       }
     }
 
-    cout << "vars:" << endl;
-    for(auto v : vc.vars)
-      cout << v->value << endl;
-    cout << endl;
-
-    cout << "derivs:" << endl;
-    for(auto d : vc.derivs)
-      cout << d->value << endl;
   }
 }
 

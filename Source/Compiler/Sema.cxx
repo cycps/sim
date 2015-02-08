@@ -2,12 +2,24 @@
 
 using namespace cypress;
 using namespace cypress::compile;
+using std::find_if;
 
 using std::shared_ptr;
 
+void VarCollector::run()
+{
+  for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(*this);
+}
+
 void VarCollector::visit(shared_ptr<Symbol> s)
 {
-   if(!dblock) vars.insert(s); 
+   if(dblock) return; 
+   if(find_if(obj->params.begin(), obj->params.end(), 
+         [s](shared_ptr<Symbol> x){ return s->value == x->value; })
+         != obj->params.end())
+     return;
+
+   vars.insert(s); 
 }
 
 void VarCollector::leave(shared_ptr<Differentiate> s)
@@ -64,4 +76,14 @@ void EqtnPrinter::in(shared_ptr<Real> rp)
 void EqtnPrinter::in(shared_ptr<Differentiate> dp)
 {
   std::cout << "'";
+}
+
+void EqtnPrinter::visit(shared_ptr<SubExpression> sp)
+{
+  std::cout << " (";
+}
+
+void EqtnPrinter::leave(shared_ptr<SubExpression> sp)
+{
+  std::cout << ") ";
 }
