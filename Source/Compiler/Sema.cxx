@@ -6,17 +6,18 @@ using std::find_if;
 
 using std::shared_ptr;
 
-void VarCollector::run()
+void VarCollector::run(shared_ptr<Element> e)
 {
-  for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(*this);
+  elem = e;
+  for(shared_ptr<Equation> eqtn : elem->eqtns) eqtn->accept(*this);
 }
 
 void VarCollector::visit(shared_ptr<Symbol> s)
 {
    if(dblock) return; 
-   if(find_if(obj->params.begin(), obj->params.end(), 
+   if(find_if(elem->params.begin(), elem->params.end(), 
          [s](shared_ptr<Symbol> x){ return s->value == x->value; })
-         != obj->params.end())
+         != elem->params.end())
      return;
 
    vars.insert(s); 

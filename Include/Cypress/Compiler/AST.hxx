@@ -276,22 +276,24 @@ struct Equation : public ASTNode, public std::enable_shared_from_this<Equation>
   }
 };
 
-struct Object : public Decl
+struct Element : public Decl
 {
   std::shared_ptr<Symbol> name;
   std::vector<std::shared_ptr<Symbol>> params;
   std::vector<std::shared_ptr<Equation>> eqtns; 
-  Kind kind() const override { return Kind::Object; }
-  Object(std::shared_ptr<Symbol> name) : name{name} {}
+  Element(std::shared_ptr<Symbol> name) : name{name} {}
 };
 
-struct Controller : public Decl
+struct Object : public Element
 {
-  std::shared_ptr<Symbol> name;
-  std::vector<std::shared_ptr<Symbol>> params;
-  std::vector<std::shared_ptr<Equation>> eqtns;
+  Kind kind() const override { return Kind::Object; }
+  using Element::Element;
+};
+
+struct Controller : public Element
+{
   Kind kind() const override { return Kind::Controller; }
-  Controller(std::shared_ptr<Symbol> name) : name{name} {}
+  using Element::Element;
 };
 
 struct Component

@@ -73,35 +73,48 @@ void Driver::compileInputFiles()
     Parser p(inp);
     auto decls = p.run();
 
+    /*
     for(shared_ptr<Object> obj : decls->objects)
     {
       for(shared_ptr<Equation> eqtn : obj->eqtns) setToZero(eqtn);
     }
+    */
     
-    for(shared_ptr<Object> obj : decls->objects)
-    {
-      VarCollector vc{obj};
-      vc.run();
-      //for(shared_ptr<Equation> eqtn : obj->eqtns) eqtn->accept(vc);
+    VarCollector vc;
+    for(shared_ptr<Object> obj : decls->objects) vc.run(obj);
+    for(shared_ptr<Controller> ct : decls->controllers) vc.run(ct);
 
-      cout << endl;
-      cout << "vars:" << endl;
-      for(auto v : vc.vars)
-        cout << v->value << endl;
-      cout << endl;
+    cout << endl;
+    cout << "vars:" << endl;
+    for(auto v : vc.vars)
+      cout << v->value << endl;
+    cout << endl;
 
-      cout << "derivs:" << endl;
-      for(auto d : vc.derivs)
-        cout << d->value << endl;
+    cout << "derivs:" << endl;
+    for(auto d : vc.derivs)
+      cout << d->value << endl;
+    cout << endl;
 
-      cout << endl;
-    }
+    cout << "unknowns: " << vc.vars.size() + vc.derivs.size() << endl;
+
+    cout << endl;
 
     EqtnPrinter eqp;
     for(shared_ptr<Object> obj : decls->objects)
     {
       for(shared_ptr<Equation> eqtn : obj->eqtns) 
       {
+        setToZero(eqtn);
+        eqtn->accept(eqp);
+        cout << endl;
+      }
+    }
+    
+    for(shared_ptr<Controller> ct : decls->controllers)
+    {
+      for(shared_ptr<Equation> eqtn : ct->eqtns) 
+      {
+        setToZero(eqtn);
         eqtn->accept(eqp);
         cout << endl;
       }

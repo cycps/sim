@@ -8,12 +8,11 @@ namespace cypress { namespace compile {
 
 struct VarCollector : public Visitor
 {
-  std::shared_ptr<Object> obj;
+  std::shared_ptr<Element> elem;
   std::unordered_set<std::shared_ptr<Symbol>, SymbolHash, SymbolEq> vars, derivs;
   bool dblock{false};
 
-  VarCollector(std::shared_ptr<Object> obj) : obj{obj} {}
-  void run();
+  void run(std::shared_ptr<Element> e);
 
   void visit(std::shared_ptr<Symbol>) override;
 
