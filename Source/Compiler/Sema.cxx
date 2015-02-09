@@ -25,7 +25,7 @@ void VarCollector::visit(shared_ptr<Symbol> s)
    vars[elem].insert(s); 
 }
 
-void VarCollector::leave(shared_ptr<Differentiate> s)
+void VarCollector::leave(shared_ptr<Differentiate>)
 {
   dblock = false;
 }
@@ -76,26 +76,26 @@ void EqtnPrinter::run(shared_ptr<Equation> eqtn)
   ss.str("");
 }
 
-void EqtnPrinter::in(shared_ptr<Equation> ep)
+void EqtnPrinter::in(shared_ptr<Equation>)
 {
   ss << " = ";
 }
-void EqtnPrinter::in(shared_ptr<Add> ap)
+void EqtnPrinter::in(shared_ptr<Add>)
 {
   ss << " + ";
 }
 
-void EqtnPrinter::in(shared_ptr<Subtract> sp)
+void EqtnPrinter::in(shared_ptr<Subtract>)
 {
   ss << " - ";
 }
 
-void EqtnPrinter::in(shared_ptr<Multiply> mp)
+void EqtnPrinter::in(shared_ptr<Multiply>)
 {
   ss << "*";
 }
 
-void EqtnPrinter::in(shared_ptr<Divide> dp)
+void EqtnPrinter::in(shared_ptr<Divide>)
 {
   ss << "/";
 }
@@ -107,7 +107,7 @@ void EqtnPrinter::in(shared_ptr<Symbol> sp)
   ss << sp->value;
 }
 
-void EqtnPrinter::in(shared_ptr<Pow> sp)
+void EqtnPrinter::in(shared_ptr<Pow>)
 {
   ss << "^";
 }
@@ -117,17 +117,17 @@ void EqtnPrinter::in(shared_ptr<Real> rp)
   ss << rp->value;
 }
 
-void EqtnPrinter::in(shared_ptr<Differentiate> dp)
+void EqtnPrinter::in(shared_ptr<Differentiate>)
 {
   ss << "'";
 }
 
-void EqtnPrinter::visit(shared_ptr<SubExpression> sp)
+void EqtnPrinter::visit(shared_ptr<SubExpression>)
 {
   ss << " (";
 }
 
-void EqtnPrinter::leave(shared_ptr<SubExpression> sp)
+void EqtnPrinter::leave(shared_ptr<SubExpression>)
 {
   ss << ") ";
 }

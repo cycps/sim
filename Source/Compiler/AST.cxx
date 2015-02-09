@@ -179,5 +179,8 @@ void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &exp
     case Expression::Kind::Real: o << I
                                    << static_cast<const Real&>(expr).value
                                    << endl; break;
+    case Expression::Kind::SubExpression: 
+      showExpr(indent+2, o, *static_cast<const SubExpression&>(expr).value);
+      break;
   }
 }
