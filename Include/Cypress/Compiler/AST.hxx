@@ -13,6 +13,12 @@ namespace cypress { namespace compile {
 
 struct Visitor;
 
+template<class T>
+struct Clonable
+{
+  virtual std::shared_ptr<T> clone() = 0;
+};
+
 struct ASTNode
 {
   virtual void accept(Visitor &) = 0;
@@ -73,7 +79,7 @@ struct Visitor
   virtual void leave(std::shared_ptr<SubExpression>) {}
 };
 
-struct Expression : public ASTNode
+struct Expression : public ASTNode, public Clonable<Expression>
 {
   enum class Kind{ 
     Add, Subtract,
@@ -89,10 +95,9 @@ struct Expression : public ASTNode
 
 struct Term : public Expression {};
 
-struct GroupOp : public Expression 
+struct GroupOp : public Expression
 { 
   std::shared_ptr<Expression> lhs, rhs;
-  //std::shared_ptr<Expression> rhs;
   GroupOp(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs) 
     : lhs{lhs}, rhs{rhs} {}
 };
@@ -109,6 +114,10 @@ struct Add : public GroupOp, public std::enable_shared_from_this<Add>
     rhs->accept(v);
     v.leave(shared_from_this());
   }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Add>(lhs->clone(), rhs->clone());
+  }
 };
 
 struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
@@ -123,15 +132,19 @@ struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
     rhs->accept(v);
     v.leave(shared_from_this());
   }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Subtract>(lhs->clone(), rhs->clone());
+  }
 };
 
 struct Factor : public Term {};
 
 struct RingOp : public Term
 {
-  std::shared_ptr<Factor> lhs;
-  std::shared_ptr<Term> rhs;
-  RingOp(std::shared_ptr<Factor> lhs, std::shared_ptr<Term> rhs)
+  std::shared_ptr<Term> lhs, rhs;
+  //std::shared_ptr<Term> rhs;
+  RingOp(std::shared_ptr<Term> lhs, std::shared_ptr<Term> rhs)
     : lhs{lhs}, rhs{rhs} {}
 };
 
@@ -147,6 +160,13 @@ struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
     rhs->accept(v);
     v.leave(shared_from_this());
   }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Multiply>(
+        std::static_pointer_cast<Term>(lhs->clone()), 
+        std::static_pointer_cast<Term>(rhs->clone())
+        );
+  }
 };
 
 struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
@@ -160,6 +180,13 @@ struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
     v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
+  }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Multiply>(
+        std::static_pointer_cast<Term>(lhs->clone()), 
+        std::static_pointer_cast<Term>(rhs->clone())
+        );
   }
 };
 
@@ -180,6 +207,13 @@ struct Pow : public Factor, public std::enable_shared_from_this<Pow>
     rhs->accept(v);
     v.leave(shared_from_this());
   }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Pow>(
+        std::static_pointer_cast<Atom>(lhs->clone()), 
+        std::static_pointer_cast<Atom>(rhs->clone())
+        );
+  }
 };
 
 struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
@@ -192,6 +226,10 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
     v.visit(shared_from_this());
     v.in(shared_from_this());
     v.leave(shared_from_this());
+  }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Symbol>(value);
   }
 };
 
@@ -226,6 +264,12 @@ struct Differentiate : public Factor,
     v.in(shared_from_this());
     v.leave(shared_from_this());
   }
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Differentiate>(
+        std::static_pointer_cast<Symbol>(arg->clone())
+        );
+  }
 };
 
 struct Real : public Atom, public std::enable_shared_from_this<Real>
@@ -238,6 +282,11 @@ struct Real : public Atom, public std::enable_shared_from_this<Real>
     v.visit(shared_from_this());
     v.in(shared_from_this());
     v.leave(shared_from_this());
+  }
+  
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<Real>(value);
   }
 };
 
@@ -254,6 +303,13 @@ struct SubExpression : public Atom,
     v.in(shared_from_this());
     v.leave(shared_from_this());
   }
+
+  std::shared_ptr<Expression> clone() override
+  {
+    return std::make_shared<SubExpression>(
+        std::static_pointer_cast<Expression>(value->clone())
+        );
+  }
 };
 
 struct Decl
@@ -262,7 +318,9 @@ struct Decl
   virtual Kind kind() const = 0;
 };
 
-struct Equation : public ASTNode, public std::enable_shared_from_this<Equation>
+struct Equation : public ASTNode, 
+                  public Clonable<Equation>,
+                  public std::enable_shared_from_this<Equation>
 {
   std::shared_ptr<Expression> lhs, rhs;
 
@@ -273,6 +331,14 @@ struct Equation : public ASTNode, public std::enable_shared_from_this<Equation>
     v.in(shared_from_this());
     rhs->accept(v);
     v.leave(shared_from_this());
+  }
+
+  std::shared_ptr<Equation> clone() override
+  {
+    auto cln = std::make_shared<Equation>();
+    cln->lhs = lhs->clone();
+    cln->rhs = rhs->clone();
+    return cln;
   }
 };
 
@@ -300,6 +366,7 @@ struct Component
 {
   std::shared_ptr<Symbol> kind, name;
   std::unordered_map<std::shared_ptr<Symbol>, std::shared_ptr<Real>> params;
+  std::shared_ptr<Element> element;
   Component(std::shared_ptr<Symbol> kind, std::shared_ptr<Symbol> name)
     : kind{kind}, name{name} {}
 };

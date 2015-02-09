@@ -24,6 +24,7 @@ class Driver
   private:
     void buildInvocationOptionDescriptions();
     void compileInputFiles();
+    void compileSource(const std::string&);
     std::string readSource(std::string file);
 
     int argc;

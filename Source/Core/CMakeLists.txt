@@ -1,1 +1,2 @@
-add_library(CypressCore SHARED Eqtn.cxx)
+add_library(CypressCore SHARED Eqtn.cxx Sim.cxx)
+

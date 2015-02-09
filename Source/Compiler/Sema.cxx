@@ -3,6 +3,8 @@
 using namespace cypress;
 using namespace cypress::compile;
 using std::find_if;
+using std::cout;
+using std::endl;
 
 using std::shared_ptr;
 
@@ -35,6 +37,24 @@ void VarCollector::visit(shared_ptr<Differentiate> s)
   dblock = true;
 }
 
+void VarCollector::showVars()
+{
+  cout << "vars:" << endl;
+  for(auto p : vars)
+    for(auto v : p.second)
+      cout << p.first->name->value << "." << v->value << endl;
+  cout << endl;
+}
+
+void VarCollector::showDerivs()
+{
+  cout << "derivs:" << endl;
+  for(auto p : derivs)
+    for(auto d : p.second)
+      cout << p.first->name->value << "." << d->value << endl;
+  cout << endl;
+}
+
 // Eqtn Printer ---------------------------------------------------------------
 void EqtnPrinter::run(shared_ptr<Element> e, bool qualified)
 {
@@ -43,63 +63,72 @@ void EqtnPrinter::run(shared_ptr<Element> e, bool qualified)
   for(shared_ptr<Equation> eqtn : elem->eqtns) 
   {
     eqtn->accept(*this);
-    std::cout << std::endl;
+    strings.push_back(ss.str());
+    ss.str("");
   }
+}
+
+void EqtnPrinter::run(shared_ptr<Equation> eqtn)
+{
+  this->qualified = false;
+  eqtn->accept(*this);
+  strings.push_back(ss.str());
+  ss.str("");
 }
 
 void EqtnPrinter::in(shared_ptr<Equation> ep)
 {
-  std::cout << " = ";
+  ss << " = ";
 }
 void EqtnPrinter::in(shared_ptr<Add> ap)
 {
-  std::cout << " + ";
+  ss << " + ";
 }
 
 void EqtnPrinter::in(shared_ptr<Subtract> sp)
 {
-  std::cout << " - ";
+  ss << " - ";
 }
 
 void EqtnPrinter::in(shared_ptr<Multiply> mp)
 {
-  std::cout << "*";
+  ss << "*";
 }
 
 void EqtnPrinter::in(shared_ptr<Divide> dp)
 {
-  std::cout << "/";
+  ss << "/";
 }
 
 void EqtnPrinter::in(shared_ptr<Symbol> sp)
 {
   if(qualified)
-    std::cout << elem->name->value << ".";
-  std::cout << sp->value;
+    ss << elem->name->value << ".";
+  ss << sp->value;
 }
 
 void EqtnPrinter::in(shared_ptr<Pow> sp)
 {
-  std::cout << "^";
+  ss << "^";
 }
 
 void EqtnPrinter::in(shared_ptr<Real> rp)
 {
-  std::cout << rp->value;
+  ss << rp->value;
 }
 
 void EqtnPrinter::in(shared_ptr<Differentiate> dp)
 {
-  std::cout << "'";
+  ss << "'";
 }
 
 void EqtnPrinter::visit(shared_ptr<SubExpression> sp)
 {
-  std::cout << " (";
+  ss << " (";
 }
 
 void EqtnPrinter::leave(shared_ptr<SubExpression> sp)
 {
-  std::cout << ") ";
+  ss << ") ";
 }
 

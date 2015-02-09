@@ -1,6 +1,7 @@
 #include "Cypress/Compiler/Driver.hxx"
 #include "Cypress/Compiler/Sema.hxx"
 #include "Cypress/Core/Eqtn.hxx"
+#include "Cypress/Core/Sim.hxx"
 
 #include <boost/exception/info.hpp>
 #include <iostream>
@@ -69,69 +70,47 @@ void Driver::compileInputFiles()
   for(const auto& inf : input_files)
   {
     cout << "Compiling '" << inf << "'" << endl;
-    string inp = readSource(inf);
-    Parser p(inp);
-    auto decls = p.run();
-
-    /*
-    for(shared_ptr<Object> obj : decls->objects)
-    {
-      for(shared_ptr<Equation> eqtn : obj->eqtns) setToZero(eqtn);
-    }
-    */
-    
-    VarCollector vc;
-    for(shared_ptr<Object> obj : decls->objects) vc.run(obj);
-    for(shared_ptr<Controller> ct : decls->controllers) vc.run(ct);
-
-    cout << endl;
-    cout << "vars:" << endl;
-
-    for(auto p : vc.vars)
-      for(auto v : p.second)
-        cout << p.first->name->value << "." << v->value << endl;
-
-    cout << endl;
-
-    cout << "derivs:" << endl;
-    for(auto p : vc.derivs)
-      for(auto d : p.second)
-        cout << p.first->name->value << "." << d->value << endl;
-    cout << endl;
-
-    cout << "unknowns: " << vc.vars.size() + vc.derivs.size() << endl;
-
-    cout << endl;
-    
-    //TODO: You are here, need to qualify eqtns for use in global ctx
-
-    EqtnPrinter eqp;
-    for(shared_ptr<Object> obj : decls->objects)
-    {
-      for(shared_ptr<Equation> eqtn : obj->eqtns) 
-      {
-        setToZero(eqtn);
-        //eqtn->accept(eqp);
-        //cout << endl;
-      }
-      eqp.run(obj, true);
-      cout << endl;
-    }
-    
-    for(shared_ptr<Controller> ct : decls->controllers)
-    {
-      //qualifyEqtns(ct);
-      for(shared_ptr<Equation> eqtn : ct->eqtns) 
-      {
-        setToZero(eqtn);
-        //eqtn->accept(eqp);
-        //cout << endl;
-      }
-      eqp.run(ct, true);
-      cout << endl;
-    }
-
+    string src = readSource(inf);
+    compileSource(src);
   }
+}
+
+void Driver::compileSource(const string &src)
+{
+  Parser p(src);
+  auto decls = p.run();
+  auto objects = decls->objects;
+  auto controllers = decls->controllers;
+
+  vector<shared_ptr<Element>> elements;
+  elements.insert(elements.end(), objects.begin(), objects.end());
+  elements.insert(elements.end(), controllers.begin(), controllers.end());
+
+  VarCollector vc;
+  EqtnPrinter eqp;
+  for(auto e : elements) 
+  {
+    setEqtnsToZero(e);
+    eqp.run(e, true);
+    vc.run(e);
+  }
+  for(auto eq_str : eqp.strings) cout << eq_str << endl;
+  vc.showVars();
+  vc.showDerivs();
+ 
+  eqp.strings.clear();
+  for(auto exp : decls->experiments)
+  {
+    Sim sim(objects, controllers, exp); 
+    sim.buildPhysics();
+    cout << "psys: " << endl;
+    for(auto eqtn : sim.psys) eqp.run(eqtn);
+  }
+  for(auto eq_str : eqp.strings) cout << eq_str << endl;
+  
+  eqp.strings.clear();
+  for(auto e : objects) eqp.run(e);
+  for(auto eq_str : eqp.strings) cout << eq_str << endl;
 }
 
 string Driver::readSource(string file)

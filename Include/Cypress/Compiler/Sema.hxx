@@ -4,6 +4,7 @@
 #include "AST.hxx"
 #include <unordered_map>
 #include <unordered_set>
+#include <sstream>
 
 namespace cypress { namespace compile {
 
@@ -22,13 +23,20 @@ struct VarCollector : public Visitor
   void visit(std::shared_ptr<Symbol>) override;
   void visit(std::shared_ptr<Differentiate>) override;
   void leave(std::shared_ptr<Differentiate>) override;
+
+  void showVars();
+  void showDerivs();
 };
 
+//TODO: Change this to return strings as opposed to printing inline
 struct EqtnPrinter : public Visitor
 {
   std::shared_ptr<Element> elem;
   void run(std::shared_ptr<Element> e, bool qualified=false);
+  void run(std::shared_ptr<Equation> eqtn);
   bool qualified{false};
+  std::stringstream ss;
+  std::vector<std::string> strings;
 
   void in(std::shared_ptr<Equation>) override;
   void in(std::shared_ptr<Add>) override;
@@ -42,6 +50,7 @@ struct EqtnPrinter : public Visitor
   void visit(std::shared_ptr<SubExpression>) override;
   void leave(std::shared_ptr<SubExpression>) override;
 };
+
 
 }}
 
