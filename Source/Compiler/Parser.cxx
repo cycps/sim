@@ -185,7 +185,7 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
       }
       else if(regex_match(lines[idx], sm, lnkrx()))
       {
-        vector<LinkSP> lnks = parseLinkStmt(lines[idx]);
+        vector<ConnectionSP> lnks = parseConnectionStmt(lines[idx]);
         experiment->links.insert(experiment->links.end(), lnks.begin(), lnks.end());
       }
     }
@@ -197,17 +197,17 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
 }
 
 
-vector<LinkSP> Parser::parseLinkStmt(const string &s)
+vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 {
   auto links = split(s, '>');
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
 
-  vector<LinkSP> lnks;
+  vector<ConnectionSP> lnks;
   smatch sm;
   for(size_t i=0; i<links.size()-1; ++i)
   {
-    LinkableSP from, to;
+    ConnectableSP from, to;
 
     if(regex_match(links[i], sm, thingrx()))
     {
@@ -244,7 +244,10 @@ vector<LinkSP> Parser::parseLinkStmt(const string &s)
     else
       throw runtime_error{"disformed linkable" + links[i+1]};
 
-    lnks.push_back(make_shared<Link>(from, to));
+    from->neighbors.push_back(to);
+    //Directed neighbors only for the time being
+    //to->neighbors.push_back(from);
+    lnks.push_back(make_shared<Connection>(from, to));
   }
 
   return lnks;

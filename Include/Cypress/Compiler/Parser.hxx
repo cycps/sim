@@ -44,7 +44,7 @@ class Parser
     std::shared_ptr<Pow> parsePow(const std::string &, const std::string &);
 
     std::shared_ptr<Component> parseComponent(const std::string &);
-    std::vector<std::shared_ptr<Link>> parseLinkStmt(const std::string &);
+    std::vector<ConnectionSP> parseConnectionStmt(const std::string &);
 };
 
 std::vector<std::string> &

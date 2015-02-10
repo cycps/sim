@@ -13,12 +13,13 @@ namespace cypress
   struct Element; using ElementSP = std::shared_ptr<Element>;
   struct Object; using ObjectSP = std::shared_ptr<Object>;
   struct Controller; using ControllerSP = std::shared_ptr<Controller>;
+  struct Link; using LinkSP = std::shared_ptr<Link>;
   struct Component; using ComponentSP = std::shared_ptr<Component>;
-  struct Linkable; using LinkableSP = std::shared_ptr<Linkable>;
+  struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
   struct Thing; using ThingSP = std::shared_ptr<Thing>;
   struct SubThing; using SubThingSP = std::shared_ptr<SubThing>;
   struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
-  struct Link; using LinkSP = std::shared_ptr<Link>;
+  struct Connection; using ConnectionSP = std::shared_ptr<Connection>;
   struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
 }
 namespace cypress 
@@ -46,6 +47,12 @@ struct Controller : public Element
   using Element::Element;
 };
 
+struct Link : public Element
+{
+  Kind kind() const override { return Kind::Link; }
+  using Element::Element;
+};
+
 struct Component
 {
   SymbolSP kind, name;
@@ -54,44 +61,45 @@ struct Component
   Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
 };
 
-struct Linkable 
+struct Connectable 
 {
   enum class Kind { Thing, SubThing, AtoD };
+  std::vector<ConnectableSP> neighbors;
   virtual Kind kind() const = 0;
 };
 
-struct Thing : public Linkable
+struct Thing : public Connectable
 {
   SymbolSP name;
   Kind kind() const override { return Kind::Thing; }
   Thing(SymbolSP name) : name{name} {}
 };
 
-struct SubThing : public Linkable
+struct SubThing : public Connectable
 {
   SymbolSP name, subname;
   Kind kind() const override { return Kind::SubThing; }
   SubThing(SymbolSP name, SymbolSP subname) : name{name}, subname{subname} {}
 };
 
-struct AtoD : public Linkable
+struct AtoD : public Connectable
 {
   double rate;
   Kind kind() const override { return Kind::AtoD; }
   AtoD(double rate) : rate{rate} {}
 };
 
-struct Link
+struct Connection
 {
-  LinkableSP from, to;  
-  Link(LinkableSP from, LinkableSP to) : from{from}, to{to} {}
+  ConnectableSP from, to;  
+  Connection(ConnectableSP from, ConnectableSP to) : from{from}, to{to} {}
 };
 
 struct Experiment : public Decl
 {
   SymbolSP name;
   std::vector<ComponentSP> components;
-  std::vector<LinkSP> links;
+  std::vector<ConnectionSP> links;
   Kind kind() const override { return Kind::Experiment; }
   Experiment(SymbolSP name) : name{name} {}
 };
@@ -109,8 +117,8 @@ std::ostream& operator << (std::ostream &o, const Object &obj);
 std::ostream& operator << (std::ostream &o, const Controller &controller);
 std::ostream& operator << (std::ostream &o, const Experiment &expr);
 std::ostream& operator << (std::ostream &o, const Component &cp);
-std::ostream& operator << (std::ostream &o, const Link &lnk);
-std::ostream& operator << (std::ostream &o, const Linkable &lkb);
+std::ostream& operator << (std::ostream &o, const Connection &lnk);
+std::ostream& operator << (std::ostream &o, const Connectable &lkb);
 void showEqtn(std::ostream &, const Equation &);
 void showExpr(size_t indent, std::ostream &o, const Expression &expr);
 

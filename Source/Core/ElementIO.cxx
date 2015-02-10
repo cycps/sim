@@ -84,7 +84,7 @@ ostream& cypress::operator << (ostream &o, const Component &cp)
   return o;
 }
 
-ostream& cypress::operator << (ostream &o, const Link &lnk)
+ostream& cypress::operator << (ostream &o, const Connection &lnk)
 {
   o << "        "
     << *lnk.from << " > " << *lnk.to << endl;
@@ -92,19 +92,19 @@ ostream& cypress::operator << (ostream &o, const Link &lnk)
   return o;
 }
 
-ostream& cypress::operator << (ostream &o, const Linkable &lkb)
+ostream& cypress::operator << (ostream &o, const Connectable &lkb)
 {
   switch(lkb.kind())
   {
-    case Linkable::Kind::Thing:
+    case Connectable::Kind::Thing:
       o << static_cast<const Thing &>(lkb).name->value;
       break;
-    case Linkable::Kind::SubThing:
+    case Connectable::Kind::SubThing:
       o << static_cast<const SubThing &>(lkb).name->value
         << "."
         << static_cast<const SubThing &>(lkb).subname->value;
       break;
-    case Linkable::Kind::AtoD:
+    case Connectable::Kind::AtoD:
       o << "|" << static_cast<const AtoD &>(lkb).rate << "|";
       break;
   }

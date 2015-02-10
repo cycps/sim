@@ -164,7 +164,7 @@ struct SubExpression : public Atom,
 
 struct Decl
 {
-  enum class Kind { Object, Controller, Experiment };
+  enum class Kind { Object, Controller, Link, Experiment };
   virtual Kind kind() const = 0;
 };
 
