@@ -28,7 +28,6 @@ struct VarCollector : public Visitor
   void showDerivs();
 };
 
-//TODO: Change this to return strings as opposed to printing inline
 struct EqtnPrinter : public Visitor
 {
   std::shared_ptr<Element> elem;
@@ -49,6 +48,8 @@ struct EqtnPrinter : public Visitor
   void in(std::shared_ptr<Differentiate>) override;
   void visit(std::shared_ptr<SubExpression>) override;
   void leave(std::shared_ptr<SubExpression>) override;
+  void visit(CVarSP) override;
+  void leave(CVarSP) override;
 };
 
 

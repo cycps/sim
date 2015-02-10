@@ -102,6 +102,7 @@ void Symbol::accept(Visitor &v)
   v.in(shared_from_this());
   v.leave(shared_from_this());
 }
+
 ExpressionSP Symbol::clone()
 {
   return make_shared<Symbol>(value);
@@ -115,6 +116,20 @@ size_t SymbolHash::operator()(SymbolSP a)
 bool SymbolEq::operator()(SymbolSP a, SymbolSP b)
 {
   return sh(a) == sh(b);
+}
+
+//CVar ------------------------------------------------------------------------
+void CVar::accept(Visitor &v)
+{
+  v.visit(shared_from_this());
+  value->accept(v);
+  v.in(shared_from_this());
+  v.leave(shared_from_this());
+}
+
+ExpressionSP CVar::clone()
+{
+  return make_shared<CVar>(static_pointer_cast<Symbol>(value->clone()));
 }
 
 //Differentiate ---------------------------------------------------------------
@@ -192,20 +207,7 @@ EquationSP cypress::setToZero(EquationSP eq)
   return eq;
 }
 
-void cypress::applyParameter(EquationSP eq, string symbol_name, 
-    double value)
-{
-  EqtnParametizer eqp;
-  eqp.symbol_name = symbol_name;
-  eqp.value = value;
-
-  eq->accept(eqp);
-
-  cout << symbol_name << " -> " << value << endl;
-}
-
-// EqtnParametizer ------------------------------------------------------------
-
+//EqtnParametizer -------------------------------------------------------------
 void EqtnParametizer::visit(AddSP ap)
 {
   apply(ap);
@@ -229,4 +231,56 @@ void EqtnParametizer::visit(DivideSP dp)
 void EqtnParametizer::visit(PowSP pp)
 {
   apply(pp);
+}
+
+void cypress::applyParameter(EquationSP eq, string symbol_name, double value)
+{
+  EqtnParametizer eqp;
+  eqp.symbol_name = symbol_name;
+  eqp.value = value;
+
+  eq->accept(eqp);
+}
+
+//CVarLifter ------------------------------------------------------------------
+void CVarLifter::visit(EquationSP ep)
+{
+  applyBinary(ep);
+}
+
+void CVarLifter::visit(AddSP ap)
+{
+  applyBinary(ap);
+}
+
+void CVarLifter::visit(SubtractSP sp)
+{
+  applyBinary(sp);
+}
+
+void CVarLifter::visit(MultiplySP mp)
+{
+  applyBinary(mp);
+}
+
+void CVarLifter::visit(DivideSP dp)
+{
+  applyBinary(dp);
+}
+
+void CVarLifter::visit(PowSP pp)
+{
+  applyBinary(pp);
+}
+
+void CVarLifter::visit(SubExpressionSP sp)
+{
+  applyUnary(sp);  
+}
+
+void cypress::liftControlledVars(EquationSP eq, string symbol_name)
+{
+  CVarLifter cvl;
+  cvl.symbol_name = symbol_name;
+  eq->accept(cvl);
 }

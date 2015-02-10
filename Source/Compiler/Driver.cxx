@@ -85,32 +85,17 @@ void Driver::compileSource(const string &src)
   vector<ElementSP> elements;
   elements.insert(elements.end(), objects.begin(), objects.end());
   elements.insert(elements.end(), controllers.begin(), controllers.end());
-
-  VarCollector vc;
-  EqtnPrinter eqp;
-  for(auto e : elements) 
-  {
-    setEqtnsToZero(e);
-    eqp.run(e, true);
-    vc.run(e);
-  }
-  //for(auto eq_str : eqp.strings) cout << eq_str << endl;
-  //vc.showVars();
-  //vc.showDerivs();
  
-  eqp.strings.clear();
   for(auto exp : decls->experiments)
   {
     Sim sim(objects, controllers, exp); 
     sim.buildPhysics();
+
     cout << "psys: " << endl;
+    EqtnPrinter eqp;
     for(auto eqtn : sim.psys) eqp.run(eqtn);
+    for(auto eq_str : eqp.strings) cout << eq_str << endl;
   }
-  for(auto eq_str : eqp.strings) cout << eq_str << endl;
-  
-  eqp.strings.clear();
-  for(auto e : objects) eqp.run(e);
-  for(auto eq_str : eqp.strings) cout << eq_str << endl;
 }
 
 string Driver::readSource(string file)

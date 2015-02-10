@@ -16,6 +16,7 @@ namespace cypress
   struct Pow;           using PowSP = std::shared_ptr<Pow>;
   struct Differentiate; using DifferentiateSP = std::shared_ptr<Differentiate>;
   struct Symbol;        using SymbolSP = std::shared_ptr<Symbol>;
+  struct CVar;          using CVarSP = std::shared_ptr<CVar>;
   struct Real;          using RealSP = std::shared_ptr<Real>;
   struct SubExpression; using SubExpressionSP = std::shared_ptr<SubExpression>;
   struct Term;          using TermSP = std::shared_ptr<Term>;
@@ -35,7 +36,7 @@ struct Expression : public ASTNode, public Clonable<Expression>
     Multiply, Divide,
     Pow,
     Differentiate,
-    Symbol,
+    Symbol, CVar,
     Real,
     SubExpression
   };
@@ -123,6 +124,15 @@ struct SymbolEq
   bool operator()(SymbolSP a, SymbolSP b);
 };
 
+struct CVar : public Atom, public std::enable_shared_from_this<CVar>
+{
+  SymbolSP value;
+  Kind kind() const{ return Kind::CVar; }
+  CVar(SymbolSP value) : value{value} {}
+  void accept(Visitor &v) override;
+  ExpressionSP clone() override;
+};
+
 struct Differentiate : public Factor, 
                        public std::enable_shared_from_this<Differentiate>
 {
@@ -200,6 +210,10 @@ struct Visitor
   virtual void in(DifferentiateSP) {}
   virtual void leave(DifferentiateSP) {}
 
+  virtual void visit(CVarSP) {}
+  virtual void in(CVarSP) {}
+  virtual void leave(CVarSP) {}
+
   virtual void visit(SymbolSP) {}
   virtual void in(SymbolSP) {}
   virtual void leave(SymbolSP) {}
@@ -217,7 +231,9 @@ struct Visitor
 EquationSP
 setToZero(EquationSP);
 
-//Equation Visitors -----------------------------------------------------------
+//Equation Visitors ===========================================================
+
+//Equation parametrization ----------------------------------------------------
 struct EqtnParametizer : public Visitor
 {
   std::string symbol_name;
@@ -230,10 +246,35 @@ struct EqtnParametizer : public Visitor
   void visit(PowSP) override;
 
   template<class BinOp>
-  void apply(std::shared_ptr<BinOp> x);
-};
+  void apply(std::shared_ptr<BinOp>);
 
+  template<class Kinded>
+  void parametize(std::shared_ptr<Kinded>*);
+};
 void applyParameter(EquationSP, std::string symbol_name, double value);
+
+//Controlled variable lifting -------------------------------------------------
+struct CVarLifter : public Visitor
+{
+  std::string symbol_name;
+  void visit(EquationSP) override;
+  void visit(AddSP) override;
+  void visit(SubtractSP) override;
+  void visit(MultiplySP) override;
+  void visit(DivideSP) override;
+  void visit(PowSP) override;
+  void visit(SubExpressionSP) override;
+
+  template<class BinOp>
+  void applyBinary(std::shared_ptr<BinOp>);
+
+  template<class UnOp>
+  void applyUnary(std::shared_ptr<UnOp>);
+
+  template<class Kinded>
+  void lift(std::shared_ptr<Kinded>*);
+};
+void liftControlledVars(EquationSP, std::string symbol_name);
 
 } //::cypress
 #include "Equation.hh"

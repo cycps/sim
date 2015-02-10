@@ -5,6 +5,7 @@ using namespace cypress;
 using std::vector;
 using std::runtime_error;
 using std::make_shared;
+using std::string;
 
 Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
     ExperimentSP exp) 
@@ -40,9 +41,15 @@ void Sim::buildSystemEquations()
     {
       auto cpy = eqtn->clone();
       eqq.run(cpy);
+      setToZero(cpy);
 
       for(auto p: c->params)
-        applyParameter(cpy, c->name->value+"."+p.first->value, p.second->value);
+      {
+        string sym_name{c->name->value+"."+p.first->value};
+        applyParameter(cpy, sym_name, p.second->value);
+      }
+        
+      liftControlledVars(cpy, "rotor.ω");
 
       psys.push_back(cpy);
     }

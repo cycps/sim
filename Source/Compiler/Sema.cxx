@@ -133,3 +133,13 @@ void EqtnPrinter::leave(SubExpressionSP)
   ss << ") ";
 }
 
+void EqtnPrinter::visit(CVarSP)
+{
+  ss << "[";
+}
+
+void EqtnPrinter::leave(CVarSP)
+{
+  ss << "]";
+}
+

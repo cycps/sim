@@ -158,6 +158,11 @@ void cypress::showExpr(size_t indent, ostream &o, const Expression &expr)
       showExpr(indent+2, o, *static_cast<const Differentiate &>(expr).arg);
       break;
 
+    case Expression::Kind::CVar:
+      o << I << "[:]" << endl;
+      showExpr(indent+2, o, *static_cast<const CVar &>(expr).value);
+      break;
+
     case Expression::Kind::Symbol: o << I 
                                      << static_cast<const Symbol&>(expr).value 
                                      << endl; break;
