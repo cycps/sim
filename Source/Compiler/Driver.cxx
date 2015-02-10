@@ -94,9 +94,9 @@ void Driver::compileSource(const string &src)
     eqp.run(e, true);
     vc.run(e);
   }
-  for(auto eq_str : eqp.strings) cout << eq_str << endl;
-  vc.showVars();
-  vc.showDerivs();
+  //for(auto eq_str : eqp.strings) cout << eq_str << endl;
+  //vc.showVars();
+  //vc.showDerivs();
  
   eqp.strings.clear();
   for(auto exp : decls->experiments)

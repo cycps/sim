@@ -143,7 +143,6 @@ struct Factor : public Term {};
 struct RingOp : public Term
 {
   std::shared_ptr<Term> lhs, rhs;
-  //std::shared_ptr<Term> rhs;
   RingOp(std::shared_ptr<Term> lhs, std::shared_ptr<Term> rhs)
     : lhs{lhs}, rhs{rhs} {}
 };

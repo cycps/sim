@@ -22,6 +22,19 @@ struct EqtnQualifier : public compile::Visitor
   void run(std::shared_ptr<compile::Equation>);
 };
 
+struct EqtnParametizer : public compile::Visitor
+{
+  std::string symbol_name;
+  double value;
+  
+  void visit(std::shared_ptr<compile::Add>) override;
+  void visit(std::shared_ptr<compile::Subtract>) override;
+  void visit(std::shared_ptr<compile::Multiply>) override;
+  void visit(std::shared_ptr<compile::Divide>) override;
+  void visit(std::shared_ptr<compile::Pow>) override;
+};
+
+void applyParameter(std::shared_ptr<compile::Equation>, std::string symbol_name, double value);
 
 }
 

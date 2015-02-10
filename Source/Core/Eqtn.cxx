@@ -4,6 +4,7 @@ using namespace cypress;
 using namespace cypress::compile;
 using std::shared_ptr;
 using std::make_shared;
+using std::string;
 
 shared_ptr<Equation> cypress::setToZero(shared_ptr<Equation> eq)
 {
@@ -43,3 +44,48 @@ void EqtnQualifier::run(shared_ptr<Equation> eqtn)
   eqtn->accept(*this);
 }
 
+void cypress::applyParameter(shared_ptr<Equation> eq, string symbol_name, double value)
+{
+  EqtnParametizer eqp;
+  eqp.symbol_name = symbol_name;
+  eqp.value = value;
+
+  eq->accept(eqp);
+
+  std::cout << symbol_name << " -> " << value << std::endl;
+}
+
+// EqtnParametizer ------------------------------------------------------------
+
+void EqtnParametizer::visit(shared_ptr<compile::Add> ap)
+{
+  //TODO: Generalize this
+  if(ap->lhs->kind() == Expression::Kind::Symbol)
+  {
+    auto symb = std::static_pointer_cast<Symbol>(ap->lhs);
+    if(symb->value == symbol_name)
+    {
+      ap->lhs = std::make_shared<Real>(value);
+    }
+  }
+}
+
+void EqtnParametizer::visit(shared_ptr<compile::Subtract>)
+{
+
+}
+
+void EqtnParametizer::visit(shared_ptr<compile::Multiply>)
+{
+
+}
+
+void EqtnParametizer::visit(shared_ptr<compile::Divide>)
+{
+
+}
+
+void EqtnParametizer::visit(shared_ptr<compile::Pow>)
+{
+
+}

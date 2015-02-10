@@ -36,7 +36,6 @@ void Sim::buildSystemEquations()
   EqtnQualifier eqq;
   for(auto c: exp->components)
   {
-    std::cout << c->name->value << std::endl;
     if(c->element == nullptr || 
        c->element->kind() != compile::Decl::Kind::Object) continue;
 
@@ -45,6 +44,10 @@ void Sim::buildSystemEquations()
     {
       auto cpy = eqtn->clone();
       eqq.run(cpy);
+
+      for(auto p: c->params)
+        applyParameter(cpy, c->name->value+"."+p.first->value, p.second->value);
+
       psys.push_back(cpy);
     }
   }
