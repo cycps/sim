@@ -59,33 +59,25 @@ void cypress::applyParameter(shared_ptr<Equation> eq, string symbol_name, double
 
 void EqtnParametizer::visit(shared_ptr<compile::Add> ap)
 {
-  //TODO: Generalize this
-  if(ap->lhs->kind() == Expression::Kind::Symbol)
-  {
-    auto symb = std::static_pointer_cast<Symbol>(ap->lhs);
-    if(symb->value == symbol_name)
-    {
-      ap->lhs = std::make_shared<Real>(value);
-    }
-  }
+  apply(ap);
 }
 
-void EqtnParametizer::visit(shared_ptr<compile::Subtract>)
+void EqtnParametizer::visit(shared_ptr<compile::Subtract> sp)
 {
-
+  apply(sp);
 }
 
-void EqtnParametizer::visit(shared_ptr<compile::Multiply>)
+void EqtnParametizer::visit(shared_ptr<compile::Multiply> mp)
 {
-
+  apply(mp);
 }
 
-void EqtnParametizer::visit(shared_ptr<compile::Divide>)
+void EqtnParametizer::visit(shared_ptr<compile::Divide> dp)
 {
-
+  apply(dp);
 }
 
-void EqtnParametizer::visit(shared_ptr<compile::Pow>)
+void EqtnParametizer::visit(shared_ptr<compile::Pow> pp)
 {
-
+  apply(pp);
 }

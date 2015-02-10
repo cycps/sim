@@ -32,6 +32,19 @@ struct EqtnParametizer : public compile::Visitor
   void visit(std::shared_ptr<compile::Multiply>) override;
   void visit(std::shared_ptr<compile::Divide>) override;
   void visit(std::shared_ptr<compile::Pow>) override;
+
+  template<class BinOp>
+  void apply(std::shared_ptr<BinOp> x)
+  {
+    if(x->lhs->kind() == compile::Expression::Kind::Symbol)
+    {
+      auto symb = std::static_pointer_cast<compile::Symbol>(x->lhs);
+      if(symb->value == symbol_name)
+      {
+        x->lhs = std::make_shared<compile::Real>(value);
+      }
+    }
+  }
 };
 
 void applyParameter(std::shared_ptr<compile::Equation>, std::string symbol_name, double value);
