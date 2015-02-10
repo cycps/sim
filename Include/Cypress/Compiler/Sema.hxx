@@ -1,7 +1,7 @@
 #ifndef CYPRESS_COMPILE_SEMA
 #define CYPRESS_COMPILE_SEMA
 
-#include "AST.hxx"
+#include "Cypress/Core/Elements.hxx"
 #include <unordered_map>
 #include <unordered_set>
 #include <sstream>

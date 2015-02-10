@@ -1,5 +1,4 @@
 #include "Cypress/Core/Sim.hxx"
-#include "Cypress/Core/Eqtn.hxx"
 #include <stdexcept>
 
 using namespace cypress;
@@ -9,9 +8,9 @@ using std::runtime_error;
 using std::make_shared;
 
 Sim::Sim(
-    vector<shared_ptr<compile::Object>> objects,
-    vector<shared_ptr<compile::Controller>> controllers,
-    shared_ptr<compile::Experiment> exp) 
+    vector<shared_ptr<Object>> objects,
+    vector<shared_ptr<Controller>> controllers,
+    shared_ptr<Experiment> exp) 
   : objects{objects}, controllers{controllers}, exp{exp}
 {
   elements.insert(elements.end(), objects.begin(), objects.end());
@@ -37,7 +36,7 @@ void Sim::buildSystemEquations()
   for(auto c: exp->components)
   {
     if(c->element == nullptr || 
-       c->element->kind() != compile::Decl::Kind::Object) continue;
+       c->element->kind() != Decl::Kind::Object) continue;
 
     eqq.setQualifier(c);
     for(auto eqtn: c->element->eqtns)
@@ -59,8 +58,8 @@ void Sim::buildPhysics()
   buildSystemEquations();
 }
   
-std::shared_ptr<compile::Element> 
-Sim::findDecl(std::shared_ptr<compile::Component> c)
+std::shared_ptr<Element> 
+Sim::findDecl(std::shared_ptr<Component> c)
 {
   for(auto e : elements)
     if(c->kind->value == e->name->value) return e;

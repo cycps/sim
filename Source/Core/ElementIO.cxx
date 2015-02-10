@@ -1,23 +1,16 @@
-#include "Cypress/Compiler/AST.hxx"
+#include "Cypress/Core/Elements.hxx"
+#include <iostream>
 
-#include <set>
-#include <algorithm>
-
+using namespace cypress;
 using std::ostream;
+using std::cout;
 using std::endl;
 using std::shared_ptr;
 using std::string;
-using std::static_pointer_cast;
 using std::vector;
 using std::pair;
-using std::back_inserter;
-using std::copy;
-using std::set;
 
-using namespace cypress;
-using namespace cypress::compile;
-
-ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
+ostream& cypress::operator << (ostream &o, const Decls &decls)
 {
   o << "Decls" << endl;
   o << "  " << "[object]" << endl;
@@ -34,7 +27,7 @@ ostream& cypress::compile::operator << (ostream &o, const Decls &decls)
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Object &obj)
+ostream& cypress::operator << (ostream &o, const Object &obj)
 {
   o << "name=" << obj.name->value << ", ";
 
@@ -52,7 +45,7 @@ ostream& cypress::compile::operator << (ostream &o, const Object &obj)
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Controller &controller)
+ostream& cypress::operator << (ostream &o, const Controller &controller)
 {
   o << "name=" << controller.name->value << ", ";
   o << "params={";
@@ -68,7 +61,7 @@ ostream& cypress::compile::operator << (ostream &o, const Controller &controller
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Experiment &expr)
+ostream& cypress::operator << (ostream &o, const Experiment &expr)
 {
   o << "name=" << expr.name->value << endl;
   o << "      [components]" << endl;
@@ -80,7 +73,7 @@ ostream& cypress::compile::operator << (ostream &o, const Experiment &expr)
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Component &cp)
+ostream& cypress::operator << (ostream &o, const Component &cp)
 {
   o << "        "
     << "kind=" << cp.kind->value << " name=" << cp.name->value << " prams={";
@@ -98,7 +91,7 @@ ostream& cypress::compile::operator << (ostream &o, const Component &cp)
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Link &lnk)
+ostream& cypress::operator << (ostream &o, const Link &lnk)
 {
   o << "        "
     << *lnk.from << " > " << *lnk.to << endl;
@@ -106,7 +99,7 @@ ostream& cypress::compile::operator << (ostream &o, const Link &lnk)
   return o;
 }
 
-ostream& cypress::compile::operator << (ostream &o, const Linkable &lkb)
+ostream& cypress::operator << (ostream &o, const Linkable &lkb)
 {
   switch(lkb.kind())
   {
@@ -125,14 +118,14 @@ ostream& cypress::compile::operator << (ostream &o, const Linkable &lkb)
   return o;
 }
 
-void cypress::compile::showEqtn(ostream &o, const Equation &eqtn)
+void cypress::showEqtn(ostream &o, const Equation &eqtn)
 {
   o << string(8, ' ') << "=" << endl;
   showExpr(10, o, *eqtn.lhs);
   showExpr(10, o, *eqtn.rhs);
 }
 
-void cypress::compile::showExpr(size_t indent, ostream &o, const Expression &expr)
+void cypress::showExpr(size_t indent, ostream &o, const Expression &expr)
 {
   const string I(indent, ' ');
   switch(expr.kind())

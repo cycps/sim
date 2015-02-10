@@ -2,7 +2,6 @@
 #define CYPRESS_COMPILE_DRIVER_HXX
 
 //#include "Grammar.hxx"
-#include "AST.hxx"
 #include "Parser.hxx"
 #include <boost/program_options.hpp>
 #include <string>

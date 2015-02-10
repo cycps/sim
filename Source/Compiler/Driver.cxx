@@ -1,6 +1,6 @@
 #include "Cypress/Compiler/Driver.hxx"
 #include "Cypress/Compiler/Sema.hxx"
-#include "Cypress/Core/Eqtn.hxx"
+#include "Cypress/Core/Equation.hxx"
 #include "Cypress/Core/Sim.hxx"
 
 #include <boost/exception/info.hpp>

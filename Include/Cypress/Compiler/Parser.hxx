@@ -1,7 +1,8 @@
 #ifndef CYPRESS_COMPILE_PARSER_HXX
 #define CYPRESS_COMPILE_PARSER_HXX
 
-#include "AST.hxx"
+#include "Cypress/Core/Equation.hxx"
+#include "Cypress/Core/Elements.hxx"
 
 #include <string>
 #include <vector>

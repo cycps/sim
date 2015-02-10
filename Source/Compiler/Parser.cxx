@@ -1,4 +1,5 @@
 #include "Cypress/Compiler/Parser.hxx"
+#include "Cypress/Compiler/DeclRegex.hxx"
 #include <iostream>
 #include <stdexcept>
 #include <regex>
@@ -6,6 +7,7 @@
 #include <vector>
 #include <sstream>
 
+using namespace cypress;
 using namespace cypress::compile;
 
 using std::string;

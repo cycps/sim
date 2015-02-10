@@ -1,4 +1,5 @@
 #include "Cypress/Compiler/Sema.hxx"
+#include <iostream>
 
 using namespace cypress;
 using namespace cypress::compile;
