@@ -34,7 +34,7 @@ Parser::Parser(string source)
   : source{source}
 {}
 
-std::shared_ptr<Decls> Parser::run()
+shared_ptr<Decls> Parser::run()
 {
   split(source, '\n', lines);
   auto decls = make_shared<Decls>();
@@ -60,7 +60,7 @@ std::shared_ptr<Decls> Parser::run()
   return decls;
 }
 
-size_t Parser::parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls)
+size_t Parser::parseDecl(size_t at, DeclType dt, shared_ptr<Decls> decls)
 {
   size_t advance{0};
   switch(dt)
@@ -88,7 +88,7 @@ size_t Parser::parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls)
   }
 }
     
-LineType Parser::classifyLine(const std::string &s, DeclType &dt)
+LineType Parser::classifyLine(const string &s, DeclType &dt)
 {
   if(isDecl(s, dt)) return LineType::Decl;
   if(isCode(s)) return LineType::Code;
@@ -97,7 +97,7 @@ LineType Parser::classifyLine(const std::string &s, DeclType &dt)
   return LineType::SomethingElse;
 }
 
-shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
+ObjectSP Parser::parseObject(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, objrx());
@@ -121,7 +121,7 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
     {
       if(isEqtn(lines[idx])) 
       {
-        shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
+        EquationSP eqtn = parseEqtn(lines[idx]);
         object->eqtns.push_back(eqtn);
       }
     }
@@ -132,7 +132,7 @@ shared_ptr<Object> Parser::parseObject(size_t at, size_t &lc)
   return object;
 }
     
-shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
+ControllerSP Parser::parseController(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, contrx());
@@ -154,7 +154,7 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
     {
       if(isEqtn(lines[idx])) 
       {
-        shared_ptr<Equation> eqtn = parseEqtn(lines[idx]);
+        EquationSP eqtn = parseEqtn(lines[idx]);
         controller->eqtns.push_back(eqtn);
       }
     }
@@ -165,7 +165,7 @@ shared_ptr<Controller> Parser::parseController(size_t at, size_t &lc)
   return controller;
 }
 
-shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
+ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, exprx());
@@ -180,12 +180,12 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
     {
       if(regex_match(lines[idx], sm, comprx())) 
       {
-        shared_ptr<Component> cp = parseComponent(lines[idx]);
+        ComponentSP cp = parseComponent(lines[idx]);
         experiment->components.push_back(cp);
       }
       else if(regex_match(lines[idx], sm, lnkrx()))
       {
-        vector<shared_ptr<Link>> lnks = parseLinkStmt(lines[idx]);
+        vector<LinkSP> lnks = parseLinkStmt(lines[idx]);
         experiment->links.insert(experiment->links.end(), lnks.begin(), lnks.end());
       }
     }
@@ -197,17 +197,17 @@ shared_ptr<Experiment> Parser::parseExperiment(size_t at, size_t &lc)
 }
 
 
-vector<shared_ptr<Link>> Parser::parseLinkStmt(const string &s)
+vector<LinkSP> Parser::parseLinkStmt(const string &s)
 {
   auto links = split(s, '>');
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
 
-  vector<shared_ptr<Link>> lnks;
+  vector<LinkSP> lnks;
   smatch sm;
   for(size_t i=0; i<links.size()-1; ++i)
   {
-    shared_ptr<Linkable> from, to;
+    LinkableSP from, to;
 
     if(regex_match(links[i], sm, thingrx()))
     {
@@ -289,7 +289,7 @@ bool Parser::isEqtn(const string &s)
   return regex_match(s, rx);
 }
 
-shared_ptr<Equation> Parser::parseEqtn(const string &s)
+EquationSP Parser::parseEqtn(const string &s)
 {
   regex rx{"(.*)=(.*)"};
   smatch sm;
@@ -310,14 +310,14 @@ shared_ptr<Equation> Parser::parseEqtn(const string &s)
   return eqtn;
 }
     
-shared_ptr<Expression> Parser::parseExpr(const std::string &s)
+ExpressionSP Parser::parseExpr(const string &s)
 {
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
-  shared_ptr<Term> lhs{nullptr};
-  shared_ptr<Expression> rhs{nullptr};
+  TermSP lhs{nullptr};
+  ExpressionSP rhs{nullptr};
   if(sm.size()>1)
   {
     copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
@@ -339,14 +339,14 @@ shared_ptr<Expression> Parser::parseExpr(const std::string &s)
   return nullptr;
 }
     
-std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
+TermSP Parser::parseTerm(const string &s)
 {
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9'\\^ ]+)(?:([\\*/])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
-  shared_ptr<Factor> lhs{nullptr};
-  shared_ptr<Term> rhs{nullptr};
+  FactorSP lhs{nullptr};
+  TermSP rhs{nullptr};
   if(sm.size()>1)
   {
     copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
@@ -366,14 +366,14 @@ std::shared_ptr<Term> Parser::parseTerm(const std::string &s)
   return nullptr;
 }
     
-std::shared_ptr<Factor> Parser::parseFactor(const std::string &s)
+FactorSP Parser::parseFactor(const string &s)
 {
   regex rx{"([a-zA-Zα-ωΑ-Ω0-9]+)(?:(['\\^])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
-  shared_ptr<Factor> lhs{nullptr};
-  shared_ptr<Term> rhs{nullptr};
+  FactorSP lhs{nullptr};
+  TermSP rhs{nullptr};
   if(sm.size()>1)
   {
     copy_if(sm.begin()+1, sm.end(), back_inserter(matches),
@@ -393,7 +393,7 @@ std::shared_ptr<Factor> Parser::parseFactor(const std::string &s)
   return nullptr;
 }
     
-std::shared_ptr<Atom> Parser::parseAtom(const std::string &s)
+AtomSP Parser::parseAtom(const string &s)
 {
   double value{0}; 
   try
@@ -409,17 +409,17 @@ std::shared_ptr<Atom> Parser::parseAtom(const std::string &s)
   return nullptr;
 }
     
-std::shared_ptr<Differentiate> Parser::parseDerivative(const std::string &s)
+DifferentiateSP Parser::parseDerivative(const string &s)
 {
   return make_shared<Differentiate>(make_shared<Symbol>(s));
 }
     
-shared_ptr<Pow> Parser::parsePow(const string &lower, const string &upper)
+PowSP Parser::parsePow(const string &lower, const string &upper)
 {
   return make_shared<Pow>(make_shared<Symbol>(lower), parseAtom(upper));
 }
 
-shared_ptr<Component> Parser::parseComponent(const string &s)
+ComponentSP Parser::parseComponent(const string &s)
 {
   smatch sm;
   regex_match(s, sm, comprx());

@@ -2,15 +2,12 @@
 #include <stdexcept>
 
 using namespace cypress;
-using std::shared_ptr;
 using std::vector;
 using std::runtime_error;
 using std::make_shared;
 
-Sim::Sim(
-    vector<shared_ptr<Object>> objects,
-    vector<shared_ptr<Controller>> controllers,
-    shared_ptr<Experiment> exp) 
+Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
+    ExperimentSP exp) 
   : objects{objects}, controllers{controllers}, exp{exp}
 {
   elements.insert(elements.end(), objects.begin(), objects.end());
@@ -58,8 +55,8 @@ void Sim::buildPhysics()
   buildSystemEquations();
 }
   
-std::shared_ptr<Element> 
-Sim::findDecl(std::shared_ptr<Component> c)
+ElementSP 
+Sim::findDecl(ComponentSP c)
 {
   for(auto e : elements)
     if(c->kind->value == e->name->value) return e;

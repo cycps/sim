@@ -9,29 +9,29 @@ using std::endl;
 
 using std::shared_ptr;
 
-void VarCollector::run(shared_ptr<Element> e)
+void VarCollector::run(ElementSP e)
 {
   elem = e;
-  for(shared_ptr<Equation> eqtn : elem->eqtns) eqtn->accept(*this);
+  for(EquationSP eqtn : elem->eqtns) eqtn->accept(*this);
 }
 
-void VarCollector::visit(shared_ptr<Symbol> s)
+void VarCollector::visit(SymbolSP s)
 {
    if(dblock) return; 
    if(find_if(elem->params.begin(), elem->params.end(), 
-         [s](shared_ptr<Symbol> x){ return s->value == x->value; })
+         [s](SymbolSP x){ return s->value == x->value; })
          != elem->params.end())
      return;
 
    vars[elem].insert(s); 
 }
 
-void VarCollector::leave(shared_ptr<Differentiate>)
+void VarCollector::leave(DifferentiateSP)
 {
   dblock = false;
 }
 
-void VarCollector::visit(shared_ptr<Differentiate> s)
+void VarCollector::visit(DifferentiateSP s)
 {
   //TODO dupcheck?
   derivs[elem].insert(s->arg);
@@ -57,11 +57,11 @@ void VarCollector::showDerivs()
 }
 
 // Eqtn Printer ---------------------------------------------------------------
-void EqtnPrinter::run(shared_ptr<Element> e, bool qualified)
+void EqtnPrinter::run(ElementSP e, bool qualified)
 {
   elem = e;
   this->qualified = qualified;
-  for(shared_ptr<Equation> eqtn : elem->eqtns) 
+  for(EquationSP eqtn : elem->eqtns) 
   {
     eqtn->accept(*this);
     strings.push_back(ss.str());
@@ -69,7 +69,7 @@ void EqtnPrinter::run(shared_ptr<Element> e, bool qualified)
   }
 }
 
-void EqtnPrinter::run(shared_ptr<Equation> eqtn)
+void EqtnPrinter::run(EquationSP eqtn)
 {
   this->qualified = false;
   eqtn->accept(*this);
@@ -77,58 +77,58 @@ void EqtnPrinter::run(shared_ptr<Equation> eqtn)
   ss.str("");
 }
 
-void EqtnPrinter::in(shared_ptr<Equation>)
+void EqtnPrinter::in(EquationSP)
 {
   ss << " = ";
 }
-void EqtnPrinter::in(shared_ptr<Add>)
+void EqtnPrinter::in(AddSP)
 {
   ss << " + ";
 }
 
-void EqtnPrinter::in(shared_ptr<Subtract>)
+void EqtnPrinter::in(SubtractSP)
 {
   ss << " - ";
 }
 
-void EqtnPrinter::in(shared_ptr<Multiply>)
+void EqtnPrinter::in(MultiplySP)
 {
   ss << "*";
 }
 
-void EqtnPrinter::in(shared_ptr<Divide>)
+void EqtnPrinter::in(DivideSP)
 {
   ss << "/";
 }
 
-void EqtnPrinter::in(shared_ptr<Symbol> sp)
+void EqtnPrinter::in(SymbolSP sp)
 {
   if(qualified)
     ss << elem->name->value << ".";
   ss << sp->value;
 }
 
-void EqtnPrinter::in(shared_ptr<Pow>)
+void EqtnPrinter::in(PowSP)
 {
   ss << "^";
 }
 
-void EqtnPrinter::in(shared_ptr<Real> rp)
+void EqtnPrinter::in(RealSP rp)
 {
   ss << rp->value;
 }
 
-void EqtnPrinter::in(shared_ptr<Differentiate>)
+void EqtnPrinter::in(DifferentiateSP)
 {
   ss << "'";
 }
 
-void EqtnPrinter::visit(shared_ptr<SubExpression>)
+void EqtnPrinter::visit(SubExpressionSP)
 {
   ss << " (";
 }
 
-void EqtnPrinter::leave(shared_ptr<SubExpression>)
+void EqtnPrinter::leave(SubExpressionSP)
 {
   ss << ") ";
 }

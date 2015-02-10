@@ -14,16 +14,14 @@ ostream& cypress::operator << (ostream &o, const Decls &decls)
 {
   o << "Decls" << endl;
   o << "  " << "[object]" << endl;
-  for(shared_ptr<Object> obj : decls.objects)
-    o << "    " << *obj << endl;
+  for(auto obj : decls.objects) o << "    " << *obj << endl;
 
   o << "  " << "[controller]" << endl;
-  for(shared_ptr<Controller> controller : decls.controllers)
-    o << "    " << *controller << endl;
+  for(auto controller : decls.controllers) o << "    " << *controller << endl;
 
   o << "  " << "[experiment]" << endl;
-  for(shared_ptr<Experiment> expr : decls.experiments)
-    o << "    " << *expr << endl;
+  for(auto expr : decls.experiments) o << "    " << *expr << endl;
+
   return o;
 }
 
@@ -32,15 +30,12 @@ ostream& cypress::operator << (ostream &o, const Object &obj)
   o << "name=" << obj.name->value << ", ";
 
   o << "params={";
-  for(size_t i=0; i<obj.params.size()-1; ++i)
-    o << obj.params[i]->value << ",";
+  for(size_t i=0; i<obj.params.size()-1; ++i) o << obj.params[i]->value << ",";
+
   o << obj.params.back()->value << "}" << endl;
   
   o << "      [equation]" << endl;
-  for(const shared_ptr<Equation> eqtn : obj.eqtns)
-  {
-    showEqtn(o, *eqtn);
-  }
+  for(const auto eqtn : obj.eqtns) showEqtn(o, *eqtn);
 
   return o;
 }
@@ -51,13 +46,11 @@ ostream& cypress::operator << (ostream &o, const Controller &controller)
   o << "params={";
   for(size_t i=0; i<controller.params.size()-1; ++i)
     o << controller.params[i]->value << ",";
+
   o << controller.params.back()->value << "}" << endl;
 
   o << "      [equation]" << endl;
-  for(const shared_ptr<Equation> eqtn : controller.eqtns)
-  {
-    showEqtn(o, *eqtn);
-  }
+  for(const auto eqtn : controller.eqtns) showEqtn(o, *eqtn);
   return o;
 }
 
@@ -78,7 +71,7 @@ ostream& cypress::operator << (ostream &o, const Component &cp)
   o << "        "
     << "kind=" << cp.kind->value << " name=" << cp.name->value << " prams={";
 
-  vector<pair<shared_ptr<Symbol>, shared_ptr<Real>>> vparams;
+  vector<pair<SymbolSP, RealSP>> vparams;
   vparams.reserve(cp.params.size());
 
   for(auto pr : cp.params) vparams.push_back(pr);

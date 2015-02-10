@@ -7,21 +7,25 @@
 //Forward Declarations --------------------------------------------------------
 namespace cypress 
 {
-  struct Equation;
-  struct Expression;
-  struct Add;
-  struct Subtract;
-  struct Multiply;
-  struct Divide;
-  struct Pow;
-  struct Differentiate;
-  struct Symbol;
-  struct Real;
-  struct SubExpression;
+  struct Equation;      using EquationSP = std::shared_ptr<Equation>;
+  struct Expression;    using ExpressionSP = std::shared_ptr<Expression>;
+  struct Add;           using AddSP = std::shared_ptr<Add>;
+  struct Subtract;      using SubtractSP = std::shared_ptr<Subtract>;
+  struct Multiply;      using MultiplySP = std::shared_ptr<Multiply>;
+  struct Divide;        using DivideSP = std::shared_ptr<Divide>;
+  struct Pow;           using PowSP = std::shared_ptr<Pow>;
+  struct Differentiate; using DifferentiateSP = std::shared_ptr<Differentiate>;
+  struct Symbol;        using SymbolSP = std::shared_ptr<Symbol>;
+  struct Real;          using RealSP = std::shared_ptr<Real>;
+  struct SubExpression; using SubExpressionSP = std::shared_ptr<SubExpression>;
+  struct Term;          using TermSP = std::shared_ptr<Term>;
+  struct Factor;        using FactorSP = std::shared_ptr<Factor>;
+  struct Atom;          using AtomSP = std::shared_ptr<Atom>;
 
 }
 
-namespace cypress {
+namespace cypress 
+{
 
 //Core data structures --------------------------------------------------------
 struct Expression : public ASTNode, public Clonable<Expression>
@@ -42,9 +46,8 @@ struct Term : public Expression {};
 
 struct GroupOp : public Expression
 { 
-  std::shared_ptr<Expression> lhs, rhs;
-  GroupOp(std::shared_ptr<Expression> lhs, std::shared_ptr<Expression> rhs) 
-    : lhs{lhs}, rhs{rhs} {}
+  ExpressionSP lhs, rhs;
+  GroupOp(ExpressionSP lhs, ExpressionSP rhs) : lhs{lhs}, rhs{rhs} {}
 };
 
 struct Add : public GroupOp, public std::enable_shared_from_this<Add> 
@@ -52,7 +55,7 @@ struct Add : public GroupOp, public std::enable_shared_from_this<Add>
   Kind kind() const{ return Kind::Add; } 
   using GroupOp::GroupOp;
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
@@ -60,16 +63,15 @@ struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
   Kind kind() const{ return Kind::Subtract; }
   using GroupOp::GroupOp;
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Factor : public Term {};
 
 struct RingOp : public Term
 {
-  std::shared_ptr<Term> lhs, rhs;
-  RingOp(std::shared_ptr<Term> lhs, std::shared_ptr<Term> rhs)
-    : lhs{lhs}, rhs{rhs} {}
+  TermSP lhs, rhs;
+  RingOp(TermSP lhs, TermSP rhs) : lhs{lhs}, rhs{rhs} {}
 };
 
 struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
@@ -77,7 +79,7 @@ struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
   Kind kind() const{ return Kind::Multiply; }
   using RingOp::RingOp;
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
@@ -85,20 +87,19 @@ struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
   Kind kind() const{ return Kind::Divide; }
   using RingOp::RingOp;
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Atom : public Factor {};
 
 struct Pow : public Factor, public std::enable_shared_from_this<Pow>
 {
-  std::shared_ptr<Atom> lhs, rhs;
+  AtomSP lhs, rhs;
   Kind kind() const{ return Kind::Pow; }
-  Pow(std::shared_ptr<Atom> lhs, std::shared_ptr<Atom> rhs)
-    : lhs{lhs}, rhs{rhs} {}
+  Pow(AtomSP lhs, AtomSP rhs) : lhs{lhs}, rhs{rhs} {}
   
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
@@ -107,29 +108,29 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
   Kind kind() const{ return Kind::Symbol; }
   Symbol(std::string value) : value{value} {}
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct SymbolHash
 {
   static const std::hash<std::string> hsh;
-  size_t operator()(std::shared_ptr<Symbol> a);
+  size_t operator()(SymbolSP a);
 };
 
 struct SymbolEq
 {
   SymbolHash sh{};
-  bool operator()(std::shared_ptr<Symbol> a, std::shared_ptr<Symbol> b);
+  bool operator()(SymbolSP a, SymbolSP b);
 };
 
 struct Differentiate : public Factor, 
                        public std::enable_shared_from_this<Differentiate>
 {
-  std::shared_ptr<Symbol> arg;
+  SymbolSP arg;
   Kind kind() const{ return Kind::Differentiate; }
-  Differentiate(std::shared_ptr<Symbol> arg) : arg{arg} {}
+  Differentiate(SymbolSP arg) : arg{arg} {}
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Real : public Atom, public std::enable_shared_from_this<Real>
@@ -138,17 +139,17 @@ struct Real : public Atom, public std::enable_shared_from_this<Real>
   Kind kind() const{ return Kind::Real; }
   Real(double value) : value{value} {}
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct SubExpression : public Atom, 
                        public std::enable_shared_from_this<SubExpression>
 {
-  std::shared_ptr<Expression> value;
-  SubExpression(std::shared_ptr<Expression> value) : value{value} {}
+  ExpressionSP value;
+  SubExpression(ExpressionSP value) : value{value} {}
   Kind kind() const{ return Kind::SubExpression; }
   void accept(Visitor &v) override;
-  std::shared_ptr<Expression> clone() override;
+  ExpressionSP clone() override;
 };
 
 struct Decl
@@ -161,60 +162,60 @@ struct Equation : public ASTNode,
                   public Clonable<Equation>,
                   public std::enable_shared_from_this<Equation>
 {
-  std::shared_ptr<Expression> lhs, rhs;
+  ExpressionSP lhs, rhs;
 
   void accept(Visitor &v) override;
-  std::shared_ptr<Equation> clone() override;
+  EquationSP clone() override;
 };
 
 
 //Equation Visitor ------------------------------------------------------------
 struct Visitor
 {
-  virtual void visit(std::shared_ptr<Equation>) {}
-  virtual void in(std::shared_ptr<Equation>) {}
-  virtual void leave(std::shared_ptr<Equation>) {}
+  virtual void visit(EquationSP) {}
+  virtual void in(EquationSP) {}
+  virtual void leave(EquationSP) {}
 
-  virtual void visit(std::shared_ptr<Add>) {}
-  virtual void in(std::shared_ptr<Add>) {}
-  virtual void leave(std::shared_ptr<Add>) {}
+  virtual void visit(AddSP) {}
+  virtual void in(AddSP) {}
+  virtual void leave(AddSP) {}
 
-  virtual void visit(std::shared_ptr<Subtract>) {}
-  virtual void in(std::shared_ptr<Subtract>) {}
-  virtual void leave(std::shared_ptr<Subtract>) {}
+  virtual void visit(SubtractSP) {}
+  virtual void in(SubtractSP) {}
+  virtual void leave(SubtractSP) {}
 
-  virtual void visit(std::shared_ptr<Multiply>) {}
-  virtual void in(std::shared_ptr<Multiply>) {}
-  virtual void leave(std::shared_ptr<Multiply>) {}
+  virtual void visit(MultiplySP) {}
+  virtual void in(MultiplySP) {}
+  virtual void leave(MultiplySP) {}
 
-  virtual void visit(std::shared_ptr<Divide>) {}
-  virtual void in(std::shared_ptr<Divide>) {}
-  virtual void leave(std::shared_ptr<Divide>) {}
+  virtual void visit(DivideSP) {}
+  virtual void in(DivideSP) {}
+  virtual void leave(DivideSP) {}
 
-  virtual void visit(std::shared_ptr<Pow>) {}
-  virtual void in(std::shared_ptr<Pow>) {}
-  virtual void leave(std::shared_ptr<Pow>) {}
+  virtual void visit(PowSP) {}
+  virtual void in(PowSP) {}
+  virtual void leave(PowSP) {}
 
-  virtual void visit(std::shared_ptr<Differentiate>) {}
-  virtual void in(std::shared_ptr<Differentiate>) {}
-  virtual void leave(std::shared_ptr<Differentiate>) {}
+  virtual void visit(DifferentiateSP) {}
+  virtual void in(DifferentiateSP) {}
+  virtual void leave(DifferentiateSP) {}
 
-  virtual void visit(std::shared_ptr<Symbol>) {}
-  virtual void in(std::shared_ptr<Symbol>) {}
-  virtual void leave(std::shared_ptr<Symbol>) {}
+  virtual void visit(SymbolSP) {}
+  virtual void in(SymbolSP) {}
+  virtual void leave(SymbolSP) {}
   
-  virtual void visit(std::shared_ptr<Real>) {}
-  virtual void in(std::shared_ptr<Real>) {}
-  virtual void leave(std::shared_ptr<Real>) {}
+  virtual void visit(RealSP) {}
+  virtual void in(RealSP) {}
+  virtual void leave(RealSP) {}
   
-  virtual void visit(std::shared_ptr<SubExpression>) {}
-  virtual void in(std::shared_ptr<SubExpression>) {}
-  virtual void leave(std::shared_ptr<SubExpression>) {}
+  virtual void visit(SubExpressionSP) {}
+  virtual void in(SubExpressionSP) {}
+  virtual void leave(SubExpressionSP) {}
 };
 
 //Free functions over equations -----------------------------------------------
-std::shared_ptr<Equation> 
-setToZero(std::shared_ptr<Equation>);
+EquationSP
+setToZero(EquationSP);
 
 //Equation Visitors -----------------------------------------------------------
 struct EqtnParametizer : public Visitor
@@ -222,18 +223,17 @@ struct EqtnParametizer : public Visitor
   std::string symbol_name;
   double value;
   
-  void visit(std::shared_ptr<Add>) override;
-  void visit(std::shared_ptr<Subtract>) override;
-  void visit(std::shared_ptr<Multiply>) override;
-  void visit(std::shared_ptr<Divide>) override;
-  void visit(std::shared_ptr<Pow>) override;
+  void visit(AddSP) override;
+  void visit(SubtractSP) override;
+  void visit(MultiplySP) override;
+  void visit(DivideSP) override;
+  void visit(PowSP) override;
 
   template<class BinOp>
   void apply(std::shared_ptr<BinOp> x);
 };
 
-void applyParameter(std::shared_ptr<Equation>, std::string symbol_name, 
-    double value);
+void applyParameter(EquationSP, std::string symbol_name, double value);
 
 } //::cypress
 #include "Equation.hh"

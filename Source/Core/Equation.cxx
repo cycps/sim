@@ -7,6 +7,7 @@ using std::make_shared;
 using std::string;
 using std::cout;
 using std::endl;
+using std::static_pointer_cast;
 
 //Core data structures ========================================================
 
@@ -20,9 +21,9 @@ void Add::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Add::clone()
+ExpressionSP Add::clone()
 {
-  return std::make_shared<Add>(lhs->clone(), rhs->clone());
+  return make_shared<Add>(lhs->clone(), rhs->clone());
 }
 
 //Subtract --------------------------------------------------------------------
@@ -35,9 +36,9 @@ void Subtract::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Subtract::clone()
+ExpressionSP Subtract::clone()
 {
-  return std::make_shared<Subtract>(lhs->clone(), rhs->clone());
+  return make_shared<Subtract>(lhs->clone(), rhs->clone());
 }
 
 //Multiply --------------------------------------------------------------------
@@ -50,11 +51,11 @@ void Multiply::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Multiply::clone()
+ExpressionSP Multiply::clone()
 {
-  return std::make_shared<Multiply>(
-      std::static_pointer_cast<Term>(lhs->clone()), 
-      std::static_pointer_cast<Term>(rhs->clone())
+  return make_shared<Multiply>(
+      static_pointer_cast<Term>(lhs->clone()), 
+      static_pointer_cast<Term>(rhs->clone())
       );
 }
 
@@ -68,11 +69,11 @@ void Divide::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Divide::clone()
+ExpressionSP Divide::clone()
 {
-  return std::make_shared<Multiply>(
-      std::static_pointer_cast<Term>(lhs->clone()), 
-      std::static_pointer_cast<Term>(rhs->clone())
+  return make_shared<Multiply>(
+      static_pointer_cast<Term>(lhs->clone()), 
+      static_pointer_cast<Term>(rhs->clone())
       );
 }
 
@@ -86,11 +87,11 @@ void Pow::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Pow::clone()
+ExpressionSP Pow::clone()
 {
-  return std::make_shared<Pow>(
-      std::static_pointer_cast<Atom>(lhs->clone()), 
-      std::static_pointer_cast<Atom>(rhs->clone())
+  return make_shared<Pow>(
+      static_pointer_cast<Atom>(lhs->clone()), 
+      static_pointer_cast<Atom>(rhs->clone())
       );
 }
 
@@ -101,17 +102,17 @@ void Symbol::accept(Visitor &v)
   v.in(shared_from_this());
   v.leave(shared_from_this());
 }
-std::shared_ptr<Expression> Symbol::clone()
+ExpressionSP Symbol::clone()
 {
-  return std::make_shared<Symbol>(value);
+  return make_shared<Symbol>(value);
 }
 
-size_t SymbolHash::operator()(std::shared_ptr<Symbol> a)
+size_t SymbolHash::operator()(SymbolSP a)
 {
   return hsh(a->value);
 }
 
-bool SymbolEq::operator()(std::shared_ptr<Symbol> a, std::shared_ptr<Symbol> b)
+bool SymbolEq::operator()(SymbolSP a, SymbolSP b)
 {
   return sh(a) == sh(b);
 }
@@ -125,11 +126,9 @@ void Differentiate::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Differentiate::clone()
+ExpressionSP Differentiate::clone()
 {
-  return std::make_shared<Differentiate>(
-      std::static_pointer_cast<Symbol>(arg->clone())
-      );
+  return make_shared<Differentiate>(static_pointer_cast<Symbol>(arg->clone()));
 }
 
 //Real ------------------------------------------------------------------------
@@ -140,9 +139,9 @@ void Real::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> Real::clone()
+ExpressionSP Real::clone()
 {
-  return std::make_shared<Real>(value);
+  return make_shared<Real>(value);
 }
 
 //SubExpression ---------------------------------------------------------------
@@ -154,10 +153,10 @@ void SubExpression::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Expression> SubExpression::clone()
+ExpressionSP SubExpression::clone()
 {
-  return std::make_shared<SubExpression>(
-      std::static_pointer_cast<Expression>(value->clone())
+  return make_shared<SubExpression>(
+      static_pointer_cast<Expression>(value->clone())
       );
 }
 
@@ -171,9 +170,9 @@ void Equation::accept(Visitor &v)
   v.leave(shared_from_this());
 }
 
-std::shared_ptr<Equation> Equation::clone()
+EquationSP Equation::clone()
 {
-  auto cln = std::make_shared<Equation>();
+  auto cln = make_shared<Equation>();
   cln->lhs = lhs->clone();
   cln->rhs = rhs->clone();
   return cln;
@@ -181,7 +180,7 @@ std::shared_ptr<Equation> Equation::clone()
 
 
 //Free functions over equations ===============================================
-shared_ptr<Equation> cypress::setToZero(shared_ptr<Equation> eq)
+EquationSP cypress::setToZero(EquationSP eq)
 {
   auto new_rhs = make_shared<Subtract>(
       make_shared<SubExpression>(eq->lhs), 
@@ -193,7 +192,7 @@ shared_ptr<Equation> cypress::setToZero(shared_ptr<Equation> eq)
   return eq;
 }
 
-void cypress::applyParameter(shared_ptr<Equation> eq, string symbol_name, 
+void cypress::applyParameter(EquationSP eq, string symbol_name, 
     double value)
 {
   EqtnParametizer eqp;
@@ -202,32 +201,32 @@ void cypress::applyParameter(shared_ptr<Equation> eq, string symbol_name,
 
   eq->accept(eqp);
 
-  std::cout << symbol_name << " -> " << value << std::endl;
+  cout << symbol_name << " -> " << value << endl;
 }
 
 // EqtnParametizer ------------------------------------------------------------
 
-void EqtnParametizer::visit(shared_ptr<Add> ap)
+void EqtnParametizer::visit(AddSP ap)
 {
   apply(ap);
 }
 
-void EqtnParametizer::visit(shared_ptr<Subtract> sp)
+void EqtnParametizer::visit(SubtractSP sp)
 {
   apply(sp);
 }
 
-void EqtnParametizer::visit(shared_ptr<Multiply> mp)
+void EqtnParametizer::visit(MultiplySP mp)
 {
   apply(mp);
 }
 
-void EqtnParametizer::visit(shared_ptr<Divide> dp)
+void EqtnParametizer::visit(DivideSP dp)
 {
   apply(dp);
 }
 
-void EqtnParametizer::visit(shared_ptr<Pow> pp)
+void EqtnParametizer::visit(PowSP pp)
 {
   apply(pp);
 }

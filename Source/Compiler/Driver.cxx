@@ -14,7 +14,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-using std::shared_ptr;
+using std::ifstream;
 
 Driver::Driver(int argc, char **argv)
 {
@@ -82,7 +82,7 @@ void Driver::compileSource(const string &src)
   auto objects = decls->objects;
   auto controllers = decls->controllers;
 
-  vector<shared_ptr<Element>> elements;
+  vector<ElementSP> elements;
   elements.insert(elements.end(), objects.begin(), objects.end());
   elements.insert(elements.end(), controllers.begin(), controllers.end());
 
@@ -115,8 +115,8 @@ void Driver::compileSource(const string &src)
 
 string Driver::readSource(string file)
 {
-  std::ifstream ifs(file);
-  std::string source_text;
+  ifstream ifs(file);
+  string source_text;
 
   ifs.seekg(0, std::ios::end);
   source_text.reserve(ifs.tellg());

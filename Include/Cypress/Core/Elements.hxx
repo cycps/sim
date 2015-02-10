@@ -7,16 +7,31 @@
 #include <vector>
 #include <unordered_map>
 
-namespace cypress {
+//Forward Declarations --------------------------------------------------------
+namespace cypress
+{
+  struct Element; using ElementSP = std::shared_ptr<Element>;
+  struct Object; using ObjectSP = std::shared_ptr<Object>;
+  struct Controller; using ControllerSP = std::shared_ptr<Controller>;
+  struct Component; using ComponentSP = std::shared_ptr<Component>;
+  struct Linkable; using LinkableSP = std::shared_ptr<Linkable>;
+  struct Thing; using ThingSP = std::shared_ptr<Thing>;
+  struct SubThing; using SubThingSP = std::shared_ptr<SubThing>;
+  struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
+  struct Link; using LinkSP = std::shared_ptr<Link>;
+  struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
+}
+namespace cypress 
+{
 
 //Core data structures --------------------------------------------------------
 
 struct Element : public Decl
 {
-  std::shared_ptr<Symbol> name;
-  std::vector<std::shared_ptr<Symbol>> params;
-  std::vector<std::shared_ptr<Equation>> eqtns; 
-  Element(std::shared_ptr<Symbol> name) : name{name} {}
+  SymbolSP name;
+  std::vector<SymbolSP> params;
+  std::vector<EquationSP> eqtns; 
+  Element(SymbolSP name) : name{name} {}
 };
 
 struct Object : public Element
@@ -33,11 +48,10 @@ struct Controller : public Element
 
 struct Component
 {
-  std::shared_ptr<Symbol> kind, name;
-  std::unordered_map<std::shared_ptr<Symbol>, std::shared_ptr<Real>> params;
-  std::shared_ptr<Element> element;
-  Component(std::shared_ptr<Symbol> kind, std::shared_ptr<Symbol> name)
-    : kind{kind}, name{name} {}
+  SymbolSP kind, name;
+  std::unordered_map<SymbolSP, RealSP> params;
+  ElementSP element;
+  Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
 };
 
 struct Linkable 
@@ -48,17 +62,16 @@ struct Linkable
 
 struct Thing : public Linkable
 {
-  std::shared_ptr<Symbol> name;
+  SymbolSP name;
   Kind kind() const override { return Kind::Thing; }
-  Thing(std::shared_ptr<Symbol> name) : name{name} {}
+  Thing(SymbolSP name) : name{name} {}
 };
 
 struct SubThing : public Linkable
 {
-  std::shared_ptr<Symbol> name, subname;
+  SymbolSP name, subname;
   Kind kind() const override { return Kind::SubThing; }
-  SubThing(std::shared_ptr<Symbol> name, std::shared_ptr<Symbol> subname)
-    : name{name}, subname{subname} {}
+  SubThing(SymbolSP name, SymbolSP subname) : name{name}, subname{subname} {}
 };
 
 struct AtoD : public Linkable
@@ -70,25 +83,24 @@ struct AtoD : public Linkable
 
 struct Link
 {
-  std::shared_ptr<Linkable> from, to;  
-  Link(std::shared_ptr<Linkable> from, std::shared_ptr<Linkable> to)
-    : from{from}, to{to} {}
+  LinkableSP from, to;  
+  Link(LinkableSP from, LinkableSP to) : from{from}, to{to} {}
 };
 
 struct Experiment : public Decl
 {
-  std::shared_ptr<Symbol> name;
-  std::vector<std::shared_ptr<Component>> components;
-  std::vector<std::shared_ptr<Link>> links;
+  SymbolSP name;
+  std::vector<ComponentSP> components;
+  std::vector<LinkSP> links;
   Kind kind() const override { return Kind::Experiment; }
-  Experiment(std::shared_ptr<Symbol> name) : name{name} {}
+  Experiment(SymbolSP name) : name{name} {}
 };
 
 struct Decls
 {
-  std::vector<std::shared_ptr<Object>> objects;
-  std::vector<std::shared_ptr<Controller>> controllers;
-  std::vector<std::shared_ptr<Experiment>> experiments;
+  std::vector<ObjectSP> objects;
+  std::vector<ControllerSP> controllers;
+  std::vector<ExperimentSP> experiments;
 };
 
 //ostream operations ----------------------------------------------------------
@@ -104,18 +116,18 @@ void showExpr(size_t indent, std::ostream &o, const Expression &expr);
 
 //Free functions over elements ------------------------------------------------
 void
-setEqtnsToZero(std::shared_ptr<Element>);
+setEqtnsToZero(ElementSP);
 
-std::shared_ptr<Element>
-qualifyEqtns(std::shared_ptr<Element>);
+ElementSP
+qualifyEqtns(ElementSP);
 
 //Element Visitors ------------------------------------------------------------
 struct EqtnQualifier : public Visitor
 {
-  std::shared_ptr<Component> qual{nullptr};
-  void setQualifier(std::shared_ptr<Component>);
-  void visit(std::shared_ptr<Symbol>) override;
-  void run(std::shared_ptr<Equation>);
+  ComponentSP qual{nullptr};
+  void setQualifier(ComponentSP);
+  void visit(SymbolSP) override;
+  void run(EquationSP);
 };
 
 }
