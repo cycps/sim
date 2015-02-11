@@ -3,6 +3,7 @@
 
 using namespace cypress;
 using std::vector;
+using std::make_shared;
 
 //Free functions over elements ================================================
 void cypress::setEqtnsToZero(ElementSP e)
@@ -39,4 +40,11 @@ void EqtnQualifier::visit(SymbolSP s)
 void EqtnQualifier::run(EquationSP eqtn)
 {
   eqtn->accept(*this);
+}
+
+//Link ------------------------------------------------------------------------
+Link::Link(SymbolSP name) : Element(name)
+{
+  params.push_back(make_shared<Symbol>("Latency", name->line));
+  params.push_back(make_shared<Symbol>("Bandwidth", name->line));
 }

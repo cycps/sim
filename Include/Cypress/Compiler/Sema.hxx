@@ -97,6 +97,9 @@ check(ComponentSP, std::vector<ElementSP>&, DiagnosticReport&);
 DiagnosticReport&
 checkComponentType(ComponentSP, std::vector<ElementSP>&, DiagnosticReport&);
 
+DiagnosticReport&
+checkComponentParams(ComponentSP, DiagnosticReport&);
+
 }}
 
 #endif

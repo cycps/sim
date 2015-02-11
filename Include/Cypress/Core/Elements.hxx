@@ -50,7 +50,7 @@ struct Controller : public Element
 struct Link : public Element
 {
   Kind kind() const override { return Kind::Link; }
-  using Element::Element;
+  Link(SymbolSP name);
 };
 
 struct Component

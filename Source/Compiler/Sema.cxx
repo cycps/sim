@@ -2,6 +2,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
+#include <algorithm>
+#include <set>
 
 using namespace cypress;
 using namespace cypress::compile;
@@ -15,6 +17,12 @@ using std::make_shared;
 using std::runtime_error;
 using std::stringstream;
 using std::shared_ptr;
+using std::set_difference;
+using std::pair;
+using std::transform;
+using std::back_inserter;
+using std::inserter;
+using std::set;
 
 void VarCollector::run(ElementSP e)
 {
@@ -212,6 +220,7 @@ cypress::compile::check(ComponentSP c, vector<ElementSP> &elements,
     DiagnosticReport &dr)
 {
   checkComponentType(c, elements, dr);
+  checkComponentParams(c, dr);
   
   return dr;
 }
@@ -243,3 +252,64 @@ cypress::compile::checkComponentType(ComponentSP c,
 
   return dr;
 }
+
+DiagnosticReport&
+cypress::compile::checkComponentParams(ComponentSP c, DiagnosticReport &dr)
+{
+  set<string> supplied;
+  transform(c->params.begin(), c->params.end(), 
+      inserter(supplied, supplied.begin()),
+      [](pair<SymbolSP, RealSP> x){ return x.first->value; });
+
+  set<string> required;
+  transform(c->element->params.begin(), c->element->params.end(), 
+      inserter(required, required.begin()),
+      [](SymbolSP x){ return x->value; });
+
+  vector<string> required_but_not_supplied;
+
+  set_difference(
+      required.begin(), required.end(),
+      supplied.begin(), supplied.end(),
+      back_inserter(required_but_not_supplied));
+
+  if(!required_but_not_supplied.empty())
+  {
+    string missing_params{""};
+    for(size_t i=0; i<required_but_not_supplied.size()-1; ++i)
+      missing_params += required_but_not_supplied[i] + ", ";
+    missing_params += required_but_not_supplied.back();
+
+    string diag_string = 
+      "The element " + c->element->name->value + " requires the parameters {" +
+      missing_params + "}";
+
+    dr.diagnostics.push_back({
+        Diagnostic::Level::Error, diag_string, c->name->line});
+
+  }
+
+  vector<string> supplied_but_not_required;
+  set_difference(
+      supplied.begin(), supplied.end(),
+      required.begin(), required.end(),
+      back_inserter(supplied_but_not_required));
+
+  if(!supplied_but_not_required.empty())
+  {
+    string extra_params{""};
+    for(size_t i=0; i<supplied_but_not_required.size()-1; ++i)
+      extra_params += supplied_but_not_required[i] + ", ";
+    extra_params += supplied_but_not_required.back();
+
+    string diag_string = 
+      "The element " + c->element->name->value + " does not take the parameters {" +
+      extra_params + "} they will be ignored";
+    
+    dr.diagnostics.push_back({
+        Diagnostic::Level::Warning, diag_string, c->name->line});
+  }
+
+  return dr;
+}
+
