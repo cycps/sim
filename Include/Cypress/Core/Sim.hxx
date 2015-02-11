@@ -20,13 +20,13 @@ struct Sim
       std::shared_ptr<Experiment>);
 
   void buildPhysics();
-  void typeAssignComponents();
+  //void typeAssignComponents();
   void buildSystemEquations();
   void addObjectToSim(ComponentSP);
   void addControllerToSim(ComponentSP);
 
-  std::shared_ptr<Element> 
-  findDecl(std::shared_ptr<Component>);
+  //std::shared_ptr<Element> 
+  //findDecl(std::shared_ptr<Component>);
 };
 
 }

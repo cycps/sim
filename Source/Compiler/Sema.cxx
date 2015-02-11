@@ -1,12 +1,19 @@
 #include "Cypress/Compiler/Sema.hxx"
 #include <iostream>
+#include <stdexcept>
+#include <sstream>
 
 using namespace cypress;
 using namespace cypress::compile;
 using std::find_if;
 using std::cout;
 using std::endl;
-
+using std::ostream;
+using std::string;
+using std::vector;
+using std::make_shared;
+using std::runtime_error;
+using std::stringstream;
 using std::shared_ptr;
 
 void VarCollector::run(ElementSP e)
@@ -143,3 +150,95 @@ void EqtnPrinter::leave(CVarSP)
   ss << "]";
 }
 
+// Diagnostics ================================================================
+
+bool DiagnosticReport::catastrophic()
+{
+  for(const Diagnostic d: diagnostics)
+    if(d.level == Diagnostic::Level::Error)
+      return true;
+
+  return false;
+}
+
+const char* CompilationError::what() const noexcept
+{
+  stringstream ss;
+  ss << report;
+  what_ = ss.str();
+  return what_.c_str();
+}
+
+ostream& cypress::compile::operator<<(ostream &o, const Diagnostic &d)
+{
+  string sev;
+  switch(d.level)
+  {
+    case Diagnostic::Level::Error: sev = "Error"; break;
+    case Diagnostic::Level::Warning: sev = "Warning"; break;
+    case Diagnostic::Level::Info: sev = "Info"; break;
+  }
+  o << "[" << sev << "]:" << d.line << " " << d.message << endl;
+  
+  return o;
+}
+
+ostream& cypress::compile::operator<<(ostream &o, const DiagnosticReport &dr)
+{
+  for(Diagnostic diag : dr.diagnostics)
+    if(diag.level <= dr.level)
+      o << diag;
+
+  return o;
+}
+
+// Semantic Checks ============================================================
+
+DiagnosticReport 
+cypress::compile::check(ExperimentSP ex, vector<ElementSP> &elements)
+{
+  DiagnosticReport diags;
+
+  for(ComponentSP c : ex->components)
+  {
+    check(c, elements, diags);
+  }
+
+  return diags;
+}
+
+DiagnosticReport&
+cypress::compile::check(ComponentSP c, vector<ElementSP> &elements, 
+    DiagnosticReport &dr)
+{
+  checkComponentType(c, elements, dr);
+  
+  return dr;
+}
+
+DiagnosticReport&
+cypress::compile::checkComponentType(ComponentSP c, 
+    std::vector<ElementSP> &elements, DiagnosticReport &dr)
+{
+  if(c->kind->value == "Link") 
+  {
+    c->element = make_shared<Link>(c->name);
+    return dr;
+  }
+
+  for(auto e : elements)
+  {
+    if(c->kind->value == e->name->value)
+    {
+      c->element = e;
+      return dr;
+    }
+  }
+
+  dr.diagnostics.push_back({
+      Diagnostic::Level::Error,
+      "Undefined Component Type: " + c->kind->value
+      });
+
+  return dr;
+}

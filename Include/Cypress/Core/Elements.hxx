@@ -16,8 +16,8 @@ namespace cypress
   struct Link; using LinkSP = std::shared_ptr<Link>;
   struct Component; using ComponentSP = std::shared_ptr<Component>;
   struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
-  struct Thing; using ThingSP = std::shared_ptr<Thing>;
-  struct SubThing; using SubThingSP = std::shared_ptr<SubThing>;
+  struct ComponentRef; using ComponentRefSP = std::shared_ptr<ComponentRef>;
+  struct SubComponentRef; using SubComponentRefSP = std::shared_ptr<SubComponentRef>;
   struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
   struct Connection; using ConnectionSP = std::shared_ptr<Connection>;
   struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
@@ -63,23 +63,25 @@ struct Component
 
 struct Connectable 
 {
-  enum class Kind { Thing, SubThing, AtoD };
+  enum class Kind { Component, SubComponent, AtoD };
   std::vector<ConnectableSP> neighbors;
   virtual Kind kind() const = 0;
 };
 
-struct Thing : public Connectable
+struct ComponentRef : public Connectable
 {
   SymbolSP name;
-  Kind kind() const override { return Kind::Thing; }
-  Thing(SymbolSP name) : name{name} {}
+  ComponentSP component{nullptr};
+  Kind kind() const override { return Kind::Component; }
+  ComponentRef(SymbolSP name) : name{name} {}
 };
 
-struct SubThing : public Connectable
+struct SubComponentRef : public ComponentRef
 {
-  SymbolSP name, subname;
-  Kind kind() const override { return Kind::SubThing; }
-  SubThing(SymbolSP name, SymbolSP subname) : name{name}, subname{subname} {}
+  SymbolSP subname;
+  Kind kind() const override { return Kind::SubComponent; }
+  SubComponentRef(SymbolSP name, SymbolSP subname) 
+    : ComponentRef{name}, subname{subname} {}
 };
 
 struct AtoD : public Connectable
@@ -128,6 +130,9 @@ setEqtnsToZero(ElementSP);
 
 ElementSP
 qualifyEqtns(ElementSP);
+
+std::vector<SubComponentRefSP>
+findControlledSubComponents(ExperimentSP);
 
 //Element Visitors ------------------------------------------------------------
 struct EqtnQualifier : public Visitor

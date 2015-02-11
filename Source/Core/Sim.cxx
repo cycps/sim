@@ -6,6 +6,7 @@ using std::vector;
 using std::runtime_error;
 using std::make_shared;
 using std::string;
+using std::static_pointer_cast;
 
 Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
     ExperimentSP exp) 
@@ -15,6 +16,7 @@ Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
   elements.insert(elements.end(), controllers.begin(), controllers.end());
 }
 
+/*
 void Sim::typeAssignComponents()
 {
   for(auto c : exp->components)
@@ -33,6 +35,7 @@ void Sim::typeAssignComponents()
     c->element = cd;
   }
 }
+*/
 
 void Sim::addObjectToSim(ComponentSP c)
 {
@@ -63,7 +66,7 @@ void Sim::addControllerToSim(ComponentSP c)
             << c->name->value << " :: "
             << c->kind->value << std::endl;
 
-  //TODO: you are here
+  //vector<SubComponentRefSP> uc = findControlledSubComponents(c);  
 }
 
 void Sim::buildSystemEquations()
@@ -71,16 +74,25 @@ void Sim::buildSystemEquations()
   for(auto c: exp->components)
   {
     if(c->element->kind() == Decl::Kind::Object) addObjectToSim(c);
-    if(c->element->kind() == Decl::Kind::Controller) addControllerToSim(c);
+    //if(c->element->kind() == Decl::Kind::Controller) addControllerToSim(c);
+  }
+
+  for(ConnectionSP cx : exp->links)
+  {
+    if(cx->from->kind() == Connectable::Kind::SubComponent)
+    {
+      auto sc = static_pointer_cast<SubComponentRef>(cx->from);
+    }
   }
 }
 
 void Sim::buildPhysics()
 {
-  typeAssignComponents();
+  //typeAssignComponents();
   buildSystemEquations();
 }
-  
+ 
+/*
 ElementSP 
 Sim::findDecl(ComponentSP c)
 {
@@ -89,4 +101,4 @@ Sim::findDecl(ComponentSP c)
 
   return nullptr;
 }
-
+*/

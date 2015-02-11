@@ -1,6 +1,8 @@
 #include "Cypress/Core/Elements.hxx"
+#include <vector>
 
 using namespace cypress;
+using std::vector;
 
 //Free functions over elements ================================================
 void cypress::setEqtnsToZero(ElementSP e)
@@ -11,6 +13,16 @@ void cypress::setEqtnsToZero(ElementSP e)
 ElementSP cypress::qualifyEqtns(ElementSP e)
 {
   return e;
+}
+
+vector<SubComponentRefSP>
+cypress::findControlledSubComponents(ExperimentSP)
+{
+  vector<SubComponentRefSP> result;
+
+  //TODO: When you get to links
+  
+  return result;
 }
 
 // EqtnQualifier --------------------------------------------------------------

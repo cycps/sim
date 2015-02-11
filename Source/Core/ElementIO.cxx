@@ -96,13 +96,13 @@ ostream& cypress::operator << (ostream &o, const Connectable &lkb)
 {
   switch(lkb.kind())
   {
-    case Connectable::Kind::Thing:
-      o << static_cast<const Thing &>(lkb).name->value;
+    case Connectable::Kind::Component:
+      o << static_cast<const ComponentRef &>(lkb).name->value;
       break;
-    case Connectable::Kind::SubThing:
-      o << static_cast<const SubThing &>(lkb).name->value
+    case Connectable::Kind::SubComponent:
+      o << static_cast<const SubComponentRef &>(lkb).name->value
         << "."
-        << static_cast<const SubThing &>(lkb).subname->value;
+        << static_cast<const SubComponentRef &>(lkb).subname->value;
       break;
     case Connectable::Kind::AtoD:
       o << "|" << static_cast<const AtoD &>(lkb).rate << "|";

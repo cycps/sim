@@ -79,16 +79,26 @@ void Driver::compileSource(const string &src)
 {
   Parser p(src);
   auto decls = p.run();
-  auto objects = decls->objects;
-  auto controllers = decls->controllers;
+  vector<ElementSP> elems;
 
-  vector<ElementSP> elements;
-  elements.insert(elements.end(), objects.begin(), objects.end());
-  elements.insert(elements.end(), controllers.begin(), controllers.end());
+  elems.insert(elems.end(), 
+      decls->objects.begin(), 
+      decls->objects.end());
+
+  elems.insert(elems.end(), 
+      decls->controllers.begin(), 
+      decls->controllers.end());
  
   for(auto exp : decls->experiments)
   {
-    Sim sim(objects, controllers, exp); 
+    DiagnosticReport diags = check(exp, elems);
+    cout << diags << endl;
+
+    if(diags.catastrophic()) exit(1);
+
+    //-- ~~ --
+
+    Sim sim(decls->objects, decls->controllers, exp); 
     sim.buildPhysics();
 
     cout << "psys: " << endl;

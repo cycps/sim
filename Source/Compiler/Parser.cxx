@@ -211,11 +211,11 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 
     if(regex_match(links[i], sm, thingrx()))
     {
-      from = make_shared<Thing>(make_shared<Symbol>(sm[1]));
+      from = make_shared<ComponentRef>(make_shared<Symbol>(sm[1]));
     }
     else if(regex_match(links[i], sm, subthingrx()))
     {
-      from = make_shared<SubThing>(
+      from = make_shared<SubComponentRef>(
           make_shared<Symbol>(sm[1]),
           make_shared<Symbol>(sm[2]));
     }
@@ -229,11 +229,11 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     
     if(regex_match(links[i+1], sm, thingrx()))
     {
-      to = make_shared<Thing>(make_shared<Symbol>(sm[1]));
+      to = make_shared<ComponentRef>(make_shared<Symbol>(sm[1]));
     }
     else if(regex_match(links[i+1], sm, subthingrx()))
     {
-      to = make_shared<SubThing>(
+      to = make_shared<SubComponentRef>(
           make_shared<Symbol>(sm[1]),
           make_shared<Symbol>(sm[2]));
     }
@@ -441,7 +441,6 @@ ComponentSP Parser::parseComponent(const string &s)
     ps[0].erase(remove_if(ps[0].begin(), ps[0].end(), isspace), ps[0].end());
     cp->params[make_shared<Symbol>(ps[0])] = make_shared<Real>(stod(ps[1]));
   }
-
 
   return cp;
 }
