@@ -178,7 +178,7 @@ ostream& cypress::compile::operator<<(ostream &o, const Diagnostic &d)
     case Diagnostic::Level::Warning: sev = "Warning"; break;
     case Diagnostic::Level::Info: sev = "Info"; break;
   }
-  o << "[" << sev << "]:" << d.line << " " << d.message << endl;
+  o << "[" << sev << "]:" << d.line+1 << " " << d.message << endl;
   
   return o;
 }
@@ -237,7 +237,8 @@ cypress::compile::checkComponentType(ComponentSP c,
 
   dr.diagnostics.push_back({
       Diagnostic::Level::Error,
-      "Undefined Component Type: " + c->kind->value
+      "Undefined Component Type: " + c->kind->value,
+      c->kind->line
       });
 
   return dr;

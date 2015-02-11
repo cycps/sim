@@ -16,7 +16,7 @@ void EqtnParametizer::parametize(std::shared_ptr<Kinded> *x)
     auto symb = std::static_pointer_cast<Symbol>(*x);
     if(symb->value == symbol_name)
     {
-      *x = std::make_shared<Real>(value);
+      *x = std::make_shared<Real>(value, symb->line);
     }
   }
 }

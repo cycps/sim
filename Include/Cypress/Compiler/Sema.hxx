@@ -61,6 +61,9 @@ struct Diagnostic
   Level level{Level::Info};
   std::string message;
   size_t line{0};
+  Diagnostic(Level level, std::string message, size_t line)
+    : level{level}, message{message}, line{line} 
+  {}
 };
 
 struct DiagnosticReport

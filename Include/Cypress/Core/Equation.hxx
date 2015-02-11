@@ -22,7 +22,6 @@ namespace cypress
   struct Term;          using TermSP = std::shared_ptr<Term>;
   struct Factor;        using FactorSP = std::shared_ptr<Factor>;
   struct Atom;          using AtomSP = std::shared_ptr<Atom>;
-
 }
 
 namespace cypress 
@@ -41,14 +40,19 @@ struct Expression : public ASTNode, public Clonable<Expression>
     SubExpression
   };
   virtual Kind kind() const = 0;
+  Expression(size_t line) : ASTNode{line} {}
 };
 
-struct Term : public Expression {};
+struct Term : public Expression 
+{
+  using Expression::Expression;
+};
 
 struct GroupOp : public Expression
 { 
   ExpressionSP lhs, rhs;
-  GroupOp(ExpressionSP lhs, ExpressionSP rhs) : lhs{lhs}, rhs{rhs} {}
+  GroupOp(ExpressionSP lhs, ExpressionSP rhs, size_t line) 
+    : Expression{line}, lhs{lhs}, rhs{rhs} {}
 };
 
 struct Add : public GroupOp, public std::enable_shared_from_this<Add> 
@@ -67,12 +71,16 @@ struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
   ExpressionSP clone() override;
 };
 
-struct Factor : public Term {};
+struct Factor : public Term 
+{
+  using Term::Term;
+};
 
 struct RingOp : public Term
 {
   TermSP lhs, rhs;
-  RingOp(TermSP lhs, TermSP rhs) : lhs{lhs}, rhs{rhs} {}
+  RingOp(TermSP lhs, TermSP rhs, size_t line) 
+    : Term{line}, lhs{lhs}, rhs{rhs} {}
 };
 
 struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
@@ -91,13 +99,17 @@ struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
   ExpressionSP clone() override;
 };
 
-struct Atom : public Factor {};
+struct Atom : public Factor 
+{
+  using Factor::Factor;
+};
 
 struct Pow : public Factor, public std::enable_shared_from_this<Pow>
 {
   AtomSP lhs, rhs;
   Kind kind() const{ return Kind::Pow; }
-  Pow(AtomSP lhs, AtomSP rhs) : lhs{lhs}, rhs{rhs} {}
+  Pow(AtomSP lhs, AtomSP rhs, size_t line) 
+    : Factor{line}, lhs{lhs}, rhs{rhs} {}
   
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -107,7 +119,7 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
 {
   std::string value;
   Kind kind() const{ return Kind::Symbol; }
-  Symbol(std::string value) : value{value} {}
+  Symbol(std::string value, size_t line) : Atom{line}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -128,7 +140,7 @@ struct CVar : public Atom, public std::enable_shared_from_this<CVar>
 {
   SymbolSP value;
   Kind kind() const{ return Kind::CVar; }
-  CVar(SymbolSP value) : value{value} {}
+  CVar(SymbolSP value) : Atom{value->line}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -138,7 +150,7 @@ struct Differentiate : public Factor,
 {
   SymbolSP arg;
   Kind kind() const{ return Kind::Differentiate; }
-  Differentiate(SymbolSP arg) : arg{arg} {}
+  Differentiate(SymbolSP arg, size_t line) : Factor{line}, arg{arg} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -147,7 +159,7 @@ struct Real : public Atom, public std::enable_shared_from_this<Real>
 {
   double value;
   Kind kind() const{ return Kind::Real; }
-  Real(double value) : value{value} {}
+  Real(double value, size_t line) : Atom{line}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -156,7 +168,7 @@ struct SubExpression : public Atom,
                        public std::enable_shared_from_this<SubExpression>
 {
   ExpressionSP value;
-  SubExpression(ExpressionSP value) : value{value} {}
+  SubExpression(ExpressionSP value) : Atom{value->line}, value{value} {}
   Kind kind() const{ return Kind::SubExpression; }
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -173,9 +185,9 @@ struct Equation : public ASTNode,
                   public std::enable_shared_from_this<Equation>
 {
   ExpressionSP lhs, rhs;
-
   void accept(Visitor &v) override;
   EquationSP clone() override;
+  using ASTNode::ASTNode;
 };
 
 

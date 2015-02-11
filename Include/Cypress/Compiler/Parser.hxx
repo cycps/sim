@@ -24,6 +24,8 @@ class Parser
     std::vector<std::string> lines;
     std::string source;
 
+    size_t currline{0};
+
     LineType classifyLine(const std::string &, DeclType &dt);
     bool isDecl(const std::string &, DeclType &);
     bool isCode(const std::string &);

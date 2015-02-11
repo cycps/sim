@@ -41,6 +41,7 @@ shared_ptr<Decls> Parser::run()
 
   for(size_t i=0; i<lines.size(); ++i)
   {
+    currline = i;
     DeclType dt;
     LineType lt = classifyLine(lines[i], dt);
     switch(lt)
@@ -101,7 +102,7 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, objrx());
-  auto object = make_shared<Object>(make_shared<Symbol>(sm[1]));
+  auto object = make_shared<Object>(make_shared<Symbol>(sm[1], at));
 
   //Parse the parameters
   string _pstr = sm[2];
@@ -109,10 +110,10 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
   auto params = split(pstr, ',');
 
   transform(params.begin(), params.end(), back_inserter(object->params),
-      [](const string &ps){ return make_shared<Symbol>(ps); });
-
+      [at](const string &ps){ return make_shared<Symbol>(ps, at); });
 
   size_t idx = at+1;
+  currline = idx;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
     if(isEmpty(lines[idx])) {}
@@ -127,6 +128,7 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
     }
     ++idx; 
     if(idx >= lines.size()) break;
+    currline = idx;
   }
   lc = idx - at - 1;
   return object;
@@ -136,16 +138,17 @@ ControllerSP Parser::parseController(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, contrx());
-  auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1]));
+  auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1], currline));
 
   string _pstr = sm[2];
   string pstr = string(_pstr.begin()+1, _pstr.end()-1);
   auto params = split(pstr, ',');
 
   transform(params.begin(), params.end(), back_inserter(controller->params),
-      [](const string &ps){ return make_shared<Symbol>(ps); });
+      [this](const string &ps){ return make_shared<Symbol>(ps, currline); });
 
   size_t idx = at+1;
+  currline = idx;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
     if(isEmpty(lines[idx])) {}
@@ -160,6 +163,7 @@ ControllerSP Parser::parseController(size_t at, size_t &lc)
     }
     ++idx; 
     if(idx >= lines.size()) break;
+    currline = idx;
   }
   lc = idx - at - 1;
   return controller;
@@ -169,8 +173,9 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, exprx());
-  auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1]));
+  auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1], currline));
   size_t idx = at+1;
+  currline = idx;
 
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
   { 
@@ -191,6 +196,7 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
     }
     ++idx; 
     if(idx >= lines.size()) break;
+    currline = idx;
   }
   lc = idx - at - 1;
   return experiment;
@@ -211,13 +217,13 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 
     if(regex_match(links[i], sm, thingrx()))
     {
-      from = make_shared<ComponentRef>(make_shared<Symbol>(sm[1]));
+      from = make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
     }
     else if(regex_match(links[i], sm, subthingrx()))
     {
       from = make_shared<SubComponentRef>(
-          make_shared<Symbol>(sm[1]),
-          make_shared<Symbol>(sm[2]));
+          make_shared<Symbol>(sm[1], currline),
+          make_shared<Symbol>(sm[2], currline));
     }
     else if(regex_match(links[i], sm, atodrx()))
     {
@@ -229,13 +235,13 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     
     if(regex_match(links[i+1], sm, thingrx()))
     {
-      to = make_shared<ComponentRef>(make_shared<Symbol>(sm[1]));
+      to = make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
     }
     else if(regex_match(links[i+1], sm, subthingrx()))
     {
       to = make_shared<SubComponentRef>(
-          make_shared<Symbol>(sm[1]),
-          make_shared<Symbol>(sm[2]));
+          make_shared<Symbol>(sm[1], currline),
+          make_shared<Symbol>(sm[2], currline));
     }
     else if(regex_match(links[i+1], sm, atodrx()))
     {
@@ -298,7 +304,7 @@ EquationSP Parser::parseEqtn(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   
-  auto eqtn = make_shared<Equation>();
+  auto eqtn = make_shared<Equation>(currline);
   if(sm.size() != 3) throw runtime_error("disformed equation");
   string lhs = sm[1],
          rhs = sm[2];
@@ -334,8 +340,8 @@ ExpressionSP Parser::parseExpr(const string &s)
               rhs = parseExpr(matches[2]);
               switch(matches[1][0])
               {
-                case '+' : return make_shared<Add>(lhs, rhs);
-                case '-' : return make_shared<Subtract>(lhs, rhs);
+                case '+' : return make_shared<Add>(lhs, rhs, currline);
+                case '-' : return make_shared<Subtract>(lhs, rhs, currline);
               }
     }
   }
@@ -361,8 +367,8 @@ TermSP Parser::parseTerm(const string &s)
               rhs = parseTerm(matches[2]);
               switch(matches[1][0])
               {
-                case '*' : return make_shared<Multiply>(lhs, rhs);
-                case '/' : return make_shared<Divide>(lhs, rhs);
+                case '*' : return make_shared<Multiply>(lhs, rhs, currline);
+                case '/' : return make_shared<Divide>(lhs, rhs, currline);
               }
     }
   }
@@ -402,11 +408,11 @@ AtomSP Parser::parseAtom(const string &s)
   try
   { 
     value = stod(s); 
-    return make_shared<Real>(value);
+    return make_shared<Real>(value, currline);
   }
   catch(const invalid_argument &e)
   {
-    return make_shared<Symbol>(s);
+    return make_shared<Symbol>(s, currline);
   }
 
   return nullptr;
@@ -414,12 +420,13 @@ AtomSP Parser::parseAtom(const string &s)
     
 DifferentiateSP Parser::parseDerivative(const string &s)
 {
-  return make_shared<Differentiate>(make_shared<Symbol>(s));
+  return make_shared<Differentiate>(make_shared<Symbol>(s, currline), currline);
 }
     
 PowSP Parser::parsePow(const string &lower, const string &upper)
 {
-  return make_shared<Pow>(make_shared<Symbol>(lower), parseAtom(upper));
+  return make_shared<Pow>(
+      make_shared<Symbol>(lower, currline), parseAtom(upper), currline);
 }
 
 ComponentSP Parser::parseComponent(const string &s)
@@ -429,8 +436,8 @@ ComponentSP Parser::parseComponent(const string &s)
   if(sm.size() < 3) throw runtime_error("disformed component instance");
   
   auto cp = make_shared<Component>(
-              make_shared<Symbol>(sm[1]),
-              make_shared<Symbol>(sm[2]));
+              make_shared<Symbol>(sm[1], currline),
+              make_shared<Symbol>(sm[2], currline));
 
   string _pstr = sm[3];
   string pstr = string(_pstr.begin()+1, _pstr.end()-1);
@@ -439,7 +446,8 @@ ComponentSP Parser::parseComponent(const string &s)
   {
     auto ps = split(p, ':');
     ps[0].erase(remove_if(ps[0].begin(), ps[0].end(), isspace), ps[0].end());
-    cp->params[make_shared<Symbol>(ps[0])] = make_shared<Real>(stod(ps[1]));
+    cp->params[make_shared<Symbol>(ps[0], currline)] = 
+      make_shared<Real>(stod(ps[1]), currline);
   }
 
   return cp;
