@@ -64,7 +64,8 @@ struct Component
 struct Connectable 
 {
   enum class Kind { Component, SubComponent, AtoD };
-  std::vector<ConnectableSP> neighbors;
+  //std::vector<ConnectableSP> neighbors;
+  ConnectableSP neighbor{nullptr};
   virtual Kind kind() const = 0;
 };
 

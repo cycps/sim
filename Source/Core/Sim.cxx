@@ -16,27 +16,6 @@ Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
   elements.insert(elements.end(), controllers.begin(), controllers.end());
 }
 
-/*
-void Sim::typeAssignComponents()
-{
-  for(auto c : exp->components)
-  {
-    //TODO Need a better mechanisim for builtins
-    if(c->kind->value == "Link") 
-    {
-      c->element = make_shared<Link>(c->name);
-      //TODO: Assign parameter values to link
-      continue;
-    }
-
-    auto cd = findDecl(c);  
-    if(cd == nullptr) 
-      throw runtime_error("Undefined Component Type: " + c->kind->value);
-    c->element = cd;
-  }
-}
-*/
-
 void Sim::addObjectToSim(ComponentSP c)
 {
   EqtnQualifier eqq;
@@ -69,6 +48,28 @@ void Sim::addControllerToSim(ComponentSP c)
   //vector<SubComponentRefSP> uc = findControlledSubComponents(c);  
 }
 
+string getControlled(ConnectableSP c)
+{
+  if(c->neighbor != nullptr) return getControlled(c->neighbor);
+
+  if(c->kind() == Connectable::Kind::Component)
+    std::cout << static_pointer_cast<ComponentRef>(c)->name->value << std::endl;
+  if(c->kind() == Connectable::Kind::AtoD)
+    std::cout << "AtoD" << std::endl;
+  if(c->kind() != Connectable::Kind::SubComponent)
+    throw runtime_error{"well fuck"};
+
+  auto x = static_pointer_cast<SubComponentRef>(c);
+  return x->name->value + "." + x->subname->value;
+}
+
+void Sim::addControllerRefToSim(SubComponentRefSP c)
+{
+  std::cout << c->name->value << "." 
+            << c->subname->value << " ~-~>> " 
+            << getControlled(c) << std::endl;
+}
+
 void Sim::buildSystemEquations()
 {
   for(auto c: exp->components)
@@ -82,23 +83,16 @@ void Sim::buildSystemEquations()
     if(cx->from->kind() == Connectable::Kind::SubComponent)
     {
       auto sc = static_pointer_cast<SubComponentRef>(cx->from);
+      if(sc->component->element->kind() == Decl::Kind::Controller)
+      {
+        addControllerRefToSim(sc);        
+      }
     }
   }
 }
 
 void Sim::buildPhysics()
 {
-  //typeAssignComponents();
   buildSystemEquations();
 }
  
-/*
-ElementSP 
-Sim::findDecl(ComponentSP c)
-{
-  for(auto e : elements)
-    if(c->kind->value == e->name->value) return e;
-
-  return nullptr;
-}
-*/

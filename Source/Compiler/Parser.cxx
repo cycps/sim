@@ -6,6 +6,13 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp> 
+#pragma clang diagnostic pop
+#include <boost/lexical_cast.hpp>
 
 using namespace cypress;
 using namespace cypress::compile;
@@ -29,6 +36,7 @@ using std::remove_if;
 using std::transform;
 using std::stringstream;
 using std::getline;
+using std::unordered_map;
 
 Parser::Parser(string source)
   : source{source}
@@ -210,24 +218,40 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
 
+  unordered_map<string, ConnectableSP> table;
   vector<ConnectionSP> lnks;
   smatch sm;
   for(size_t i=0; i<links.size()-1; ++i)
   {
     ConnectableSP from, to;
+    string from_name, to_name;
 
     if(regex_match(links[i], sm, thingrx()))
     {
-      from = make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+      from_name = sm[1];
+      if(table.find(from_name) == table.end())
+      {
+        table[from_name] = 
+          make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+      }
+      from = table[from_name];
     }
     else if(regex_match(links[i], sm, subthingrx()))
     {
-      from = make_shared<SubComponentRef>(
-          make_shared<Symbol>(sm[1], currline),
-          make_shared<Symbol>(sm[2], currline));
+      from_name = string(sm[1])+"."+string(sm[2]);
+      if(table.find(from_name) == table.end())
+      {
+        table[from_name] = 
+          make_shared<SubComponentRef>(
+            make_shared<Symbol>(sm[1], currline),
+            make_shared<Symbol>(sm[2], currline));
+      }
+      from = table[from_name];
     }
     else if(regex_match(links[i], sm, atodrx()))
     {
+      auto uuid = boost::uuids::random_generator()();
+      from_name = "AtoD::"+boost::lexical_cast<string>(uuid);
       from = make_shared<AtoD>(stod(sm[1]));
     }
     else
@@ -236,22 +260,37 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     
     if(regex_match(links[i+1], sm, thingrx()))
     {
-      to = make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+      to_name = sm[1];
+      if(table.find(to_name) == table.end())
+      {
+        table[to_name] = 
+          make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+      }
+      to = table[to_name];
     }
     else if(regex_match(links[i+1], sm, subthingrx()))
     {
-      to = make_shared<SubComponentRef>(
-          make_shared<Symbol>(sm[1], currline),
-          make_shared<Symbol>(sm[2], currline));
+      to_name = string(sm[1])+"."+string(sm[2]);
+      if(table.find(to_name) == table.end())
+      {
+        table[to_name] =
+          make_shared<SubComponentRef>(
+              make_shared<Symbol>(sm[1], currline),
+              make_shared<Symbol>(sm[2], currline));
+      }
+      to = table[to_name];
     }
     else if(regex_match(links[i+1], sm, atodrx()))
     {
+      auto uuid = boost::uuids::random_generator()();
+      to_name = "AtoD::"+boost::lexical_cast<string>(uuid);
       to = make_shared<AtoD>(stod(sm[1]));
     }
     else
       throw runtime_error{"disformed linkable" + links[i+1]};
 
-    from->neighbors.push_back(to);
+    //from->neighbors.push_back(to);
+    from->neighbor = to;
     //Directed neighbors only for the time being
     //to->neighbors.push_back(from);
     lnks.push_back(make_shared<Connection>(from, to));
