@@ -32,8 +32,6 @@ void Sim::addObjectToSim(ComponentSP c)
       applyParameter(cpy, sym_name, p.second->value);
     }
       
-    liftControlledVars(cpy, "rotor.ω");
-
     psys.push_back(cpy);
   }
 }
@@ -48,6 +46,7 @@ void Sim::addControllerToSim(ComponentSP c)
   //vector<SubComponentRefSP> uc = findControlledSubComponents(c);  
 }
 
+//TODO: This should be a semantic action
 string getControlled(ConnectableSP c)
 {
   if(c->neighbor != nullptr) return getControlled(c->neighbor);
@@ -65,9 +64,16 @@ string getControlled(ConnectableSP c)
 
 void Sim::addControllerRefToSim(SubComponentRefSP c)
 {
+  string under_control = getControlled(c);
+
   std::cout << c->name->value << "." 
-            << c->subname->value << " ~-~>> " 
-            << getControlled(c) << std::endl;
+            << c->subname->value << " --~~>> " 
+            << under_control << std::endl;
+
+  for(auto eqtn: psys)
+  {
+    liftControlledVars(eqtn, under_control);
+  }
 }
 
 void Sim::buildSystemEquations()
