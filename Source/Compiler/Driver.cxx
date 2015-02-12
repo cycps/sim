@@ -91,10 +91,11 @@ void Driver::compileSource(const string &src)
  
   for(auto exp : decls->experiments)
   {
-    DiagnosticReport diags = check(exp, elems);
-    cout << diags << endl;
+    DiagnosticReport dr = check(exp, elems);
+    if(!dr.diagnostics.empty())
+      cout << dr << endl;
 
-    if(diags.catastrophic()) exit(1);
+    if(dr.catastrophic()) exit(1);
 
     //-- ~~ --
 

@@ -66,10 +66,6 @@ void Sim::addControllerRefToSim(SubComponentRefSP c)
 {
   string under_control = getControlled(c);
 
-  std::cout << c->name->value << "." 
-            << c->subname->value << " --~~>> " 
-            << under_control << std::endl;
-
   for(auto eqtn: psys)
   {
     liftControlledVars(eqtn, under_control);

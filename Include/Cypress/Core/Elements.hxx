@@ -57,6 +57,7 @@ struct Component
 {
   SymbolSP kind, name;
   std::unordered_map<SymbolSP, RealSP> params;
+  std::unordered_map<SymbolSP, RealSP> initials;
   ElementSP element;
   Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
 };

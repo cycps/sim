@@ -481,13 +481,28 @@ ComponentSP Parser::parseComponent(const string &s)
 
   string _pstr = sm[3];
   string pstr = string(_pstr.begin()+1, _pstr.end()-1);
+  pstr.erase(remove_if(pstr.begin(), pstr.end(), isspace), pstr.end());
+
   auto params = split(pstr, ',');
   for(const string &p : params)
   {
-    auto ps = split(p, ':');
-    ps[0].erase(remove_if(ps[0].begin(), ps[0].end(), isspace), ps[0].end());
-    cp->params[make_shared<Symbol>(ps[0], currline)] = 
-      make_shared<Real>(stod(ps[1]), currline);
+    if(p.find(":") != string::npos)
+    {
+      auto ps = split(p, ':');
+      cp->params[make_shared<Symbol>(ps[0], currline)] = 
+        make_shared<Real>(stod(ps[1]), currline);
+    }
+    else if(p.find("|") != string::npos)
+    {
+      auto ps = split(p, '|');
+      cp->initials[make_shared<Symbol>(ps[0], currline)] = 
+        make_shared<Real>(stod(ps[1]), currline);
+    }
+    else
+    {
+      //TODO: Need to do this with the diagnostics API
+      throw runtime_error("disformed component parameterization");
+    }
   }
 
   return cp;
