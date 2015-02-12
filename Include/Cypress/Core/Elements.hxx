@@ -101,7 +101,7 @@ struct Experiment : public Decl
 {
   SymbolSP name;
   std::vector<ComponentSP> components;
-  std::vector<ConnectionSP> links;
+  std::vector<ConnectionSP> connections;
   Kind kind() const override { return Kind::Experiment; }
   Experiment(SymbolSP name) : name{name} {}
 };

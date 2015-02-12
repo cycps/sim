@@ -89,7 +89,7 @@ struct CompilationError : public std::exception
 };
 
 // Semantic Checks ============================================================
-DiagnosticReport  check(ExperimentSP, std::vector<ElementSP>&);
+DiagnosticReport check(ExperimentSP, std::vector<ElementSP>&);
 
 DiagnosticReport& 
 check(ComponentSP, std::vector<ElementSP>&, DiagnosticReport&);
@@ -99,6 +99,12 @@ checkComponentType(ComponentSP, std::vector<ElementSP>&, DiagnosticReport&);
 
 DiagnosticReport&
 checkComponentParams(ComponentSP, DiagnosticReport&);
+
+DiagnosticReport&
+checkConnection(ConnectionSP, std::vector<ComponentSP>&, DiagnosticReport&);
+
+DiagnosticReport&
+checkComponentRef(ComponentRefSP, std::vector<ComponentSP>&, DiagnosticReport&);
 
 }}
 

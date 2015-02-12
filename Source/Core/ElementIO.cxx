@@ -60,9 +60,9 @@ ostream& cypress::operator << (ostream &o, const Experiment &expr)
   o << "      [components]" << endl;
   for(auto cp : expr.components)
     o << *cp;
-  o << "      [links]" << endl;
-  for(auto lk : expr.links)
-    o << *lk;
+  o << "      [connections]" << endl;
+  for(auto cx : expr.connections)
+    o << *cx;
   return o;
 }
 

@@ -77,7 +77,7 @@ void Sim::buildSystemEquations()
     //if(c->element->kind() == Decl::Kind::Controller) addControllerToSim(c);
   }
 
-  for(ConnectionSP cx : exp->links)
+  for(ConnectionSP cx : exp->connections)
   {
     if(cx->from->kind() == Connectable::Kind::SubComponent)
     {

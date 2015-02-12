@@ -190,8 +190,9 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
       }
       else if(regex_match(lines[idx], sm, lnkrx()))
       {
-        vector<ConnectionSP> lnks = parseConnectionStmt(lines[idx]);
-        experiment->links.insert(experiment->links.end(), lnks.begin(), lnks.end());
+        vector<ConnectionSP> cnx = parseConnectionStmt(lines[idx]);
+        experiment->connections.insert(
+            experiment->connections.end(), cnx.begin(), cnx.end());
       }
     }
     ++idx; 

@@ -23,6 +23,8 @@ using std::transform;
 using std::back_inserter;
 using std::inserter;
 using std::set;
+using std::find_if;
+using std::static_pointer_cast;
 
 void VarCollector::run(ElementSP e)
 {
@@ -212,6 +214,11 @@ cypress::compile::check(ExperimentSP ex, vector<ElementSP> &elements)
     check(c, elements, diags);
   }
 
+  for(ConnectionSP c : ex->connections)
+  {
+    checkConnection(c, ex->components, diags);
+  }
+
   return diags;
 }
 
@@ -313,3 +320,59 @@ cypress::compile::checkComponentParams(ComponentSP c, DiagnosticReport &dr)
   return dr;
 }
 
+DiagnosticReport&
+cypress::compile::checkConnection(ConnectionSP c, vector<ComponentSP> &cs, 
+    DiagnosticReport &dr)
+{
+  if(c->from->kind() == Connectable::Kind::Component || 
+     c->from->kind() == Connectable::Kind::SubComponent)
+  {
+    checkComponentRef(static_pointer_cast<ComponentRef>(c->from), cs, dr);
+  }
+  if(c->to->kind() == Connectable::Kind::Component || 
+     c->to->kind() == Connectable::Kind::SubComponent)
+  {
+    checkComponentRef(static_pointer_cast<ComponentRef>(c->to), cs, dr);
+  }
+  return dr;
+}
+
+DiagnosticReport&
+cypress::compile::checkComponentRef(ComponentRefSP c, vector<ComponentSP> &cs,
+    DiagnosticReport &dr)
+{
+  auto ref = find_if(cs.begin(), cs.end(),
+      [c](ComponentSP x){ return x->name->value == c->name->value; });
+ 
+  if(ref == cs.end())
+  {
+    dr.diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Undefined component reference `" + c->name->value + "`",
+        c->name->line});
+    return dr;
+  }
+
+  c->component = *ref;
+
+  if(c->kind() == Connectable::Kind::SubComponent)
+  {
+    string sr = static_pointer_cast<SubComponentRef>(c)->subname->value;
+    VarCollector vc;
+    vc.run(c->component->element);
+    auto vars = vc.vars[c->component->element];
+
+    auto subref = find_if(vars.begin(), vars.end(),
+        [sr](SymbolSP x){ return x->value == sr; });
+
+    if(subref == vars.end())
+    {
+      dr.diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Undefined component subreference `" + c->name->value +"."+ sr + "`",
+          c->name->line});
+    }
+  }
+
+  return dr;
+}
