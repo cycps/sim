@@ -8,3 +8,5 @@ include_directories(/usr/local/include)
 find_package(Boost COMPONENTS program_options REQUIRED)
 
 add_subdirectory(Source)
+add_subdirectory(gtest)
+add_subdirectory(Test)
