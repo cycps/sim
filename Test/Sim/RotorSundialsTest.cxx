@@ -118,6 +118,13 @@ TEST(Sim, SundialsRotorSerial)
   if(retval != IDA_SUCCESS) 
     throw runtime_error{"IDAInit failed: " + to_string(retval)};
 
+  RotorParams rt;
+  rt.H = 2.5;
+  rt.T = 5;
+  retval = IDASetUserData(mem, &rt);
+  if(retval != IDA_SUCCESS)
+    throw runtime_error{"IDASetUserData failed: " + to_string(retval)};
+
   retval = IDASVtolerances(mem, rtol, avtol);
   if(retval != IDA_SUCCESS) 
     throw runtime_error{"IDASVtolerances failed: " + to_string(retval)};
@@ -129,6 +136,27 @@ TEST(Sim, SundialsRotorSerial)
     throw runtime_error{"IDADense failed: " + to_string(retval)};
 
   retval = IDADlsSetDenseJacFn(mem, J);
+  if(retval != IDA_SUCCESS)
+    throw runtime_error{"IDADlsSetDenseJacFn failed: " + to_string(retval)};
+
+  double tout{0.01}, tret{0};
+  for(double tout=0.01; tout<te; tout += 0.01)
+  {
+    retval = IDASolve(mem, tout, &tret, y, dy, IDA_NORMAL);
+    if(retval != IDA_SUCCESS)
+      throw runtime_error{"IDASolve failed: " + to_string(retval)};
+
+    cout 
+      << std::setprecision(6) << std::fixed
+      << yval[0] << "\t"
+      << yval[1] << "\t"
+      << yval[2] << "\t"
+      << yval[3] << "\t"
+      << endl;
+  }
+  cout << endl;
+  //code
+
 }
 
 int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
