@@ -78,8 +78,6 @@ TEST(Sim, SundialsRotorSerial)
 {
   cout << "Sundials Rotor Test" << endl;
 
-  //void *mem{nullptr};
-
   N_Vector 
     y{N_VNew_Serial(NEQ)}, 
     dy{N_VNew_Serial(NEQ)}, 
@@ -155,7 +153,6 @@ TEST(Sim, SundialsRotorSerial)
       << endl;
   }
   cout << endl;
-  //code
 
 }
 

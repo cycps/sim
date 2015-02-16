@@ -28,7 +28,6 @@ SimEx::SimEx(size_t neq, double rtol, double satol)
     dyv{NV_DATA_S(dy)},
     avtolv{NV_DATA_S(avtol)}
 {
-  startupReport();
   applySATol();
 }
 
