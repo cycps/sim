@@ -2,6 +2,7 @@
 #define CYPRESS_SIM
 
 #include "Cypress/Core/Elements.hxx"
+#include "Cypress/Sim/SimEx.hxx"
 
 namespace cypress
 {
@@ -25,6 +26,8 @@ struct Sim
   void addControllerToSim(ComponentSP);
 
   void addControllerRefToSim(SubComponentRefSP);
+
+  SimEx buildSimEx();
 
 };
 

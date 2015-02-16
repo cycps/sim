@@ -1,5 +1,9 @@
 add_library(CypressC SHARED Driver.cxx Parser.cxx Sema.cxx)
-target_link_libraries(CypressC ${Boost_PROGRAM_OPTIONS_LIBRARY} CypressCore)
+target_link_libraries(CypressC 
+  ${Boost_PROGRAM_OPTIONS_LIBRARY} 
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  CypressCore CypressSim)
 
 add_executable(cyc main.cxx)
 target_link_libraries(cyc CypressC)

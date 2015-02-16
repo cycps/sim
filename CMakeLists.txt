@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra -g -O3 -fcolor-
 include_directories(Include)
 include_directories(/usr/local/include)
 
-find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
 
 add_subdirectory(Source)
 add_subdirectory(gtest)

@@ -1,12 +1,14 @@
 #include "Cypress/Compiler/Driver.hxx"
 #include "Cypress/Compiler/Sema.hxx"
 #include "Cypress/Core/Equation.hxx"
-#include "Cypress/Core/Sim.hxx"
+#include "Cypress/Sim/Sim.hxx"
 
 #include <boost/exception/info.hpp>
+#include <boost/filesystem/convenience.hpp>
 #include <iostream>
 #include <fstream>
 #include <streambuf>
+#include <ostream>
 
 using namespace cypress::compile;
 namespace po = boost::program_options;
@@ -15,6 +17,7 @@ using std::endl;
 using std::vector;
 using std::string;
 using std::ifstream;
+using std::ofstream;
 
 Driver::Driver(int argc, char **argv)
 {
@@ -70,6 +73,7 @@ void Driver::compileInputFiles()
   for(const auto& inf : input_files)
   {
     cout << "Compiling '" << inf << "'" << endl;
+    currentInput = inf;
     string src = readSource(inf);
     compileSource(src);
   }
@@ -101,6 +105,10 @@ void Driver::compileSource(const string &src)
 
     Sim sim(decls->objects, decls->controllers, exp); 
     sim.buildPhysics();
+    SimEx sx = sim.buildSimEx();
+    string simfile = sx.toString();
+    ofstream ofs(boost::filesystem::basename(currentInput)+".cyx");
+    ofs << simfile;
 
     cout << "psys: " << endl;
     EqtnPrinter eqp;

@@ -1,4 +1,4 @@
-#include "Cypress/Core/Sim.hxx"
+#include "Cypress/Sim/Sim.hxx"
 #include <stdexcept>
 
 using namespace cypress;
@@ -51,10 +51,6 @@ string getControlled(ConnectableSP c)
 {
   if(c->neighbor != nullptr) return getControlled(c->neighbor);
 
-  if(c->kind() == Connectable::Kind::Component)
-    std::cout << static_pointer_cast<ComponentRef>(c)->name->value << std::endl;
-  if(c->kind() == Connectable::Kind::AtoD)
-    std::cout << "AtoD" << std::endl;
   if(c->kind() != Connectable::Kind::SubComponent)
     throw runtime_error{"well fuck"};
 
@@ -82,12 +78,12 @@ void Sim::buildSystemEquations()
 
   for(ConnectionSP cx : exp->connections)
   {
-    if(cx->from->kind() == Connectable::Kind::SubComponent)
+    if(isa(cx->from, Connectable::Kind::SubComponent))
     {
       auto sc = static_pointer_cast<SubComponentRef>(cx->from);
-      if(sc->component->element->kind() == Decl::Kind::Controller)
+      if(isa(sc->component->element, Decl::Kind::Controller))
       {
-        addControllerRefToSim(sc);        
+        addControllerRefToSim(sc); 
       }
     }
   }
@@ -98,3 +94,15 @@ void Sim::buildPhysics()
   buildSystemEquations();
 }
  
+SimEx Sim::buildSimEx()
+{
+  SimEx sx{psys.size(), 1e-4, 1e-6}; 
+
+  //TODO: you are here output this to the stream in the compiler exec
+  //and then input the geenrated file in the SimEx exec and make sure
+  //they match up
+
+  return sx;
+}
+
+

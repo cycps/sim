@@ -30,6 +30,12 @@ struct ASTNode : public Lexeme
   ASTNode(size_t line) : Lexeme{line} {}
 };
 
+template<class Type, class Thing>
+bool isa(Thing a, Type ty)
+{
+  return a->kind() == ty;
+}
+
 
 
 } //::cypress

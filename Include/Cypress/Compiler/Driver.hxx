@@ -28,6 +28,7 @@ class Driver
 
     int argc;
     char **argv;
+    std::string currentInput;
     boost::program_options::options_description opt_desc;
     boost::program_options::variables_map opt_vmap;
     boost::program_options::positional_options_description popt_desc;
