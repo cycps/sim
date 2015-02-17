@@ -137,7 +137,7 @@ TEST(Sim, SundialsRotorSerial)
   if(retval != IDA_SUCCESS)
     throw runtime_error{"IDADlsSetDenseJacFn failed: " + to_string(retval)};
 
-  double tout{0.01}, tret{0};
+  double tret{0};
   for(double tout=0.01; tout<te; tout += 0.01)
   {
     retval = IDASolve(mem, tout, &tret, y, dy, IDA_NORMAL);

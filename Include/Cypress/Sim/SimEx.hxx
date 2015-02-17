@@ -8,9 +8,17 @@
 #include <sundials/sundials_types.h>
 
 #include <string>
+#include <vector>
+#include <functional>
 
 namespace cypress
 {
+
+struct ResidualClosure
+{
+  realtype *y, *dy;
+  std::vector<std::function<realtype()>> eqtns;
+};
 
 struct SimEx
 {

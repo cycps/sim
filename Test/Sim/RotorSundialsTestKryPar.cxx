@@ -10,7 +10,6 @@
  */
 
 #include <ida/ida.h>
-//#include <ida/ida_spils.h>
 #include <ida/ida_spgmr.h>
 #include <ida/ida_bbdpre.h>
 #include <nvector/nvector_parallel.h>
@@ -78,9 +77,6 @@ int FL(long int L, realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
 
 void initData(realtype *y, realtype *dy, MPIConfig mpic)
 {
-  //size_t start = mpic.r * mpic.L;
-  //size_t end = start + mpic.L;
-
   for(int i=0; i<mpic.L; ++i)
   {
     y[i] = 0.0;
@@ -114,23 +110,6 @@ int main(int argc, char **argv)
            *dyval{NV_DATA_P(dy)};
   
   initData(yval, dyval, mpic);
-  /*
-  yval[0] = 0.0; //initial velocity is zero
-  yval[1] = 0.0; //initial position is zero
-  yval[2] = 0.0; //initial torque is zero
-  yval[3] = 0.0; //initial accelleration is zero
-
-  dyval[0] = 0.0; //initial velocity rate of change is zero
-  dyval[1] = 0.0; //initial position rate of change is zero
-  dyval[2] = 0.0; //initial torque rate of change is zero
-  dyval[3] = 0.0; //initial acceleration rate of change is zero
-
-  //uniform absolute tolerance values
-  atval[0] = 
-  atval[1] = 
-  atval[2] = 
-  atval[3] = 1.0e-6;
-  */
   //relative tolerance
   double rtl = 0;
   double atl = 1.0e-3;
@@ -202,10 +181,10 @@ int FL(long int L, realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
   data->rotorEqtns.dy = NV_DATA_P(dy);
   data->rotorEqtns.t = t;
 
-  size_t start = data->mpic.r * L;
-  size_t end = start + L;
+  long start = data->mpic.r * L;
+  long end = start + L;
 
-  for(size_t il=0, ig=start; il<L && ig<end; ++ig, ++il)
+  for(long il=0, ig=start; il<L && ig<end; ++ig, ++il)
     rv[il] = data->rotorEqtns.eqtns[ig]();
 
   

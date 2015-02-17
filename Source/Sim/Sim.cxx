@@ -98,9 +98,6 @@ SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
 
-  //TODO: you are here output this to the stream in the compiler exec
-  //and then input the geenrated file in the SimEx exec and make sure
-  //they match up
 
   return sx;
 }

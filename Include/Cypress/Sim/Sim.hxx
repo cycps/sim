@@ -4,6 +4,8 @@
 #include "Cypress/Core/Elements.hxx"
 #include "Cypress/Sim/SimEx.hxx"
 
+#include <unordered_map>
+
 namespace cypress
 {
 
