@@ -11,5 +11,6 @@ target_link_libraries(CySimExec
 
 add_executable(DummyResid DummyResid.cxx ComputeNode.cxx)
 target_link_libraries(DummyResid
+  /usr/local/lib/libmpi.dylib
   CypressSim
   CypressCore)

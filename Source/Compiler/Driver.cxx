@@ -139,6 +139,8 @@ void Driver::compileSource(const string &src)
       << cyhome << "/Source/Sim/ComputeNode.cxx "
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "
+      << "-L" << "/usr/local/lib "
+      << "-lmpi "
       << "-o " << "rcomp" << endl;
     ofs.close();
 

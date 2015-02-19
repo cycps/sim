@@ -8,9 +8,13 @@ using namespace cypress;
 
 extern ResidualClosure *rc;
 
-int main()
+int main(int argc, char **argv)
 {
   cout << "Cypress Compute Node ... Engage" << endl;
   cout << rc->experimentInfo() << endl;
+
+  MPI_Init(&argc, &argv);
+
+
   return 0;
 }
