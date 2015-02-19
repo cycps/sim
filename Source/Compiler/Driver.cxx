@@ -9,6 +9,9 @@
 #include <fstream>
 #include <streambuf>
 #include <ostream>
+#include <cstdlib>
+#include <stdexcept>
+#include <sys/stat.h>
 
 using namespace cypress::compile;
 namespace po = boost::program_options;
@@ -18,6 +21,8 @@ using std::vector;
 using std::string;
 using std::ifstream;
 using std::ofstream;
+using std::getenv;
+using std::runtime_error;
 
 Driver::Driver(int argc, char **argv)
 {
@@ -106,14 +111,44 @@ void Driver::compileSource(const string &src)
     Sim sim(decls->objects, decls->controllers, exp); 
     sim.buildPhysics();
     SimEx sx = sim.buildSimEx();
-    string simfile = sx.toString();
-    ofstream ofs(boost::filesystem::basename(currentInput)+".cyx");
-    ofs << simfile;
 
-    cout << "psys: " << endl;
-    EqtnPrinter eqp;
-    for(auto eqtn : sim.psys) eqp.run(eqtn);
-    for(auto eq_str : eqp.strings) cout << eq_str << endl;
+    boost::filesystem::path pkgdir(exp->name->value+".cypk");
+    boost::filesystem::create_directory(pkgdir);
+    
+    string simfile = sx.toString();
+    ofstream ofs(pkgdir.string() + "/" + "metadata.cymx");
+    ofs << simfile;
+    ofs.close();
+
+    ofs.open(pkgdir.string() + "/" + "ResidualClosure.cxx");
+    ofs << sx.residualClosureSource;
+    ofs.close();
+
+
+    string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
+    ofs.open(brs);
+    char *cyh_ = getenv("CYPRESS_HOME");
+    if(cyh_ == nullptr)
+      throw runtime_error("CYPRESS_HOME environment variable must be set");
+
+    string cyhome{cyh_};
+    ofs 
+      << "#!/bin/sh" << endl
+      << "clang++ -std=c++11 " 
+      << "ResidualClosure.cxx "
+      << cyhome << "/Source/Sim/ComputeNode.cxx "
+      << "-I" << cyhome << "/Include "
+      << "-I" << "/usr/local/include "
+      << "-o " << "rcomp" << endl;
+    ofs.close();
+
+    
+    chmod(brs.c_str(), strtol("0755", 0, 8));
+
+    //cout << "psys: " << endl;
+    //EqtnPrinter eqp;
+    //for(auto eqtn : sim.psys) eqp.run(eqtn);
+    //for(auto eq_str : eqp.strings) cout << eq_str << endl;
   }
 }
 

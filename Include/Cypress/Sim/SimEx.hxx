@@ -14,18 +14,14 @@
 namespace cypress
 {
 
-struct ResidualClosure
-{
-  realtype *y, *dy;
-  std::vector<std::function<realtype()>> eqtns;
-};
-
 struct SimEx
 {
   size_t neq;
   double rtol, satol;
   N_Vector y, dy, avtol;
   realtype *yv, *dyv, *avtolv;
+
+  std::string residualClosureSource;
 
   explicit SimEx(size_t neq, double rtol, double satol);
   explicit SimEx(std::string source);

@@ -5,6 +5,9 @@
 #include "Cypress/Sim/SimEx.hxx"
 
 #include <unordered_map>
+#include <unordered_set>
+#include <string>
+#include <sstream>
 
 namespace cypress
 {
@@ -28,9 +31,43 @@ struct Sim
   void addControllerToSim(ComponentSP);
 
   void addControllerRefToSim(SubComponentRefSP);
+  std::string buildResidualClosure();
 
   SimEx buildSimEx();
 
+};
+
+struct CxxResidualFuncBuilder : public Visitor
+{
+  std::stringstream ss;
+
+  std::string run(EquationSP, size_t idx);
+
+  void in(AddSP) override;
+  void in(SubtractSP) override;
+  void in(MultiplySP) override;
+  void in(DivideSP) override;
+  void in(SymbolSP) override;
+  void visit(PowSP) override;
+  void in(PowSP) override;
+  void leave(PowSP) override;
+  void in(RealSP) override;
+  void visit(DifferentiateSP) override;
+  void visit(SubExpressionSP) override;
+  void leave(SubExpressionSP) override;
+};
+
+struct EqtnVarCollector : public Visitor
+{
+  std::unordered_set<std::string> vars;
+
+  bool in_derivative;
+
+  void run(EquationSP);
+
+  void in(SymbolSP) override;
+  void visit(DifferentiateSP) override;
+  void leave(DifferentiateSP) override;
 };
 
 }
