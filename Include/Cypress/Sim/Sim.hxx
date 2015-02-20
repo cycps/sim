@@ -66,17 +66,19 @@ struct EqtnVarCollector : public Visitor
 {
   std::unordered_set<std::string> vars;
 
-  bool in_derivative;
-  bool include_derivatives;
+  bool in_derivative{false}, in_cvar{false}, 
+       explicit_derivs, include_cvar;
 
-  EqtnVarCollector(bool inc_derivs = true)
-    : include_derivatives{inc_derivs}
+  EqtnVarCollector(bool explicit_derivs = true, bool include_cvar = true)
+    : explicit_derivs{explicit_derivs}, include_cvar{include_cvar}
   {}
 
   void run(EquationSP);
   void in(SymbolSP) override;
   void visit(DifferentiateSP) override;
   void leave(DifferentiateSP) override;
+  void visit(CVarSP) override;
+  void leave(CVarSP) override;
 };
 
 }

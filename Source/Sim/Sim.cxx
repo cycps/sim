@@ -118,7 +118,7 @@ vector<RVar> Sim::mapVariables(size_t N)
 {
   vector<RVar> m;
 
-  EqtnVarCollector evc{false};
+  EqtnVarCollector evc{false, false};
   for(EquationSP eqtn: psys) evc.run(eqtn);
 
   if(N > evc.vars.size())
@@ -156,7 +156,7 @@ vector<REqtn> Sim::mapEquations(size_t N)
 
 void addRVars(ComputeNode &n, vector<RVar> &rvars)
 {
-  EqtnVarCollector evc{false};
+  EqtnVarCollector evc{false, false};
   for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
 
   for(string v: evc.vars)
@@ -380,11 +380,11 @@ void EqtnVarCollector::run(EquationSP eqtn)
 
 void EqtnVarCollector::in(SymbolSP s)
 {
-  if(in_derivative && !include_derivatives) return;
+  if(in_cvar && !include_cvar) return;
 
   string sname = s->value;
   boost::replace_all(sname, ".", "_");
-  if(in_derivative) sname = "d_" + sname;
+  if(in_derivative && explicit_derivs) sname = "d_" + sname;
   vars.insert(sname);
 }
 
@@ -396,4 +396,14 @@ void EqtnVarCollector::visit(DifferentiateSP)
 void EqtnVarCollector::leave(DifferentiateSP)
 {
   in_derivative = false;
+}
+  
+void EqtnVarCollector::visit(CVarSP)
+{
+  in_cvar = true;
+}
+
+void EqtnVarCollector::leave(CVarSP)
+{
+  in_cvar = false;
 }

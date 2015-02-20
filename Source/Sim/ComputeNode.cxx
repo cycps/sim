@@ -14,7 +14,7 @@ std::ostream & cypress::operator << (std::ostream &o, const ComputeNode &n)
 
   o << "[rvar]" << endl;
   for(RVar r: n.rvars)
-    o << "  " << r.name << " " << r.coord.px << endl;
+    o << "  " << r.name << " (" << r.coord.px << ")" << endl;
 
   EqtnPrinter eqp;
   o << "[eqtn]" << endl;
