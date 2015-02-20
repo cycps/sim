@@ -146,7 +146,7 @@ void Driver::compileSource(const string &src)
     ofs 
       << "#!/bin/sh" << endl
       << "clang++ -std=c++11 " 
-      << "ResidualClosure.cxx "
+      << "Cnode0.cxx "
       << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "

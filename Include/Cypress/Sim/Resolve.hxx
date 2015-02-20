@@ -51,6 +51,12 @@ realtype dyresolve(DCoordinate)
 }
 
 static inline
+realtype cresolve(DCoordinate)
+{
+  return 0;
+}
+
+static inline
 realtype __resolve(DCoordinate)
 {
   return 0;

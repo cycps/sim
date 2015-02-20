@@ -12,16 +12,16 @@ using namespace cypress;
 
 void localAccessor(string var, string from, size_t i, stringstream &ss)
 {
-  ss << "  static inline realtype " + var + "()" << endl
+  ss << "  inline realtype " + var + "()" << endl
       << "  {" << endl
-      << "    return "<<from<<"["<< i<<"]" << endl
+      << "    return "<<from<<"["<< i<<"];" << endl
       << "  }" << endl
       << endl;
 }
 
 void remoteAccessor(RVar v, string mod, string from, stringstream &ss)
 {
-  ss << "  static inline realtype " << mod << v.name << "()" << endl
+  ss << "  inline realtype " << mod << v.name << "()" << endl
       << "  {" << endl
       << "    return "<<from<<"resolve({"
                 <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"});" << endl
@@ -59,7 +59,7 @@ string ComputeNode::emitSource()
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
 
-  ss << "  compute(realtype *r) override" << endl
+  ss << "  void compute(realtype *r) override" << endl
      << "  {" << endl;
 
   CxxResidualFuncBuilder cxr;

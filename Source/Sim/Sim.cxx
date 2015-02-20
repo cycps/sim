@@ -16,6 +16,7 @@ using std::stringstream;
 using std::unordered_map;
 using std::find_if;
 using std::to_string;
+using std::pair;
 
 //Cypress::Sim ----------------------------------------------------------------
 
@@ -131,9 +132,10 @@ vector<RVar> Sim::mapVariables(size_t N)
   size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
 
   size_t i{0};
-  for(string s: evc.vars)
+  for(pair<string, VarTraits> p: evc.vars)
   {
-    m.push_back( RVar{s, DCoordinate{i/L, i, i%L}} );
+    if(p.second.derivative || p.second.controlled) continue;
+    m.push_back( RVar{p.first, DCoordinate{i/L, i, i%L}} );
     ++i;
   }
 
@@ -161,19 +163,20 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
   EqtnVarCollector evc{false, false};
   for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
 
-  for(string v: evc.vars)
+  for(pair<string, VarTraits> p: evc.vars)
   {
+    if(p.second.controlled || p.second.derivative) continue;
     auto lit =
       find_if(n.vars.begin(), n.vars.end(),
-          [v](string s){ return s == v; });
+          [p](string s){ return s == p.first; });
 
     if(lit != n.vars.end()) continue;
 
     auto rit =
       find_if(rvars.begin(), rvars.end(),
-        [v](RVar r){ return r.name == v; });
+        [p](RVar r){ return r.name == p.first; });
 
-    if(rit == rvars.end()) throw runtime_error("Hocus Pocus!");
+    if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + p.first);
 
     n.rvars.push_back(*rit);
   }
@@ -265,17 +268,17 @@ string Sim::buildResidualClosure()
     << "{" << endl;
 
   size_t ax{0};
-  for(string sym: evc.vars) 
+  for(pair<string, VarTraits> p: evc.vars) 
     ss << "  " 
-      << "static constexpr size_t " << vax(sym) << "{" << ax++ << "};" 
+      << "static constexpr size_t " << vax(p.first) << "{" << ax++ << "};" 
       << endl;
   ss << endl;
   
-  for(string sym: evc.vars) 
-    ss << "  realtype " << sym << "()" << endl
+  for(pair<string, VarTraits> p: evc.vars) 
+    ss << "  realtype " << p.first << "()" << endl
        << "  {" << endl
        << "    return " 
-        << qdif(sym) << "yresolve(varmap[" << vax(sym) << "]);" << endl
+        << qdif(p.first) << "yresolve(varmap[" << vax(p.first) << "]);" << endl
        << "  }" << endl << endl;
 
   ss << "  " << "void compute(realtype *r) override" << endl;
@@ -308,12 +311,13 @@ void EqtnVarCollector::run(EquationSP eqtn)
 
 void EqtnVarCollector::in(SymbolSP s)
 {
-  if(in_cvar && !include_cvar) return;
+  //if(in_cvar && !include_cvar) return;
 
   string sname = s->value;
   boost::replace_all(sname, ".", "_");
-  if(in_derivative && explicit_derivs) sname = "d_" + sname;
-  vars.insert(sname);
+  //if(in_derivative && explicit_derivs) sname = "d_" + sname;
+  //vars.insert(sname);
+  vars[sname] = {in_derivative, in_cvar};
 }
 
 void EqtnVarCollector::visit(DifferentiateSP)

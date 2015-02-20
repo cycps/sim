@@ -43,9 +43,44 @@ struct Sim
 
 };
 
+struct MetaVar
+{
+  std::string name;
+  bool derivative, controlled;
+  MetaVar()
+    : derivative{false}, controlled{false}
+  {}
+
+  MetaVar(bool deriv, bool ctrl)
+    : derivative{deriv}, controlled{ctrl}
+  {}
+};
+
+struct MetaVarHash
+{
+  size_t operator()(const MetaVar &v)
+  {
+    return 
+      std::hash<std::stsring>{}(v.name) + 
+      std::hash<bool>{}(v.derivative) +
+      std::hash<bool>{}(v.controlled);
+  }
+};
+
+struct MetaVarCmp
+{
+  bool operator()(const MetaVar &a, const MetaVar &b)
+  {
+    return 
+      a.name == b.name &&
+      a.derivative == b.derivative &&
+      a.controlled == b.controlled;
+  }
+};
+
 struct EqtnVarCollector : public Visitor
 {
-  std::unordered_set<std::string> vars;
+  std::unordered_set<VarTraits, MetaVarhash, MetaVarCmp> vars;
 
   bool in_derivative{false}, in_cvar{false}, 
        explicit_derivs, include_cvar;

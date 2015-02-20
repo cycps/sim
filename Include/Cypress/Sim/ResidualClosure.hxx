@@ -19,7 +19,7 @@ namespace cypress
 struct ResidualClosure
 {
   N_Vector nv_y, nv_dy;
-  realtype *y, *dy;
+  realtype *y, *dy, *c;
   std::vector<DCoordinate> varmap;
   virtual void compute(realtype *r) = 0;
   virtual std::string experimentInfo() = 0;
