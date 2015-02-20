@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <string>
 
 using namespace cypress::compile;
 namespace po = boost::program_options;
@@ -23,6 +24,7 @@ using std::ifstream;
 using std::ofstream;
 using std::getenv;
 using std::runtime_error;
+using std::to_string;
 
 Driver::Driver(int argc, char **argv)
 {
@@ -120,10 +122,19 @@ void Driver::compileSource(const string &src)
     ofs << simfile;
     ofs.close();
 
+    /*
     ofs.open(pkgdir.string() + "/" + "ResidualClosure.cxx");
     ofs << sx.residualClosureSource;
     ofs.close();
+    */
 
+    size_t i{0};
+    for(const string &s: sx.computeNodeSources)
+    {
+      ofs.open(pkgdir.string() + "/" + "CNode" + to_string(i++) + ".cxx");
+      ofs << s;
+      ofs.close();
+    }
 
     string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
     ofs.open(brs);

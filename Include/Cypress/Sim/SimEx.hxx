@@ -1,6 +1,8 @@
 #ifndef CYPRESS_SIMEX
 #define CYPRESS_SIMEX
 
+#include "Cypress/Sim/ComputeNode.hxx"
+
 #include <ida/ida.h>
 #include <ida/ida_dense.h>
 #include <nvector/nvector_serial.h>
@@ -14,12 +16,17 @@
 namespace cypress
 {
 
+//TODO: This is no longer an executable thing but now a metadata thing
+//remove the computation bits
 struct SimEx
 {
   size_t neq;
   double rtol, satol;
   N_Vector y, dy, avtol;
   realtype *yv, *dyv, *avtolv;
+
+  std::vector<ComputeNode> computeNodes;
+  std::vector<std::string> computeNodeSources;
 
   std::string residualClosureSource;
 

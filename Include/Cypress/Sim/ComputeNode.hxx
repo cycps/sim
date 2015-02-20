@@ -16,6 +16,8 @@ struct ComputeNode
   std::vector<std::string> vars;
   std::vector<RVar> rvars;  
   std::vector<EquationSP> eqtns;
+
+  std::string emitSource();
 };
 
 std::ostream & operator << (std::ostream &, const ComputeNode &);

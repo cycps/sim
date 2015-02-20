@@ -108,8 +108,10 @@ void Sim::buildPhysics()
 SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
-  sx.residualClosureSource = buildResidualClosure();
-  buildComputeTopology(2);
+  //sx.residualClosureSource = buildResidualClosure();
+  sx.computeNodes = buildComputeTopology(2);
+  for(ComputeNode &c: sx.computeNodes) 
+    sx.computeNodeSources.push_back(c.emitSource());
 
   return sx;
 }
@@ -296,80 +298,6 @@ string Sim::buildResidualClosure()
   return ss.str();
 }
 
-//Cypress::CxxResidualFuncBuilder ---------------------------------------------
-
-//Assumes eqtn is already in residual form e.g., 0 = f(x);
-string CxxResidualFuncBuilder::run(EquationSP eqtn, size_t idx)
-{
-  ss.str("");
-  //ss << "[this](){ return ";
-  ss << "r[" << idx << "] = ";
-  eqtn->rhs->accept(*this);
-  ss << ";";
-  return ss.str();
-}
-
-void CxxResidualFuncBuilder::in(AddSP) 
-{ 
-  ss << " + ";
-}
-
-void CxxResidualFuncBuilder::in(SubtractSP) 
-{ 
-  ss << " - ";
-}
-
-void CxxResidualFuncBuilder::in(MultiplySP) 
-{ 
-  ss << "*";
-}
-
-void CxxResidualFuncBuilder::in(DivideSP) 
-{ 
-  ss << "/";
-}
-
-void CxxResidualFuncBuilder::in(SymbolSP s) 
-{ 
-  string sname = s->value;
-  boost::replace_all(sname, ".", "_");
-  ss << sname << "()"; 
-}
-
-void CxxResidualFuncBuilder::visit(PowSP) 
-{ 
-  ss << "pow(";
-}
-
-void CxxResidualFuncBuilder::in(PowSP) 
-{ 
-  ss << ",";
-}
-
-void CxxResidualFuncBuilder::leave(PowSP) 
-{ 
-  ss << ")";
-}
-
-void CxxResidualFuncBuilder::in(RealSP r) 
-{ 
-  ss << r->value;
-}
-
-void CxxResidualFuncBuilder::visit(DifferentiateSP) 
-{ 
-  ss << "d_";
-}
-
-void CxxResidualFuncBuilder::visit(SubExpressionSP) 
-{ 
-  ss << "(";
-}
-
-void CxxResidualFuncBuilder::leave(SubExpressionSP) 
-{ 
-  ss << ")";
-}
 
 //Cypress::EqtnVarCollector ---------------------------------------------------
 

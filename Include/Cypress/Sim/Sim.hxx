@@ -39,27 +39,8 @@ struct Sim
   std::vector<RVar> mapVariables(size_t);
   std::vector<REqtn> mapEquations(size_t);
   std::vector<ComputeNode> buildComputeTopology(size_t);
+  std::string buildComputeNodeSource(const ComputeNode &);
 
-};
-
-struct CxxResidualFuncBuilder : public Visitor
-{
-  std::stringstream ss;
-
-  std::string run(EquationSP, size_t idx);
-
-  void in(AddSP) override;
-  void in(SubtractSP) override;
-  void in(MultiplySP) override;
-  void in(DivideSP) override;
-  void in(SymbolSP) override;
-  void visit(PowSP) override;
-  void in(PowSP) override;
-  void leave(PowSP) override;
-  void in(RealSP) override;
-  void visit(DifferentiateSP) override;
-  void visit(SubExpressionSP) override;
-  void leave(SubExpressionSP) override;
 };
 
 struct EqtnVarCollector : public Visitor

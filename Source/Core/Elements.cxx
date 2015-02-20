@@ -1,9 +1,11 @@
 #include "Cypress/Core/Elements.hxx"
+#include <boost/algorithm/string/replace.hpp>
 #include <vector>
 
 using namespace cypress;
 using std::vector;
 using std::make_shared;
+using std::string;
 
 //Free functions over elements ================================================
 void cypress::setEqtnsToZero(ElementSP e)
@@ -134,4 +136,79 @@ void EqtnPrinter::visit(CVarSP)
 void EqtnPrinter::leave(CVarSP)
 {
   ss << "]";
+}
+
+//Cypress::CxxResidualFuncBuilder ---------------------------------------------
+
+//Assumes eqtn is already in residual form e.g., 0 = f(x);
+string CxxResidualFuncBuilder::run(EquationSP eqtn, size_t idx)
+{
+  ss.str("");
+  //ss << "[this](){ return ";
+  ss << "r[" << idx << "] = ";
+  eqtn->rhs->accept(*this);
+  ss << ";";
+  return ss.str();
+}
+
+void CxxResidualFuncBuilder::in(AddSP) 
+{ 
+  ss << " + ";
+}
+
+void CxxResidualFuncBuilder::in(SubtractSP) 
+{ 
+  ss << " - ";
+}
+
+void CxxResidualFuncBuilder::in(MultiplySP) 
+{ 
+  ss << "*";
+}
+
+void CxxResidualFuncBuilder::in(DivideSP) 
+{ 
+  ss << "/";
+}
+
+void CxxResidualFuncBuilder::in(SymbolSP s) 
+{ 
+  string sname = s->value;
+  boost::replace_all(sname, ".", "_");
+  ss << sname << "()"; 
+}
+
+void CxxResidualFuncBuilder::visit(PowSP) 
+{ 
+  ss << "pow(";
+}
+
+void CxxResidualFuncBuilder::in(PowSP) 
+{ 
+  ss << ",";
+}
+
+void CxxResidualFuncBuilder::leave(PowSP) 
+{ 
+  ss << ")";
+}
+
+void CxxResidualFuncBuilder::in(RealSP r) 
+{ 
+  ss << r->value;
+}
+
+void CxxResidualFuncBuilder::visit(DifferentiateSP) 
+{ 
+  ss << "d_";
+}
+
+void CxxResidualFuncBuilder::visit(SubExpressionSP) 
+{ 
+  ss << "(";
+}
+
+void CxxResidualFuncBuilder::leave(SubExpressionSP) 
+{ 
+  ss << ")";
 }
