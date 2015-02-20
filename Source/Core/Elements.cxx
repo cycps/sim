@@ -48,3 +48,90 @@ Link::Link(SymbolSP name) : Element(name)
   params.push_back(make_shared<Symbol>("Latency", name->line));
   params.push_back(make_shared<Symbol>("Bandwidth", name->line));
 }
+
+// Eqtn Printer ---------------------------------------------------------------
+void EqtnPrinter::run(ElementSP e, bool qualified)
+{
+  elem = e;
+  this->qualified = qualified;
+  for(EquationSP eqtn : elem->eqtns) 
+  {
+    eqtn->accept(*this);
+    strings.push_back(ss.str());
+    ss.str("");
+  }
+}
+
+void EqtnPrinter::run(EquationSP eqtn)
+{
+  this->qualified = false;
+  eqtn->accept(*this);
+  strings.push_back(ss.str());
+  ss.str("");
+}
+
+void EqtnPrinter::in(EquationSP)
+{
+  ss << " = ";
+}
+void EqtnPrinter::in(AddSP)
+{
+  ss << " + ";
+}
+
+void EqtnPrinter::in(SubtractSP)
+{
+  ss << " - ";
+}
+
+void EqtnPrinter::in(MultiplySP)
+{
+  ss << "*";
+}
+
+void EqtnPrinter::in(DivideSP)
+{
+  ss << "/";
+}
+
+void EqtnPrinter::in(SymbolSP sp)
+{
+  if(qualified)
+    ss << elem->name->value << ".";
+  ss << sp->value;
+}
+
+void EqtnPrinter::in(PowSP)
+{
+  ss << "^";
+}
+
+void EqtnPrinter::in(RealSP rp)
+{
+  ss << rp->value;
+}
+
+void EqtnPrinter::in(DifferentiateSP)
+{
+  ss << "'";
+}
+
+void EqtnPrinter::visit(SubExpressionSP)
+{
+  ss << " (";
+}
+
+void EqtnPrinter::leave(SubExpressionSP)
+{
+  ss << ") ";
+}
+
+void EqtnPrinter::visit(CVarSP)
+{
+  ss << "[";
+}
+
+void EqtnPrinter::leave(CVarSP)
+{
+  ss << "]";
+}

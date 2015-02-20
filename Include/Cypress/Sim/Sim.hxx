@@ -3,6 +3,8 @@
 
 #include "Cypress/Core/Elements.hxx"
 #include "Cypress/Sim/SimEx.hxx"
+#include "Cypress/Sim/Resolve.hxx"
+#include "Cypress/Sim/ComputeNode.hxx"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -34,6 +36,9 @@ struct Sim
   std::string buildResidualClosure();
 
   SimEx buildSimEx();
+  std::vector<RVar> mapVariables(size_t);
+  std::vector<REqtn> mapEquations(size_t);
+  std::vector<ComputeNode> buildComputeTopology(size_t);
 
 };
 
@@ -62,9 +67,13 @@ struct EqtnVarCollector : public Visitor
   std::unordered_set<std::string> vars;
 
   bool in_derivative;
+  bool include_derivatives;
+
+  EqtnVarCollector(bool inc_derivs = true)
+    : include_derivatives{inc_derivs}
+  {}
 
   void run(EquationSP);
-
   void in(SymbolSP) override;
   void visit(DifferentiateSP) override;
   void leave(DifferentiateSP) override;

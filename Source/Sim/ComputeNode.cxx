@@ -1,20 +1,25 @@
-#include <Cypress/Sim/ComputeNode.hxx>
-#include <Cypress/Sim/ResidualClosure.hxx>
-#include <iostream>
+#include "Cypress/Sim/ComputeNode.hxx"
+#include "Cypress/Core/Elements.hxx"
 
-using std::cout;
 using std::endl;
-using namespace cypress;
+using std::string;
 
-extern ResidualClosure *rc;
-
-int main(int argc, char **argv)
+std::ostream & cypress::operator << (std::ostream &o, const ComputeNode &n)
 {
-  cout << "Cypress Compute Node ... Engage" << endl;
-  cout << rc->experimentInfo() << endl;
+  o << "id=" << n.id << endl;
 
-  MPI_Init(&argc, &argv);
+  o << "[var]" << endl;
+  for(string s: n.vars)
+    o << "  " << s << endl;
 
+  o << "[rvar]" << endl;
+  for(RVar r: n.rvars)
+    o << "  " << r.name << " " << r.coord.px << endl;
 
-  return 0;
+  EqtnPrinter eqp;
+  o << "[eqtn]" << endl;
+  for(EquationSP e: n.eqtns) eqp.run(e);
+  for(auto eq_str : eqp.strings) o << "  " << eq_str << endl;
+
+  return o;
 }

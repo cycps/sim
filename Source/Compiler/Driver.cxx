@@ -136,7 +136,7 @@ void Driver::compileSource(const string &src)
       << "#!/bin/sh" << endl
       << "clang++ -std=c++11 " 
       << "ResidualClosure.cxx "
-      << cyhome << "/Source/Sim/ComputeNode.cxx "
+      << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "
       << "-L" << "/usr/local/lib "
@@ -147,10 +147,10 @@ void Driver::compileSource(const string &src)
     
     chmod(brs.c_str(), strtol("0755", 0, 8));
 
-    //cout << "psys: " << endl;
-    //EqtnPrinter eqp;
-    //for(auto eqtn : sim.psys) eqp.run(eqtn);
-    //for(auto eq_str : eqp.strings) cout << eq_str << endl;
+    cout << "psys: " << endl;
+    EqtnPrinter eqp;
+    for(auto eqtn : sim.psys) eqp.run(eqtn);
+    for(auto eq_str : eqp.strings) cout << eq_str << endl;
   }
 }
 

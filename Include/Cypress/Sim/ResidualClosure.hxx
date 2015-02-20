@@ -20,7 +20,7 @@ struct ResidualClosure
 {
   N_Vector nv_y, nv_dy;
   realtype *y, *dy;
-  std::vector<VarCoordinate> varmap;
+  std::vector<DCoordinate> varmap;
   virtual void compute(realtype *r) = 0;
   virtual std::string experimentInfo() = 0;
 };

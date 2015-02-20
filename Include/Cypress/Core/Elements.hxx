@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <sstream>
 
 //Forward Declarations --------------------------------------------------------
 namespace cypress
@@ -143,6 +144,30 @@ struct EqtnQualifier : public Visitor
   void setQualifier(ComponentSP);
   void visit(SymbolSP) override;
   void run(EquationSP);
+};
+
+struct EqtnPrinter : public Visitor
+{
+  std::shared_ptr<Element> elem;
+  void run(std::shared_ptr<Element> e, bool qualified=false);
+  void run(std::shared_ptr<Equation> eqtn);
+  bool qualified{false};
+  std::stringstream ss;
+  std::vector<std::string> strings;
+
+  void in(std::shared_ptr<Equation>) override;
+  void in(std::shared_ptr<Add>) override;
+  void in(std::shared_ptr<Subtract>) override;
+  void in(std::shared_ptr<Multiply>) override;
+  void in(std::shared_ptr<Divide>) override;
+  void in(std::shared_ptr<Symbol>) override;
+  void in(std::shared_ptr<Pow>) override;
+  void in(std::shared_ptr<Real>) override;
+  void in(std::shared_ptr<Differentiate>) override;
+  void visit(std::shared_ptr<SubExpression>) override;
+  void leave(std::shared_ptr<SubExpression>) override;
+  void visit(CVarSP) override;
+  void leave(CVarSP) override;
 };
 
 }

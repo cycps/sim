@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <unordered_map>
+#include <algorithm>
 
 using namespace cypress;
 using std::vector;
@@ -13,6 +14,8 @@ using std::string;
 using std::static_pointer_cast;
 using std::stringstream;
 using std::unordered_map;
+using std::find_if;
+using std::to_string;
 
 //Cypress::Sim ----------------------------------------------------------------
 
@@ -106,8 +109,105 @@ SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
   sx.residualClosureSource = buildResidualClosure();
+  buildComputeTopology(2);
 
   return sx;
+}
+
+vector<RVar> Sim::mapVariables(size_t N)
+{
+  vector<RVar> m;
+
+  EqtnVarCollector evc{false};
+  for(EquationSP eqtn: psys) evc.run(eqtn);
+
+  if(N > evc.vars.size())
+    throw runtime_error(
+        "The number of compute nodes is greater than" 
+        "the number of system variables");
+
+  size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
+
+  size_t i{0};
+  for(string s: evc.vars)
+  {
+    m.push_back( RVar{s, DCoordinate{i/L, i, i%L}} );
+    ++i;
+  }
+
+  return m;
+}
+
+vector<REqtn> Sim::mapEquations(size_t N)
+{
+  vector<REqtn> m;
+
+  size_t L = ceil(static_cast<double>(psys.size()) / N);
+
+  size_t i{0};
+  for(EquationSP eqtn: psys)
+  {
+    m.push_back( REqtn{eqtn->clone(), DCoordinate{i/L, i, i%L}} );
+    ++i;
+  }
+
+  return m;
+}
+
+void addRVars(ComputeNode &n, vector<RVar> &rvars)
+{
+  EqtnVarCollector evc{false};
+  for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
+
+  for(string v: evc.vars)
+  {
+    auto lit =
+      find_if(n.vars.begin(), n.vars.end(),
+          [v](string s){ return s == v; });
+
+    if(lit != n.vars.end()) continue;
+
+    auto rit =
+      find_if(rvars.begin(), rvars.end(),
+        [v](RVar r){ return r.name == v; });
+
+    if(rit == rvars.end()) throw runtime_error("Hocus Pocus!");
+
+    n.rvars.push_back(*rit);
+  }
+}
+
+vector<ComputeNode> Sim::buildComputeTopology(size_t N)
+{
+  vector<ComputeNode> topo(N);
+
+  vector<RVar> vars = mapVariables(N);
+  std::cout << "VC=" << vars.size() << std::endl;
+  vector<REqtn> eqtns = mapEquations(N);
+  std::cout << "EC=" << eqtns.size() << std::endl;
+
+  for(REqtn e: eqtns)
+  {
+    if(e.coord.px >= N) 
+      throw runtime_error("Equation Balderdashery! " + to_string(e.coord.px));
+    topo[e.coord.px].eqtns.push_back(e.eqtn);
+  }
+
+  for(RVar v: vars)
+  {
+    if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
+    topo[v.coord.px].vars.push_back(v.name);
+  }
+
+  size_t i{0};
+  for(ComputeNode &n: topo)
+  {
+    addRVars(n, vars);
+    n.id = i++;
+    std::cout << n << std::endl;
+  }
+
+  return topo;
 }
 
 string qdif(string s)
@@ -280,6 +380,8 @@ void EqtnVarCollector::run(EquationSP eqtn)
 
 void EqtnVarCollector::in(SymbolSP s)
 {
+  if(in_derivative && !include_derivatives) return;
+
   string sname = s->value;
   boost::replace_all(sname, ".", "_");
   if(in_derivative) sname = "d_" + sname;

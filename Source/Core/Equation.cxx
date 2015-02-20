@@ -1,5 +1,6 @@
 #include "Cypress/Core/Equation.hxx"
 #include <iostream>
+#include <sstream>
 
 using namespace cypress;
 using std::shared_ptr;
@@ -288,3 +289,4 @@ void cypress::liftControlledVars(EquationSP eq, string symbol_name)
   cvl.symbol_name = symbol_name;
   eq->accept(cvl);
 }
+
