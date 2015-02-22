@@ -128,10 +128,10 @@ void Driver::compileSource(const string &src)
     ofs.close();
     */
 
-    size_t i{0};
+    size_t ix{0};
     for(const string &s: sx.computeNodeSources)
     {
-      ofs.open(pkgdir.string() + "/" + "CNode" + to_string(i++) + ".cxx");
+      ofs.open(pkgdir.string() + "/" + "CNode" + to_string(ix++) + ".cxx");
       ofs << s;
       ofs.close();
     }
@@ -143,16 +143,19 @@ void Driver::compileSource(const string &src)
       throw runtime_error("CYPRESS_HOME environment variable must be set");
 
     string cyhome{cyh_};
-    ofs 
-      << "#!/bin/sh" << endl
-      << "clang++ -std=c++11 " 
-      << "Cnode0.cxx "
-      << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
-      << "-I" << cyhome << "/Include "
-      << "-I" << "/usr/local/include "
-      << "-L" << "/usr/local/lib "
-      << "-lmpi "
-      << "-o " << "rcomp" << endl;
+    ofs << "#!/bin/sh" << endl;
+    for(size_t i=0; i<sx.computeNodeSources.size(); ++i)
+    {
+      ofs
+        << "clang++ -std=c++11 " 
+        << "Cnode"<<i<<".cxx "
+        << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
+        << "-I" << cyhome << "/Include "
+        << "-I" << "/usr/local/include "
+        << "-L" << "/usr/local/lib "
+        << "-lmpi "
+        << "-o " << "rcomp" << i << endl;
+    }
     ofs.close();
 
     

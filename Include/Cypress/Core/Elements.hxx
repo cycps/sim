@@ -168,6 +168,8 @@ struct EqtnPrinter : public Visitor
   void leave(std::shared_ptr<SubExpression>) override;
   void visit(CVarSP) override;
   void leave(CVarSP) override;
+  void visit(CCVarSP) override;
+  void leave(CCVarSP) override;
 };
 
 struct CxxResidualFuncBuilder : public Visitor
@@ -188,6 +190,8 @@ struct CxxResidualFuncBuilder : public Visitor
   void visit(DifferentiateSP) override;
   void visit(SubExpressionSP) override;
   void leave(SubExpressionSP) override;
+  void visit(CCVarSP) override;
+  //void leave(CCVarSP) override;
 };
 
 }

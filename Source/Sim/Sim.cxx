@@ -99,6 +99,8 @@ void Sim::buildSystemEquations()
       }
     }
   }
+
+  addCVarResiduals();
 }
 
 void Sim::buildPhysics()
@@ -120,6 +122,7 @@ SimEx Sim::buildSimEx()
 vector<RVar> Sim::mapVariables(size_t N)
 {
   vector<RVar> m;
+  vector<RVar> c;
 
   EqtnVarCollector evc{false, false};
   for(EquationSP eqtn: psys) evc.run(eqtn);
@@ -129,12 +132,18 @@ vector<RVar> Sim::mapVariables(size_t N)
         "The number of compute nodes is greater than" 
         "the number of system variables");
 
-  size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
+
+  unordered_map<string, vector<MetaVar>> vref_map;
+  for(MetaVar v: evc.vars)
+  {
+    vref_map[v.name].push_back(v);
+  }
+  
+  size_t L = ceil(static_cast<double>(vref_map.size()) / N);
 
   size_t i{0};
-  for(pair<string, VarTraits> p: evc.vars)
+  for(auto p: vref_map)
   {
-    if(p.second.derivative || p.second.controlled) continue;
     m.push_back( RVar{p.first, DCoordinate{i/L, i, i%L}} );
     ++i;
   }
@@ -163,23 +172,48 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
   EqtnVarCollector evc{false, false};
   for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
 
-  for(pair<string, VarTraits> p: evc.vars)
+  for(MetaVar v: evc.vars)
   {
-    if(p.second.controlled || p.second.derivative) continue;
+    if(v.derivative) continue;
     auto lit =
       find_if(n.vars.begin(), n.vars.end(),
-          [p](string s){ return s == p.first; });
+          [v](string s){ return s == v.name; });
 
     if(lit != n.vars.end()) continue;
 
     auto rit =
       find_if(rvars.begin(), rvars.end(),
-        [p](RVar r){ return r.name == p.first; });
+        [v](RVar r){ return r.name == v.name; });
 
-    if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + p.first);
+    if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + v.name);
 
     n.rvars.push_back(*rit);
   }
+}
+
+void Sim::addCVarResiduals()
+{
+  CVarExtractor cvx;
+  for(EquationSP eqtn: psys) eqtn->accept(cvx);
+  std::cout << "--" << std::endl;
+
+  std::cout << "system controlled variables:" << std::endl;
+  for(string s: cvx.cvars)
+  {
+    std::cout << s << std::endl;
+    //-1 indicates generated code e.g., there is no source line
+    static constexpr int nosrc{-1};
+    EquationSP eq = make_shared<Equation>(nosrc); 
+    eq->lhs = make_shared<Real>(0, nosrc);
+    eq->rhs = 
+      make_shared<Subtract>(
+        make_shared<CVar>(make_shared<Symbol>(s, nosrc)),
+        make_shared<CCVar>(make_shared<Symbol>(s, nosrc)),
+        nosrc);
+    psys.push_back(eq);
+  }
+  
+  std::cout << "--" << std::endl;
 }
 
 vector<ComputeNode> Sim::buildComputeTopology(size_t N)
@@ -207,6 +241,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   size_t i{0};
   for(ComputeNode &n: topo)
   {
+    n.expInfo = exp->name->value;
     addRVars(n, vars);
     n.id = i++;
     std::cout << n << std::endl;
@@ -268,17 +303,17 @@ string Sim::buildResidualClosure()
     << "{" << endl;
 
   size_t ax{0};
-  for(pair<string, VarTraits> p: evc.vars) 
+  for(MetaVar v: evc.vars) 
     ss << "  " 
-      << "static constexpr size_t " << vax(p.first) << "{" << ax++ << "};" 
+      << "static constexpr size_t " << vax(v.name) << "{" << ax++ << "};" 
       << endl;
   ss << endl;
   
-  for(pair<string, VarTraits> p: evc.vars) 
-    ss << "  realtype " << p.first << "()" << endl
+  for(MetaVar v: evc.vars) 
+    ss << "  realtype " << v.name << "()" << endl
        << "  {" << endl
        << "    return " 
-        << qdif(p.first) << "yresolve(varmap[" << vax(p.first) << "]);" << endl
+        << qdif(v.name) << "yresolve(varmap[" << vax(v.name) << "]);" << endl
        << "  }" << endl << endl;
 
   ss << "  " << "void compute(realtype *r) override" << endl;
@@ -311,13 +346,9 @@ void EqtnVarCollector::run(EquationSP eqtn)
 
 void EqtnVarCollector::in(SymbolSP s)
 {
-  //if(in_cvar && !include_cvar) return;
-
   string sname = s->value;
   boost::replace_all(sname, ".", "_");
-  //if(in_derivative && explicit_derivs) sname = "d_" + sname;
-  //vars.insert(sname);
-  vars[sname] = {in_derivative, in_cvar};
+  vars.insert({sname, in_derivative, in_cvar});
 }
 
 void EqtnVarCollector::visit(DifferentiateSP)

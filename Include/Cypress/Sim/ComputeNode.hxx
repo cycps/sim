@@ -13,6 +13,7 @@ namespace cypress
 struct ComputeNode
 {
   size_t id;
+  std::string expInfo;
   std::vector<std::string> vars;
   std::vector<RVar> rvars;  
   std::vector<EquationSP> eqtns;

@@ -1,8 +1,9 @@
 #ifndef CYPRESS_EQUATION
 #define CYPRESS_EQUATION
 
-#include <string>
 #include "Cypress/Core/Common.hxx"
+#include <string>
+#include <unordered_set>
 
 //Forward Declarations --------------------------------------------------------
 namespace cypress 
@@ -17,6 +18,7 @@ namespace cypress
   struct Differentiate; using DifferentiateSP = std::shared_ptr<Differentiate>;
   struct Symbol;        using SymbolSP = std::shared_ptr<Symbol>;
   struct CVar;          using CVarSP = std::shared_ptr<CVar>;
+  struct CCVar;         using CCVarSP = std::shared_ptr<CCVar>;
   struct Real;          using RealSP = std::shared_ptr<Real>;
   struct SubExpression; using SubExpressionSP = std::shared_ptr<SubExpression>;
   struct Term;          using TermSP = std::shared_ptr<Term>;
@@ -35,7 +37,7 @@ struct Expression : public ASTNode, public Clonable<Expression>
     Multiply, Divide,
     Pow,
     Differentiate,
-    Symbol, CVar,
+    Symbol, CVar, CCVar,
     Real,
     SubExpression
   };
@@ -145,6 +147,15 @@ struct CVar : public Atom, public std::enable_shared_from_this<CVar>
   ExpressionSP clone() override;
 };
 
+struct CCVar : public Atom, public std::enable_shared_from_this<CCVar>
+{
+  SymbolSP value;
+  Kind kind() const{ return Kind::CCVar; }
+  CCVar(SymbolSP value) : Atom{value->line}, value{value} {}
+  void accept(Visitor &v) override;
+  ExpressionSP clone() override;
+};
+
 struct Differentiate : public Factor, 
                        public std::enable_shared_from_this<Differentiate>
 {
@@ -225,6 +236,10 @@ struct Visitor
   virtual void visit(CVarSP) {}
   virtual void in(CVarSP) {}
   virtual void leave(CVarSP) {}
+  
+  virtual void visit(CCVarSP) {}
+  virtual void in(CCVarSP) {}
+  virtual void leave(CCVarSP) {}
 
   virtual void visit(SymbolSP) {}
   virtual void in(SymbolSP) {}
@@ -287,6 +302,19 @@ struct CVarLifter : public Visitor
   void lift(std::shared_ptr<Kinded>*);
 };
 void liftControlledVars(EquationSP, std::string symbol_name);
+
+//Controlled variable extraction ----------------------------------------------
+struct CVarExtractor : public Visitor
+{
+  bool inCVar{false}, inDeriv{false};
+  std::unordered_set<std::string> cvars, cderivs;
+
+  void visit(DifferentiateSP) override;
+  void leave(DifferentiateSP) override;
+  void visit(CVarSP) override;
+  void leave(CVarSP) override;
+  void in(SymbolSP) override;
+};
 
 } //::cypress
 #include "Equation.hh"

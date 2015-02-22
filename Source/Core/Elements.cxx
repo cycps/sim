@@ -138,6 +138,16 @@ void EqtnPrinter::leave(CVarSP)
   ss << "]";
 }
 
+void EqtnPrinter::visit(CCVarSP)
+{
+  ss << "{";
+}
+
+void EqtnPrinter::leave(CCVarSP)
+{
+  ss << "}";
+}
+
 //Cypress::CxxResidualFuncBuilder ---------------------------------------------
 
 //Assumes eqtn is already in residual form e.g., 0 = f(x);
@@ -211,4 +221,9 @@ void CxxResidualFuncBuilder::visit(SubExpressionSP)
 void CxxResidualFuncBuilder::leave(SubExpressionSP) 
 { 
   ss << ")";
+}
+
+void CxxResidualFuncBuilder::visit(CCVarSP)
+{
+  ss << "cx_";
 }

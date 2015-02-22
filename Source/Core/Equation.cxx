@@ -136,6 +136,20 @@ ExpressionSP CVar::clone()
   return make_shared<CVar>(static_pointer_cast<Symbol>(value->clone()));
 }
 
+//CCVar ------------------------------------------------------------------------
+void CCVar::accept(Visitor &v)
+{
+  v.visit(shared_from_this());
+  value->accept(v);
+  v.in(shared_from_this());
+  v.leave(shared_from_this());
+}
+
+ExpressionSP CCVar::clone()
+{
+  return make_shared<CCVar>(static_pointer_cast<Symbol>(value->clone()));
+}
+
 //Differentiate ---------------------------------------------------------------
 void Differentiate::accept(Visitor &v)
 {
@@ -290,3 +304,33 @@ void cypress::liftControlledVars(EquationSP eq, string symbol_name)
   eq->accept(cvl);
 }
 
+//Controlled variable extraction ----------------------------------------------
+
+void CVarExtractor::visit(CVarSP)
+{
+  inCVar = true;
+}
+
+void CVarExtractor::leave(CVarSP)
+{
+  inCVar = false;
+}
+  
+void CVarExtractor::visit(DifferentiateSP)
+{
+  inDeriv = true;
+}
+  
+void CVarExtractor::leave(DifferentiateSP)
+{
+  inDeriv = false;
+}
+
+void CVarExtractor::in(SymbolSP s)
+{
+  if(inCVar)
+  {
+    if(inDeriv) cderivs.insert(s->value);
+    else cvars.insert(s->value);
+  }
+}

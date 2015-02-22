@@ -2,6 +2,7 @@
 #define CYPRESS_SIM_RESOLVE_HXX
 
 #include "Cypress/Core/Equation.hxx"
+#include "Cypress/Sim/Var.hxx"
 #include <sundials/sundials_types.h>
 #include <mpi.h>
 #include <string>
@@ -20,6 +21,7 @@ struct DCoordinate
   {}
 };
 
+//TODO: RVar not a good name
 struct RVar
 {
   std::string name;
@@ -51,7 +53,7 @@ realtype dyresolve(DCoordinate)
 }
 
 static inline
-realtype cresolve(DCoordinate)
+realtype cxresolve(size_t)
 {
   return 0;
 }

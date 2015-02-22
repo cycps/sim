@@ -1,5 +1,6 @@
 #include "Cypress/Sim/ComputeNode.hxx"
 #include "Cypress/Core/Elements.hxx"
+#include <boost/algorithm/string/replace.hpp>
 #include <sstream>
 
 using std::endl;
@@ -13,20 +14,31 @@ using namespace cypress;
 void localAccessor(string var, string from, size_t i, stringstream &ss)
 {
   ss << "  inline realtype " + var + "()" << endl
-      << "  {" << endl
-      << "    return "<<from<<"["<< i<<"];" << endl
-      << "  }" << endl
-      << endl;
+     << "  {" << endl
+     << "    return "<<from<<"["<< i<<"];" << endl
+     << "  }" << endl
+     << endl;
 }
 
 void remoteAccessor(RVar v, string mod, string from, stringstream &ss)
 {
   ss << "  inline realtype " << mod << v.name << "()" << endl
-      << "  {" << endl
-      << "    return "<<from<<"resolve({"
-                <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"});" << endl
-      << "  }" << endl
-      << endl;
+     << "  {" << endl
+     << "    return "<<from<<"resolve({"
+               <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"});" << endl
+     << "  }" << endl
+     << endl;
+}
+
+void controlAccessor(string var, stringstream &ss)
+{
+  string fname = var;
+  boost::replace_all(fname, ".", "_");
+  ss << "  inline realtype cx_" + fname + "()" << endl
+     << "  {" << endl
+     << "    return cxresolve(hash<string>{}(\""<<var<<"\"));" << endl
+     << "  }" << endl
+     << endl;
 }
 
 string ComputeNode::emitSource()
@@ -35,13 +47,24 @@ string ComputeNode::emitSource()
 
   ss << "#include <Cypress/Sim/ResidualClosure.hxx>" << endl
      << "#include <cmath>" << endl
+     << "#include <string>" << endl
      << endl;
 
   ss << "using namespace cypress;" << endl
+     << "using std::string;" << endl
+     << "using std::hash;" << endl
      << endl;
 
   ss << "struct CNode : public ResidualClosure" << endl;
   ss << "{" << endl;
+
+  ss << "  // Experiment Info -------------------------------------------------"
+     << endl
+     << "  string experimentInfo() override" << endl
+     << "  {" << endl
+     << "    return \"" << expInfo << "\";" << endl
+     << "  }" << endl
+     << endl;
 
   ss << "  // Local Access Variables ------------------------------------------"
      << endl;
@@ -55,6 +78,13 @@ string ComputeNode::emitSource()
   for(const RVar &v: rvars)
     remoteAccessor(v, "", "y", ss),
     remoteAccessor(v, "d_", "dy", ss);
+
+  ss << "  // Controll Access Variables ---------------------------------------"
+     << endl;
+  CVarExtractor cvx;
+  for(EquationSP eqtn: eqtns) eqtn->accept(cvx);
+  for(string s: cvx.cvars)
+    controlAccessor(s, ss);
 
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
@@ -70,6 +100,9 @@ string ComputeNode::emitSource()
      << endl;
 
   ss << "};" << endl
+     << endl;
+
+  ss << "CNode *rc = new CNode;" << endl
      << endl;
 
   return ss.str();
