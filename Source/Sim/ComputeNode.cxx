@@ -15,19 +15,26 @@ void localAccessor(string var, string from, size_t i, stringstream &ss)
 {
   ss << "  inline realtype " + var + "()" << endl
      << "  {" << endl
-     << "    return "<<from<<"["<< i<<"];" << endl
+     << "    return "<<from<<"["<<i<<"];" << endl
      << "  }" << endl
      << endl;
 }
 
-void remoteAccessor(RVar v, string mod, string from, stringstream &ss)
+void remoteAccessor(RVar v, size_t i, string mod, string from, stringstream &ss)
 {
   ss << "  inline realtype " << mod << v.name << "()" << endl
      << "  {" << endl
-     << "    return "<<from<<"resolve({"
-               <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"});" << endl
+     << "    return " << from << "cache["<<i<<"];" << endl
      << "  }" << endl
      << endl;
+}
+
+void remoteResolver(RVar v, size_t i, string from, stringstream &ss)
+{
+  ss << "    "<<from<<"resolve({"
+                <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"}, "
+                << "&" << from << "cache["<<i<<"], "
+                << from << "win);" << endl;
 }
 
 void controlAccessor(string var, stringstream &ss)
@@ -48,11 +55,15 @@ string ComputeNode::emitSource()
   ss << "#include <Cypress/Sim/ResidualClosure.hxx>" << endl
      << "#include <cmath>" << endl
      << "#include <string>" << endl
+     << "#include <array>" << endl
+     << "#include <RyMPI/runtime.hxx>" << endl
      << endl;
 
   ss << "using namespace cypress;" << endl
      << "using std::string;" << endl
      << "using std::hash;" << endl
+     << "using std::array;" << endl
+     << "using RyMPI::containerWindow;" << endl
      << endl;
 
   ss << "struct CNode : public ResidualClosure" << endl;
@@ -68,6 +79,7 @@ string ComputeNode::emitSource()
 
   ss << "  // Local Access Variables ------------------------------------------"
      << endl;
+
   size_t i{0};
   for(const string &s: vars)
     localAccessor(s, "y", i, ss),
@@ -75,9 +87,29 @@ string ComputeNode::emitSource()
 
   ss << "  // Remote Access Variables -----------------------------------------"
      << endl;
+
+  ss << "  array<realtype,"<<rvars.size()<<"> ycache, dycache;" << endl
+     << endl;
+
+  i=0;
   for(const RVar &v: rvars)
-    remoteAccessor(v, "", "y", ss),
-    remoteAccessor(v, "d_", "dy", ss);
+    remoteAccessor(v, i, "", "y", ss),
+    remoteAccessor(v, i++, "d_", "dy", ss);
+
+  ss << "  void resolveRemotes()" << endl
+     << "  {" << endl;
+  i=0;
+  ss << "    MPI_Win_fence(0, ywin);" << endl;
+  for(const RVar &v: rvars) remoteResolver(v, i++, "y", ss);
+  ss << "    MPI_Win_fence(0, ywin);" << endl;
+  ss << endl;
+
+  i=0;
+  ss << "    MPI_Win_fence(0, dywin);" << endl;
+  for(const RVar &v: rvars) remoteResolver(v, i++, "dy", ss);
+  ss << "    MPI_Win_fence(0, dywin);" << endl;
+  ss << "  }" << endl
+     << endl;
 
   ss << "  // Controll Access Variables ---------------------------------------"
      << endl;
@@ -99,9 +131,19 @@ string ComputeNode::emitSource()
   ss << "  }" << endl
      << endl;
 
+  ss << "  // ctor -----------------------------------------------------------"
+     << endl;
+ 
+  ss << "  CNode()" << endl
+     << "  {" << endl
+     << "    containerWindow(ycache, ycomm);" << endl
+     << "    containerWindow(dycache, dycomm);" << endl
+     << "  }" << endl
+     << endl;
+ 
   ss << "};" << endl
      << endl;
-
+  
   ss << "CNode *rc = new CNode;" << endl
      << endl;
 

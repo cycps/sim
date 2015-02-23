@@ -3,6 +3,7 @@
 
 #include "Cypress/Core/Equation.hxx"
 #include "Cypress/Sim/Var.hxx"
+#include <RyMPI/runtime.hxx>
 #include <sundials/sundials_types.h>
 #include <mpi.h>
 #include <string>
@@ -40,16 +41,21 @@ struct REqtn
   {}
 };
 
+//TODO: yresolve & dyresolve are now the same, collapse them at some point
 static inline
-realtype yresolve(DCoordinate)
+void yresolve(DCoordinate dc, realtype *r, MPI_Win w)
 {
-  return 0;
+  //MPI_Win_fence(0, w);
+  RyMPI::scalarGet(r, dc.px, dc.lx, w);
+  //MPI_Win_fence(0, w);
 }
 
 static inline
-realtype dyresolve(DCoordinate)
+void dyresolve(DCoordinate dc, realtype *r, MPI_Win w)
 {
-  return 0;
+  //MPI_Win_fence(0, w);
+  RyMPI::scalarGet(r, dc.px, dc.lx, w);
+  //MPI_Win_fence(0, w);
 }
 
 static inline
