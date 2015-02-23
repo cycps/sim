@@ -122,7 +122,8 @@ string ComputeNode::emitSource()
      << endl;
 
   ss << "  void compute(realtype *r) override" << endl
-     << "  {" << endl;
+     << "  {" << endl
+     << "    resolveRemotes();" << endl;
 
   CxxResidualFuncBuilder cxr;
   i=0;
