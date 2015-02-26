@@ -37,6 +37,8 @@ int main(int argc, char **argv)
   MPI_Comm_dup(ci.comm, &rc->ycomm);
   MPI_Comm_dup(ci.comm, &rc->dycomm);
 
+  rc->lg = &ofs;
+
   //init residual closure nvectors
   rc->nv_y = N_VNew_Parallel(rc->ycomm, rc->L(), rc->N());
   rc->nv_dy = N_VNew_Parallel(rc->dycomm, rc->L(), rc->N());
@@ -128,11 +130,15 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
 }
 
 int FL(long int /*L*/, realtype /*t*/, N_Vector /*y*/, N_Vector /*dy*/, 
-    N_Vector /*r*/, void *udata)
+    N_Vector r, void *udata)
 {
   ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
+
+  realtype *rv = NV_DATA_P(r);
+  rc->y = NV_DATA_P(rc->nv_y);
+  rc->dy = NV_DATA_P(rc->nv_dy);
   
-  rc->compute(rc->r);
+  rc->compute(rv);
 
   return 0;  
 }

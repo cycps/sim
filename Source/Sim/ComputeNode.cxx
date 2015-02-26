@@ -63,7 +63,7 @@ string ComputeNode::emitSource()
      << "using std::string;" << endl
      << "using std::hash;" << endl
      << "using std::array;" << endl
-     << "using RyMPI::containerWindow;" << endl
+     << "using RyMPI::pointerWindow;" << endl
      << endl;
 
   ss << "struct CNode : public ResidualClosure" << endl;
@@ -138,8 +138,8 @@ string ComputeNode::emitSource()
   ss << "  void init() override" << endl
      << "  {" << endl;
      
-  ss << "    containerWindow(ycache, ycomm);" << endl
-     << "    containerWindow(dycache, dycomm);" << endl;
+  ss << "    ywin = pointerWindow(y, L(), ycomm);" << endl
+     << "    dywin = pointerWindow(dy, L(), dycomm);" << endl;
 
   for(auto p: initials)
   {

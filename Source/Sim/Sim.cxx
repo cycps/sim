@@ -114,7 +114,7 @@ SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
   //sx.residualClosureSource = buildResidualClosure();
-  sx.computeNodes = buildComputeTopology(2);
+  sx.computeNodes = buildComputeTopology(1);
   for(ComputeNode &c: sx.computeNodes) 
     sx.computeNodeSources.push_back(c.emitSource());
 

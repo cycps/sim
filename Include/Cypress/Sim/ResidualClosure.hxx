@@ -12,6 +12,7 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include <iostream>
 
 namespace cypress
 {
@@ -22,6 +23,8 @@ struct ResidualClosure
   realtype *y, *dy, *c, *r;
   MPI_Win ywin, dywin;
   MPI_Comm ycomm, dycomm;
+  std::ostream *lg;
+
   std::vector<DCoordinate> varmap;
   virtual void compute(realtype *r) = 0;
   virtual void resolve() = 0;
