@@ -5,7 +5,7 @@ using namespace cypress;
 
 struct DummyResid : public ResidualClosure
 {
-  void compute(realtype*) override {}
+  void compute(realtype*, realtype) override {}
   void resolve() override {}
   string experimentInfo() override { return "DummyExperiment"; }
   void init() override {}

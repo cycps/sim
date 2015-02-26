@@ -126,19 +126,26 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
   ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
   rc->resolve();
   FL(rc->L(), t, y, dy, r, udata);
+
+  for(size_t i=0; i<rc->L(); ++i)
+  {
+    *(rc->lg) << rc->y[i] << ",";
+  }
+  *(rc->lg) << endl;
+
   return 0;  
 }
 
-int FL(long int /*L*/, realtype /*t*/, N_Vector /*y*/, N_Vector /*dy*/, 
+int FL(long int /*L*/, realtype t, N_Vector y, N_Vector dy, 
     N_Vector r, void *udata)
 {
   ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
 
   realtype *rv = NV_DATA_P(r);
-  rc->y = NV_DATA_P(rc->nv_y);
-  rc->dy = NV_DATA_P(rc->nv_dy);
+  rc->y = NV_DATA_P(y);
+  rc->dy = NV_DATA_P(dy);
   
-  rc->compute(rv);
+  rc->compute(rv, t);
 
   return 0;  
 }

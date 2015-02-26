@@ -43,7 +43,8 @@ void controlAccessor(string var, stringstream &ss)
   boost::replace_all(fname, ".", "_");
   ss << "  inline realtype cx_" + fname + "()" << endl
      << "  {" << endl
-     << "    return cxresolve(hash<string>{}(\""<<var<<"\"));" << endl
+     << "    //return cxresolve(hash<string>{}(\""<<var<<"\"));" << endl
+     << "    return 2.1;" << endl
      << "  }" << endl
      << endl;
 }
@@ -121,7 +122,7 @@ string ComputeNode::emitSource()
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
 
-  ss << "  void compute(realtype *r) override" << endl
+  ss << "  void compute(realtype *r, realtype t) override" << endl
      << "  {" << endl
      << "    //resolveRemotes();" << endl;
 

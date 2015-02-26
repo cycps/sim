@@ -26,7 +26,7 @@ struct ResidualClosure
   std::ostream *lg;
 
   std::vector<DCoordinate> varmap;
-  virtual void compute(realtype *r) = 0;
+  virtual void compute(realtype *r, realtype t) = 0;
   virtual void resolve() = 0;
   virtual void init() = 0;
   virtual std::string experimentInfo() = 0;
