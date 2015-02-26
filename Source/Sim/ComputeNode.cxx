@@ -144,7 +144,17 @@ string ComputeNode::emitSource()
     ss << "    dy[" << p.first << "] = " << p.second.d << ";" << endl;
   }
 
-  ss << "  }" << endl;
+  ss << "  }" << endl
+     << endl;
+  
+  ss << "  // id -------------------------------------------------------------"
+     << endl;
+  
+  ss << "  size_t id() override" << endl
+     << "  {" << endl
+     << "    return " << id << ";" << endl
+     << "  }" << endl
+     << endl;
 
   ss << "  // ctor -----------------------------------------------------------"
      << endl;

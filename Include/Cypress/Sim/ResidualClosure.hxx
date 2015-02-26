@@ -26,6 +26,7 @@ struct ResidualClosure
   virtual void compute(realtype *r) = 0;
   virtual void init() = 0;
   virtual std::string experimentInfo() = 0;
+  virtual size_t id() = 0;
 };
 
 }
