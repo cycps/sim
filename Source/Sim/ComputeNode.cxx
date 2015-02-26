@@ -132,6 +132,20 @@ string ComputeNode::emitSource()
   ss << "  }" << endl
      << endl;
 
+  ss << "  // init -----------------------------------------------------------"
+     << endl;
+
+  ss << "  void init() override" << endl
+     << "  {" << endl;
+
+  for(auto p: initials)
+  {
+    ss << "    y[" << p.first << "] = " << p.second.v << ";" << endl;
+    ss << "    dy[" << p.first << "] = " << p.second.d << ";" << endl;
+  }
+
+  ss << "  }" << endl;
+
   ss << "  // ctor -----------------------------------------------------------"
      << endl;
  
@@ -147,6 +161,8 @@ string ComputeNode::emitSource()
   
   ss << "CNode *rc = new CNode;" << endl
      << endl;
+
+  //TODO: you are here-ish .... need to initialize DAE system
 
   return ss.str();
 }

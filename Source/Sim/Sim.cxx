@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <algorithm>
+#include <array>
 
 using namespace cypress;
 using std::vector;
@@ -17,6 +18,7 @@ using std::unordered_map;
 using std::find_if;
 using std::to_string;
 using std::pair;
+using std::array;
 
 //Cypress::Sim ----------------------------------------------------------------
 
@@ -124,7 +126,7 @@ vector<RVar> Sim::mapVariables(size_t N)
   vector<RVar> m;
   vector<RVar> c;
 
-  EqtnVarCollector evc{false, false};
+  EqtnVarCollector evc;
   for(EquationSP eqtn: psys) evc.run(eqtn);
 
   if(N > evc.vars.size())
@@ -133,7 +135,7 @@ vector<RVar> Sim::mapVariables(size_t N)
         "the number of system variables");
 
 
-  unordered_map<string, vector<MetaVar>> vref_map;
+  //unordered_map<string, vector<MetaVar>> vref_map;
   for(MetaVar v: evc.vars)
   {
     vref_map[v.name].push_back(v);
@@ -169,7 +171,7 @@ vector<REqtn> Sim::mapEquations(size_t N)
 
 void addRVars(ComputeNode &n, vector<RVar> &rvars)
 {
-  EqtnVarCollector evc{false, false};
+  EqtnVarCollector evc;
   for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
 
   for(MetaVar v: evc.vars)
@@ -222,6 +224,42 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
 
   vector<RVar> vars = mapVariables(N);
   std::cout << "VC=" << vars.size() << std::endl;
+
+  std::cout << std::endl << "---------------" << std::endl;
+
+  unordered_map<string, Initials> initials;
+  for(ComponentSP c : exp->components)
+  {
+    for(auto p : c->initials)
+    {
+      string sname = c->name->value + "_" + p.first->value;
+      if(p.first->value.find("'") != string::npos)
+      {
+        initials[sname.substr(0, sname.length()-1)].d = p.second->value;
+      }
+      else
+      {
+        initials[sname].v = p.second->value;
+      }
+    }
+  }
+
+  for(auto p : vref_map) 
+  {
+    for(MetaVar m: p.second)
+    {
+      if(!m.derivative)
+        m.initial = initials[p.first].v;
+      else
+        m.initial = initials[p.first].d;
+    }
+  }
+
+  
+  std::cout << std::endl << "---------------" << std::endl;
+
+
+
   vector<REqtn> eqtns = mapEquations(N);
   std::cout << "EC=" << eqtns.size() << std::endl;
 
@@ -236,6 +274,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   {
     if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
     topo[v.coord.px].vars.push_back(v.name);
+    topo[v.coord.px].initials[v.coord.lx] = initials[v.name];
   }
 
   size_t i{0};

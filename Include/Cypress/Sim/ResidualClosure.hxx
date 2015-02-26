@@ -24,6 +24,7 @@ struct ResidualClosure
   MPI_Comm ycomm, dycomm;
   std::vector<DCoordinate> varmap;
   virtual void compute(realtype *r) = 0;
+  virtual void init() = 0;
   virtual std::string experimentInfo() = 0;
 };
 

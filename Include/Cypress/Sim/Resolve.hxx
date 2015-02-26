@@ -2,7 +2,6 @@
 #define CYPRESS_SIM_RESOLVE_HXX
 
 #include "Cypress/Core/Equation.hxx"
-#include "Cypress/Sim/Var.hxx"
 #include <RyMPI/runtime.hxx>
 #include <sundials/sundials_types.h>
 #include <mpi.h>

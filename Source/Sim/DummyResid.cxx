@@ -7,6 +7,7 @@ struct DummyResid : public ResidualClosure
 {
   void compute(realtype*) override {}
   string experimentInfo() override { return "DummyExperiment"; }
+  void init() override {}
 };
 
 DummyResid *rc = new DummyResid;

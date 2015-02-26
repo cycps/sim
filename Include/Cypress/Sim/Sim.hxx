@@ -22,6 +22,8 @@ struct Sim
   std::vector<std::shared_ptr<Element>> elements;
   std::shared_ptr<Experiment> exp;
 
+  std::unordered_map<std::string, std::vector<MetaVar>> vref_map;
+
   std::vector<std::shared_ptr<Equation>> psys; //physical system
 
   Sim(std::vector<std::shared_ptr<Object>>,
@@ -49,12 +51,7 @@ struct EqtnVarCollector : public Visitor
 {
   std::unordered_set<MetaVar, MetaVarHash, MetaVarCmp> vars;
 
-  bool in_derivative{false}, in_cvar{false}, 
-       explicit_derivs, include_cvar;
-
-  EqtnVarCollector(bool explicit_derivs = true, bool include_cvar = true)
-    : explicit_derivs{explicit_derivs}, include_cvar{include_cvar}
-  {}
+  bool in_derivative{false}, in_cvar{false};
 
   void run(EquationSP);
   void in(SymbolSP) override;

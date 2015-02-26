@@ -3,14 +3,21 @@
 
 #include <string>
 #include <functional>
+#include "Cypress/Sim/Resolve.hxx"
 
 namespace cypress
 {
+
+struct Initials
+{
+  double v{0}, d{0};
+};
 
 struct MetaVar
 {
   std::string name;
   bool derivative, controlled;
+  double initial{0};
   MetaVar()
     : derivative{false}, controlled{false}
   {}
