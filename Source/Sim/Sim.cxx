@@ -274,7 +274,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   size_t i{0};
   for(ComputeNode &n: topo)
   {
-    n.N = N;
+    n.N = vars.size();
     n.expInfo = exp->name->value;
     addRVars(n, vars);
     n.id = i++;

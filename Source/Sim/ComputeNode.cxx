@@ -96,7 +96,7 @@ string ComputeNode::emitSource()
     remoteAccessor(v, i, "", "y", ss),
     remoteAccessor(v, i++, "d_", "dy", ss);
 
-  ss << "  void resolveRemotes()" << endl
+  ss << "  void resolve() override" << endl
      << "  {" << endl;
   i=0;
   ss << "    MPI_Win_fence(0, ywin);" << endl;
@@ -123,7 +123,7 @@ string ComputeNode::emitSource()
 
   ss << "  void compute(realtype *r) override" << endl
      << "  {" << endl
-     << "    resolveRemotes();" << endl;
+     << "    //resolveRemotes();" << endl;
 
   CxxResidualFuncBuilder cxr;
   i=0;
@@ -137,6 +137,9 @@ string ComputeNode::emitSource()
 
   ss << "  void init() override" << endl
      << "  {" << endl;
+     
+  ss << "    containerWindow(ycache, ycomm);" << endl
+     << "    containerWindow(dycache, dycomm);" << endl;
 
   for(auto p: initials)
   {
@@ -179,8 +182,6 @@ string ComputeNode::emitSource()
  
   ss << "  CNode()" << endl
      << "  {" << endl
-     << "    containerWindow(ycache, ycomm);" << endl
-     << "    containerWindow(dycache, dycomm);" << endl
      << "  }" << endl
      << endl;
  
