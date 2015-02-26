@@ -109,7 +109,7 @@ void Sim::buildPhysics()
 {
   buildSystemEquations();
 }
- 
+
 SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
@@ -225,8 +225,6 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   vector<RVar> vars = mapVariables(N);
   std::cout << "VC=" << vars.size() << std::endl;
 
-  std::cout << std::endl << "---------------" << std::endl;
-
   unordered_map<string, Initials> initials;
   for(ComponentSP c : exp->components)
   {
@@ -255,10 +253,6 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
     }
   }
 
-  
-  std::cout << std::endl << "---------------" << std::endl;
-
-
 
   vector<REqtn> eqtns = mapEquations(N);
   std::cout << "EC=" << eqtns.size() << std::endl;
@@ -280,6 +274,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   size_t i{0};
   for(ComputeNode &n: topo)
   {
+    n.N = N;
     n.expInfo = exp->name->value;
     addRVars(n, vars);
     n.id = i++;

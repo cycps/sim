@@ -117,16 +117,20 @@ void Driver::compileSource(const string &src)
     boost::filesystem::path pkgdir(exp->name->value+".cypk");
     boost::filesystem::create_directory(pkgdir);
     
+    /*
     string simfile = sx.toString();
     ofstream ofs(pkgdir.string() + "/" + "metadata.cymx");
     ofs << simfile;
     ofs.close();
+    */
 
     /*
     ofs.open(pkgdir.string() + "/" + "ResidualClosure.cxx");
     ofs << sx.residualClosureSource;
     ofs.close();
     */
+
+    ofstream ofs;
 
     size_t ix{0};
     for(const string &s: sx.computeNodeSources)
@@ -154,6 +158,8 @@ void Driver::compileSource(const string &src)
         << "-I" << "/usr/local/include "
         << "-L" << "/usr/local/lib "
         << "-lmpi "
+        << "-lsundials_ida "
+        << "-lsundials_nvecparallel "
         << "-o " << "rcomp" << i << endl;
     }
     ofs.close();

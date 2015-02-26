@@ -156,6 +156,24 @@ string ComputeNode::emitSource()
      << "  }" << endl
      << endl;
 
+  ss << "  // L ---------------------------------------------------------------"
+     << endl;
+
+  ss << "  size_t L() override" << endl
+     << "  {" << endl
+     << "    return " << vars.size() << ";" << endl
+     << "  }" << endl
+     << endl;
+  
+  ss << "  // N ---------------------------------------------------------------"
+     << endl;
+
+  ss << "  size_t N() override" << endl
+     << "  {" << endl
+     << "    return " << N << ";" << endl
+     << "  }" << endl
+     << endl;
+
   ss << "  // ctor -----------------------------------------------------------"
      << endl;
  

@@ -20,15 +20,8 @@ using std::stod;
 SimEx::SimEx(size_t neq, double rtol, double satol)
   : neq{neq},
     rtol{rtol},
-    satol{satol},
-    y{N_VNew_Serial(neq)},
-    dy{N_VNew_Serial(neq)},
-    avtol{N_VNew_Serial(neq)},
-    yv{NV_DATA_S(y)},
-    dyv{NV_DATA_S(dy)},
-    avtolv{NV_DATA_S(avtol)}
+    satol{satol}
 {
-  applySATol();
 }
 
 SimEx::SimEx(string source)
@@ -39,15 +32,7 @@ SimEx::SimEx(string source)
   rtol = parseRTOL(lines[1]);
   satol = parseSATOL(lines[2]);
 
-  y = N_VNew_Serial(neq);
-  dy = N_VNew_Serial(neq);
-  avtol = N_VNew_Serial(neq);
-  yv = NV_DATA_S(y);
-  dyv = NV_DATA_S(dy);
-  avtolv = NV_DATA_S(avtol);
-
   startupReport();
-  applySATol();
 }
 
 template<class T, class F>
@@ -87,11 +72,6 @@ string SimEx::toString()
   return ss.str();
 }
 
-void SimEx::applySATol()
-{
-  for(size_t i=0; i<neq; ++i)
-    avtolv[i] = satol;
-}
 
 void SimEx::startupReport()
 {
