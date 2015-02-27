@@ -21,6 +21,7 @@ struct ResidualClosure
 {
   N_Vector nv_y, nv_dy, nv_r;
   realtype *y, *dy, *c, *r;
+  realtype *ry, *rdy;
   MPI_Win ywin, dywin;
   MPI_Comm ycomm, dycomm;
   std::ostream *lg;

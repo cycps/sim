@@ -127,11 +127,22 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
   rc->resolve();
   FL(rc->L(), t, y, dy, r, udata);
 
+
+  /*
+  *(rc->lg) << "-- ";
   for(size_t i=0; i<rc->L(); ++i)
   {
     *(rc->lg) << rc->y[i] << ",";
   }
   *(rc->lg) << endl;
+  
+  *(rc->lg) << "++ ";
+  for(size_t i=0; i<rc->L(); ++i)
+  {
+    *(rc->lg) << rc->ry[i] << ",";
+  }
+  *(rc->lg) << endl;
+  */
 
   return 0;  
 }

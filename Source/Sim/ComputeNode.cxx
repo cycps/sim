@@ -24,7 +24,7 @@ void remoteAccessor(RVar v, size_t i, string mod, string from, stringstream &ss)
 {
   ss << "  inline realtype " << mod << v.name << "()" << endl
      << "  {" << endl
-     << "    return " << from << "cache["<<i<<"];" << endl
+     << "    return r" << from << "["<<i<<"];" << endl
      << "  }" << endl
      << endl;
 }
@@ -33,7 +33,7 @@ void remoteResolver(RVar v, size_t i, string from, stringstream &ss)
 {
   ss << "    "<<from<<"resolve({"
                 <<v.coord.px<<","<<v.coord.gx<<","<<v.coord.lx<<"}, "
-                << "&" << from << "cache["<<i<<"], "
+                << "&r" << from << "["<<i<<"], "
                 << from << "win);" << endl;
 }
 
@@ -89,8 +89,8 @@ string ComputeNode::emitSource()
   ss << "  // Remote Access Variables -----------------------------------------"
      << endl;
 
-  ss << "  array<realtype,"<<rvars.size()<<"> ycache, dycache;" << endl
-     << endl;
+  //ss << "  array<realtype,"<<rvars.size()<<"> ycache, dycache;" << endl
+  //   << endl;
 
   i=0;
   for(const RVar &v: rvars)
@@ -183,6 +183,8 @@ string ComputeNode::emitSource()
  
   ss << "  CNode()" << endl
      << "  {" << endl
+     << "    ry = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" << endl
+     << "    rdy = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" << endl
      << "  }" << endl
      << endl;
  
