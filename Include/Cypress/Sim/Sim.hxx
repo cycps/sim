@@ -5,7 +5,7 @@
 #include "Cypress/Sim/SimEx.hxx"
 #include "Cypress/Sim/Resolve.hxx"
 #include "Cypress/Sim/ComputeNode.hxx"
-#include "Cypress/Sim/Var.hxx"
+#include "Cypress/Core/Var.hxx"
 
 #include <unordered_map>
 #include <unordered_set>

@@ -1,2 +1,2 @@
-add_library(CypressCore SHARED Equation.cxx ElementIO.cxx Elements.cxx)
+add_library(CypressCore SHARED Equation.cxx ElementIO.cxx Elements.cxx Var.cxx)
 

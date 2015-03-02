@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
-#include "Cypress/Sim/Var.hxx"
+#include "Cypress/Core/Var.hxx"
 #include "Cypress/Sim/Resolve.hxx"
 #include "Cypress/Core/Equation.hxx"
 

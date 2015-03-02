@@ -1,3 +1,4 @@
+#include "Cypress/Core/Var.hxx"
 #include "Cypress/Compiler/Parser.hxx"
 #include "Cypress/Compiler/DeclRegex.hxx"
 #include <iostream>
@@ -469,6 +470,11 @@ PowSP Parser::parsePow(const string &lower, const string &upper)
       make_shared<Symbol>(lower, currline), parseAtom(upper), currline);
 }
 
+VarRefSP makeVRef(ComponentSP, string s)
+{
+  regex rx{""};
+}
+
 ComponentSP Parser::parseComponent(const string &s)
 {
   smatch sm;
@@ -495,6 +501,7 @@ ComponentSP Parser::parseComponent(const string &s)
     else if(p.find("|") != string::npos)
     {
       auto ps = split(p, '|');
+      VarRefSP vr = makeVRef(cp, ps[0]);
       cp->initials[make_shared<Symbol>(ps[0], currline)] = 
         make_shared<Real>(stod(ps[1]), currline);
     }
