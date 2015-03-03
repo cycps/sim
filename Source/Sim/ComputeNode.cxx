@@ -115,9 +115,9 @@ string ComputeNode::emitSource()
   ss << "  // Controll Access Variables ---------------------------------------"
      << endl;
   CVarExtractor cvx;
-  for(EquationSP eqtn: eqtns) eqtn->accept(cvx);
-  for(string s: cvx.cvars)
-    controlAccessor(s, ss);
+  for(auto p: eqtns) cvx.run(p.first, p.second);
+  for(auto p: cvx.cvars)
+    controlAccessor(p.second, ss);
 
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
@@ -128,7 +128,7 @@ string ComputeNode::emitSource()
 
   CxxResidualFuncBuilder cxr;
   i=0;
-  for(EquationSP eqtn: eqtns) ss << "    " << cxr.run(eqtn, i++) << endl;
+  for(auto p: eqtns) ss << "    " << cxr.run(p.second, i++) << endl;
 
   ss << "  }" << endl
      << endl;
@@ -213,7 +213,7 @@ ostream & cypress::operator << (ostream &o, const ComputeNode &n)
 
   EqtnPrinter eqp;
   o << "[eqtn]" << endl;
-  for(EquationSP e: n.eqtns) eqp.run(e);
+  for(auto p: n.eqtns) eqp.run(p.second);
   for(auto eq_str : eqp.strings) o << "  " << eq_str << endl;
 
   return o;

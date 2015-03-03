@@ -46,7 +46,8 @@ void Sim::addObjectToSim(ComponentSP c)
       applyParameter(cpy, sym_name, p.second->value);
     }
       
-    psys.push_back(cpy);
+    //psys.push_back(cpy);
+    psys.insert({c, cpy});
   }
 }
 
@@ -76,9 +77,9 @@ void Sim::addControllerRefToSim(SubComponentRefSP c)
 {
   string under_control = getControlled(c);
 
-  for(auto eqtn: psys)
+  for(auto eqtn_p: psys)
   {
-    liftControlledVars(eqtn, under_control);
+    liftControlledVars(eqtn_p.second, under_control);
   }
 }
 
@@ -127,7 +128,8 @@ vector<RVar> Sim::mapVariables(size_t N)
   vector<RVar> c;
 
   EqtnVarCollector evc;
-  for(EquationSP eqtn: psys) evc.run(eqtn);
+  //for(EquationSP eqtn: psys) evc.run(eqtn);
+  for(ComponentSP cp: exp->components) evc.run(cp);
 
   if(N > evc.vars.size())
     throw runtime_error(
@@ -136,17 +138,18 @@ vector<RVar> Sim::mapVariables(size_t N)
 
 
   //unordered_map<string, vector<MetaVar>> vref_map;
-  for(MetaVar v: evc.vars)
-  {
-    vref_map[v.name].push_back(v);
-  }
+  //for(MetaVar v: evc.vars)
+  //{
+  //  vref_map[v.name].push_back(v);
+  //}
   
-  size_t L = ceil(static_cast<double>(vref_map.size()) / N);
+  //size_t L = ceil(static_cast<double>(vref_map.size()) / N);
+  size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
 
   size_t i{0};
-  for(auto p: vref_map)
+  for(auto v: evc.vars)
   {
-    m.push_back( RVar{p.first, DCoordinate{i/L, i, i%L}} );
+    m.push_back( RVar{v->qname(), DCoordinate{i/L, i, i%L}} );
     ++i;
   }
 
@@ -160,9 +163,9 @@ vector<REqtn> Sim::mapEquations(size_t N)
   size_t L = ceil(static_cast<double>(psys.size()) / N);
 
   size_t i{0};
-  for(EquationSP eqtn: psys)
+  for(auto eqtn_p: psys)
   {
-    m.push_back( REqtn{eqtn->clone(), DCoordinate{i/L, i, i%L}} );
+    m.push_back( REqtn{eqtn_p.second->clone(), eqtn_p.first, DCoordinate{i/L, i, i%L}} );
     ++i;
   }
 
@@ -172,22 +175,22 @@ vector<REqtn> Sim::mapEquations(size_t N)
 void addRVars(ComputeNode &n, vector<RVar> &rvars)
 {
   EqtnVarCollector evc;
-  for(EquationSP eqtn: n.eqtns) evc.run(eqtn);
+  for(auto p: n.eqtns) evc.run(p.first);
 
-  for(MetaVar v: evc.vars)
+  for(VarRefSP v: evc.vars)
   {
-    if(v.derivative) continue;
+    if(v->kind() == VarRef::Kind::Derivative) continue;
     auto lit =
       find_if(n.vars.begin(), n.vars.end(),
-          [v](string s){ return s == v.name; });
+          [v](string s){ return s == v->qname(); });
 
     if(lit != n.vars.end()) continue;
 
     auto rit =
       find_if(rvars.begin(), rvars.end(),
-        [v](RVar r){ return r.name == v.name; });
+        [v](RVar r){ return r.name == v->qname(); });
 
-    if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + v.name);
+    if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + v->qname());
 
     n.rvars.push_back(*rit);
   }
@@ -196,23 +199,25 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
 void Sim::addCVarResiduals()
 {
   CVarExtractor cvx;
-  for(EquationSP eqtn: psys) eqtn->accept(cvx);
+  //for(auto eqtn_p: psys) eqtn_p.second->accept(cvx);
+  for(auto eqtn_p: psys) cvx.run(eqtn_p.first, eqtn_p.second);
+
   std::cout << "--" << std::endl;
 
   std::cout << "system controlled variables:" << std::endl;
-  for(string s: cvx.cvars)
+  for(auto p: cvx.cvars)
   {
-    std::cout << s << std::endl;
+    std::cout << p.second << std::endl;
     //-1 indicates generated code e.g., there is no source line
     static constexpr int nosrc{-1};
     EquationSP eq = make_shared<Equation>(nosrc); 
     eq->lhs = make_shared<Real>(0, nosrc);
     eq->rhs = 
       make_shared<Subtract>(
-        make_shared<CVar>(make_shared<Symbol>(s, nosrc)),
-        make_shared<CCVar>(make_shared<Symbol>(s, nosrc)),
+        make_shared<CVar>(make_shared<Symbol>(p.second, nosrc)),
+        make_shared<CCVar>(make_shared<Symbol>(p.second, nosrc)),
         nosrc);
-    psys.push_back(eq);
+    psys.insert({p.first, eq});
   }
   
   std::cout << "--" << std::endl;
@@ -230,18 +235,18 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   {
     for(auto p : c->initials)
     {
-      string sname = c->name->value + "_" + p.first->value;
-      if(p.first->value.find("'") != string::npos)
+      if(p.first->kind() == VarRef::Kind::Normal)
       {
-        initials[sname.substr(0, sname.length()-1)].d = p.second->value;
+        initials[p.first->qname()].v = p.second;
       }
-      else
+      else //kind == Derivative
       {
-        initials[sname].v = p.second->value;
+        initials[p.first->qname()].d = p.second;
       }
     }
   }
 
+  /*
   for(auto p : vref_map) 
   {
     for(MetaVar m: p.second)
@@ -252,6 +257,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
         m.initial = initials[p.first].d;
     }
   }
+  */
 
 
   vector<REqtn> eqtns = mapEquations(N);
@@ -261,7 +267,7 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
   {
     if(e.coord.px >= N) 
       throw runtime_error("Equation Balderdashery! " + to_string(e.coord.px));
-    topo[e.coord.px].eqtns.push_back(e.eqtn);
+    topo[e.coord.px].eqtns.insert({e.component, e.eqtn});
   }
 
   for(RVar v: vars)
@@ -315,6 +321,7 @@ string rcname(ExperimentSP ex)
   return ex->name->value + "RC";
 }
 
+/*
 string Sim::buildResidualClosure()
 {
   using std::endl;
@@ -369,30 +376,43 @@ string Sim::buildResidualClosure()
 
   return ss.str();
 }
+*/
 
 
 //Cypress::EqtnVarCollector ---------------------------------------------------
 
-void EqtnVarCollector::run(EquationSP eqtn)
+void EqtnVarCollector::run(ComponentSP c)
 {
-  eqtn->accept(*this);
+  component = c;
+  for(EquationSP eqtn : c->element->eqtns) eqtn->accept(*this);
 }
+
+//void EqtnVarCollector::run(EquationSP eqtn)
+//{
+//  eqtn->accept(*this);
+//}
 
 void EqtnVarCollector::in(SymbolSP s)
 {
-  string sname = s->value;
-  boost::replace_all(sname, ".", "_");
-  vars.insert({sname, in_derivative, in_cvar});
+  //string sname = s->value;
+  //boost::replace_all(sname, ".", "_");
+  //vars.insert({sname, in_derivative, in_cvar});
+  if(in_derivative)
+    vars.insert(make_shared<DVarRef>(component, s->value, derivative_order));
+  else
+    vars.insert(make_shared<VarRef>(component, s->value));
 }
 
 void EqtnVarCollector::visit(DifferentiateSP)
 {
   in_derivative = true;
+  ++derivative_order;
 }
 
 void EqtnVarCollector::leave(DifferentiateSP)
 {
   in_derivative = false;
+  --derivative_order;
 }
   
 void EqtnVarCollector::visit(CVarSP)

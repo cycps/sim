@@ -3,6 +3,8 @@
 
 #include "Cypress/Core/Equation.hxx"
 #include "Cypress/Core/Elements.hxx"
+#include "Cypress/Compiler/Diagnostics.hxx"
+#include "Cypress/Core/Var.hxx"
 
 #include <string>
 #include <vector>
@@ -47,6 +49,15 @@ class Parser
 
     std::shared_ptr<Component> parseComponent(const std::string &);
     std::vector<ConnectionSP> parseConnectionStmt(const std::string &);
+
+    std::string parseName(std::string::const_iterator &begin, 
+        std::string::const_iterator end, DiagnosticReport &dr);
+
+    VarRefSP parseVRef(ComponentSP csp, std::string::const_iterator &begin, 
+        std::string::const_iterator end, DiagnosticReport &d);
+
+    size_t parsePrimes(std::string::const_iterator &begin,
+        std::string::const_iterator end, DiagnosticReport &dr);
 };
 
 std::vector<std::string> &

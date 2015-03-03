@@ -2,6 +2,7 @@
 #define CYPRESS_SIM_RESOLVE_HXX
 
 #include "Cypress/Core/Equation.hxx"
+//#include "Cypress/Core/Elements.hxx"
 #include <RyMPI/runtime.hxx>
 #include <sundials/sundials_types.h>
 #include <mpi.h>
@@ -9,6 +10,8 @@
 
 namespace cypress
 {
+  
+  struct Component; using ComponentSP = std::shared_ptr<Component>;
 
 struct DCoordinate
 {
@@ -34,9 +37,11 @@ struct RVar
 struct REqtn
 {
   EquationSP eqtn;
+  ComponentSP component;
   DCoordinate coord;
 
-  REqtn(EquationSP eqtn, DCoordinate coord) : eqtn{eqtn}, coord{coord}
+  REqtn(EquationSP eqtn, ComponentSP c, DCoordinate coord) 
+    : eqtn{eqtn}, component{c}, coord{coord}
   {}
 };
 

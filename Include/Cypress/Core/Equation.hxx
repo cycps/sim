@@ -303,19 +303,6 @@ struct CVarLifter : public Visitor
 };
 void liftControlledVars(EquationSP, std::string symbol_name);
 
-//Controlled variable extraction ----------------------------------------------
-struct CVarExtractor : public Visitor
-{
-  bool inCVar{false}, inDeriv{false};
-  std::unordered_set<std::string> cvars, cderivs;
-
-  void visit(DifferentiateSP) override;
-  void leave(DifferentiateSP) override;
-  void visit(CVarSP) override;
-  void leave(CVarSP) override;
-  void in(SymbolSP) override;
-};
-
 } //::cypress
 #include "Equation.hh"
 #endif

@@ -470,9 +470,56 @@ PowSP Parser::parsePow(const string &lower, const string &upper)
       make_shared<Symbol>(lower, currline), parseAtom(upper), currline);
 }
 
-VarRefSP makeVRef(ComponentSP, string s)
+string Parser::parseName(
+    string::const_iterator &begin, string::const_iterator end,
+    DiagnosticReport &dr)
 {
-  regex rx{""};
+  regex rx{"([a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_]*)"};
+  smatch sm;
+  regex_search(begin, end, sm, rx);
+  if(sm.empty())
+    dr.diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Malformed name: `" + string(begin, end) + "`",
+        currline
+        });
+
+  begin = sm[0].second;
+  return sm[0];
+}
+    
+size_t Parser::parsePrimes(std::string::const_iterator &begin, 
+    std::string::const_iterator end, DiagnosticReport &dr)
+{
+  for(auto it=begin; it!= end; ++it)
+  {
+    if(*it != '\'') 
+    {
+      dr.diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Expected prime or nothing: `" + string(begin,end) + "`" ,
+          currline
+          });
+      return 0;
+    }
+  }
+  size_t order = end-begin;
+  begin = end;
+  return order;
+}
+
+VarRefSP Parser::parseVRef(
+    ComponentSP csp, 
+    string::const_iterator &begin, string::const_iterator end, 
+    DiagnosticReport &d)
+{
+  string name = parseName(begin, end, d);
+  if(d.catastrophic()) return nullptr;
+  if(begin == end) return make_shared<VarRef>(csp, name); 
+
+  size_t order = parsePrimes(begin, end, d);
+  if(d.catastrophic()) return nullptr;
+  return make_shared<DVarRef>(csp, name, order);
 }
 
 ComponentSP Parser::parseComponent(const string &s)
@@ -501,9 +548,18 @@ ComponentSP Parser::parseComponent(const string &s)
     else if(p.find("|") != string::npos)
     {
       auto ps = split(p, '|');
-      VarRefSP vr = makeVRef(cp, ps[0]);
+
+      DiagnosticReport dr;
+      auto it = ps[0].cbegin();
+      VarRefSP vr = parseVRef(cp, it, ps[0].cend(), dr);
+      if(dr.catastrophic())
+        throw CompilationError(dr);
+
+      /*
       cp->initials[make_shared<Symbol>(ps[0], currline)] = 
         make_shared<Real>(stod(ps[1]), currline);
+      */
+      cp->initials[vr] = stod(ps[1]);
     }
     else
     {

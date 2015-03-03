@@ -169,7 +169,7 @@ void Driver::compileSource(const string &src)
 
     cout << "psys: " << endl;
     EqtnPrinter eqp;
-    for(auto eqtn : sim.psys) eqp.run(eqtn);
+    for(auto p : sim.psys) eqp.run(p.second);
     for(auto eq_str : eqp.strings) cout << eq_str << endl;
   }
 }

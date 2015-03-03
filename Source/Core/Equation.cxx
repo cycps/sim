@@ -304,33 +304,3 @@ void cypress::liftControlledVars(EquationSP eq, string symbol_name)
   eq->accept(cvl);
 }
 
-//Controlled variable extraction ----------------------------------------------
-
-void CVarExtractor::visit(CVarSP)
-{
-  inCVar = true;
-}
-
-void CVarExtractor::leave(CVarSP)
-{
-  inCVar = false;
-}
-  
-void CVarExtractor::visit(DifferentiateSP)
-{
-  inDeriv = true;
-}
-  
-void CVarExtractor::leave(DifferentiateSP)
-{
-  inDeriv = false;
-}
-
-void CVarExtractor::in(SymbolSP s)
-{
-  if(inCVar)
-  {
-    if(inDeriv) cderivs.insert(s->value);
-    else cvars.insert(s->value);
-  }
-}

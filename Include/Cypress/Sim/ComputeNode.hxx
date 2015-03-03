@@ -18,7 +18,8 @@ struct ComputeNode
   std::string expInfo;
   std::vector<std::string> vars;
   std::vector<RVar> rvars;  
-  std::vector<EquationSP> eqtns;
+  //std::vector<EquationSP> eqtns;
+  std::unordered_multimap<ComponentSP, EquationSP> eqtns;
   std::unordered_map<size_t, Initials> initials;
 
   std::string emitSource();

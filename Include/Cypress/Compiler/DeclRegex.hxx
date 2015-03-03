@@ -39,6 +39,7 @@ static inline std::regex& comprx()
       "\\s\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))*"};
   return *rx;
 }
+
 static inline std::regex& lnkrx()
 {
   static std::regex *rx = 

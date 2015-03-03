@@ -227,3 +227,45 @@ void CxxResidualFuncBuilder::visit(CCVarSP)
 {
   ss << "cx_";
 }
+
+
+//Controlled variable extraction ----------------------------------------------
+
+void CVarExtractor::run(ComponentSP c, EquationSP e)
+{
+  component = c;  
+  e->accept(*this);
+}
+
+void CVarExtractor::visit(CVarSP)
+{
+  inCVar = true;
+}
+
+void CVarExtractor::leave(CVarSP)
+{
+  inCVar = false;
+}
+  
+void CVarExtractor::visit(DifferentiateSP)
+{
+  inDeriv = true;
+}
+  
+void CVarExtractor::leave(DifferentiateSP)
+{
+  inDeriv = false;
+}
+
+void CVarExtractor::in(SymbolSP s)
+{
+  if(inCVar)
+  {
+    /*
+    if(inDeriv) cderivs.insert(s->value);
+    else cvars.insert(s->value);
+    */
+    if(inDeriv) cderivs.insert({component, s->value});
+    else cvars.insert({component, s->value});
+  }
+}

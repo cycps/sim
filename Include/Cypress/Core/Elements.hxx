@@ -3,6 +3,7 @@
 
 #include "Cypress/Core/Common.hxx"
 #include "Cypress/Core/Equation.hxx"
+#include "Cypress/Core/Var.hxx"
 
 #include <vector>
 #include <unordered_map>
@@ -22,6 +23,10 @@ namespace cypress
   struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
   struct Connection; using ConnectionSP = std::shared_ptr<Connection>;
   struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
+  
+  struct VarRef; using VarRefSP = std::shared_ptr<VarRef>;
+  struct VarRefSPHash;
+  struct VarRefSPCmp;
 }
 namespace cypress 
 {
@@ -58,7 +63,8 @@ struct Component
 {
   SymbolSP kind, name;
   std::unordered_map<SymbolSP, RealSP> params;
-  std::unordered_map<SymbolSP, RealSP> initials;
+  //std::unordered_map<SymbolSP, RealSP> initials;
+  std::unordered_map<VarRefSP, double, VarRefSPHash, VarRefSPCmp> initials;
   ElementSP element;
   Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
 };
@@ -192,6 +198,26 @@ struct CxxResidualFuncBuilder : public Visitor
   void leave(SubExpressionSP) override;
   void visit(CCVarSP) override;
   //void leave(CCVarSP) override;
+};
+
+//Controlled variable extraction ----------------------------------------------
+struct CVarExtractor : Visitor
+{
+  ComponentSP component;
+
+  bool inCVar{false}, inDeriv{false};
+  //std::unordered_set<std::string> cvars, cderivs;
+  std::unordered_multimap<ComponentSP, std::string>
+    cvars, cderivs;
+
+  void run(ComponentSP, EquationSP);
+
+  private:
+    void visit(DifferentiateSP) override;
+    void leave(DifferentiateSP) override;
+    void visit(CVarSP) override;
+    void leave(CVarSP) override;
+    void in(SymbolSP) override;
 };
 
 }
