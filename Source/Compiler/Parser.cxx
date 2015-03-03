@@ -518,7 +518,15 @@ VarRefSP Parser::parseVRef(
   if(begin == end) return make_shared<VarRef>(csp, name); 
 
   size_t order = parsePrimes(begin, end, d);
-  if(d.catastrophic()) return nullptr;
+  if(d.catastrophic()) 
+  {
+    d.diagnostics.push_back({
+        Diagnostic::Level::Info,
+        "At symbol " + name,
+        currline
+        });
+    return nullptr;
+  }
   return make_shared<DVarRef>(csp, name, order);
 }
 

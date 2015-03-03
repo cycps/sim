@@ -67,6 +67,8 @@ struct Component
   std::unordered_map<VarRefSP, double, VarRefSPHash, VarRefSPCmp> initials;
   ElementSP element;
   Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
+
+  RealSP parameterValue(std::string);
 };
 
 struct Connectable 
@@ -120,7 +122,9 @@ struct Decls
   std::vector<ObjectSP> objects;
   std::vector<ControllerSP> controllers;
   std::vector<ExperimentSP> experiments;
+  Decls & operator += (const Decls &b);
 };
+
 
 //ostream operations ----------------------------------------------------------
 std::ostream& operator << (std::ostream &o, const Decls &d);

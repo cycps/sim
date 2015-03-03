@@ -1,11 +1,53 @@
 #include "Cypress/Core/Elements.hxx"
 #include <boost/algorithm/string/replace.hpp>
 #include <vector>
+#include <stdexcept>
+#include <algorithm>
 
 using namespace cypress;
 using std::vector;
 using std::make_shared;
 using std::string;
+using std::runtime_error;
+using std::find_if;
+using std::pair;
+
+Decls & Decls::operator += (const Decls &b)
+{
+  Decls &a = *this;
+
+  a.objects.insert(
+      a.objects.end(), 
+      b.objects.begin(), 
+      b.objects.end());
+
+  a.controllers.insert(
+      a.controllers.end(),
+      b.controllers.begin(),
+      b.controllers.end());
+
+  a.experiments.insert(
+      a.experiments.end(),
+      b.experiments.begin(),
+      b.experiments.end());
+
+  return a;
+}
+
+// Component ------------------------------------------------------------------
+
+RealSP Component::parameterValue(string s)
+{
+  auto it = 
+    find_if(params.begin(), params.end(),
+        [s](const pair<SymbolSP, RealSP> &p) { return p.first->value == s; });
+
+  if(it != params.end())
+    return it->second;
+
+  throw runtime_error{"Component: Undefined parameter value requested"};
+}
+
 
 //Free functions over elements ================================================
 void cypress::setEqtnsToZero(ElementSP e)

@@ -25,12 +25,14 @@ using std::ofstream;
 using std::getenv;
 using std::runtime_error;
 using std::to_string;
+using std::make_shared;
 
 Driver::Driver(int argc, char **argv)
 {
   buildInvocationOptionDescriptions();
   this->argc = argc;
   this->argv = argv;
+  decls = make_shared<Decls>();
 }
   
 void Driver::buildInvocationOptionDescriptions()
@@ -58,13 +60,18 @@ void Driver::showVersion()
     << endl;
 }
 
-void Driver::run()
+void Driver::init()
 {
   po::store(po::command_line_parser(argc, argv)
                   .options(opt_desc)
                   .positional(popt_desc).run(), 
             opt_vmap);
   po::notify(opt_vmap);
+}
+
+void Driver::run()
+{
+  init();
 
   if(opt_vmap.count("help")) showHelp();
   else if(opt_vmap.count("version")) showVersion();
@@ -86,10 +93,27 @@ void Driver::compileInputFiles()
   }
 }
 
+void Driver::parseInput()
+{
+  auto input_files = opt_vmap["input-file"].as<vector<string>>();
+  for(const auto& inf : input_files)
+  {
+    currentInput = inf;
+    string src = readSource(inf);
+    parseSource(src);
+  }
+}
+
+void Driver::parseSource(const std::string src)
+{
+  Parser p(src);
+  *decls += *p.run();
+}
+
 void Driver::compileSource(const string &src)
 {
   Parser p(src);
-  auto decls = p.run();
+  *decls += *p.run();
   vector<ElementSP> elems;
 
   elems.insert(elems.end(), 

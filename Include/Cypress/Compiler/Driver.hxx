@@ -5,6 +5,7 @@
 #include "Parser.hxx"
 #include <boost/program_options.hpp>
 #include <string>
+#include <vector>
 
 namespace cypress { namespace compile {
 
@@ -18,12 +19,23 @@ class Driver
     Driver(int argc, char **argv);
     void showHelp();
     void showVersion();
+
+    void init();
     void run();
+    
+    void parseInput();
+    void parseSource(const std::string src);
+
+    std::shared_ptr<Decls> decls;
 
   private:
     void buildInvocationOptionDescriptions();
+
+
+    //TODO: break up
     void compileInputFiles();
     void compileSource(const std::string&);
+
     std::string readSource(std::string file);
 
     int argc;
