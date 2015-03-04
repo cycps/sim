@@ -407,7 +407,7 @@ EquationSP Parser::parseEqtn(const string &s)
 void nonEmptyMatchesAndPositions(const smatch &sm, vector<string> &matches,
     vector<size_t> &positions)
 {
-  for(size_t i=0; i<sm.size(); i++)
+  for(size_t i=1; i<sm.size(); i++)
   {
     if(!sm[i].str().empty())
     {
@@ -428,9 +428,7 @@ ExpressionSP Parser::parseExpr(const string &s)
   ExpressionSP rhs{nullptr};
   if(sm.size()>1)
   {
-
     nonEmptyMatchesAndPositions(sm, matches, positions);
-
     switch(matches.size())
     {
       //Unary Term
@@ -447,7 +445,7 @@ ExpressionSP Parser::parseExpr(const string &s)
               }
     }
   }
-  return nullptr;
+  throw runtime_error{"Malformed Expression: " + s};
 }
     
 TermSP Parser::parseTerm(const string &s)
@@ -479,7 +477,7 @@ TermSP Parser::parseTerm(const string &s)
               }
     }
   }
-  return nullptr;
+  throw runtime_error{"Malformed Term: " + s};
 }
     
 FactorSP Parser::parseFactor(const string &s)
@@ -505,8 +503,7 @@ FactorSP Parser::parseFactor(const string &s)
 
     throw runtime_error("disformed factor");
   }
-
-  return nullptr;
+  throw runtime_error{"Malformed Factor: " + s};
 }
     
 AtomSP Parser::parseAtom(const string &s, size_t column)
@@ -521,8 +518,7 @@ AtomSP Parser::parseAtom(const string &s, size_t column)
   {
     return make_shared<Symbol>(s, currline, column);
   }
-
-  return nullptr;
+  throw runtime_error{"Malformed Atom: " + s};
 }
     
 DifferentiateSP Parser::parseDerivative(const string &s, size_t column)
@@ -585,7 +581,7 @@ VarRefSP Parser::parseVRef(
     size_t column, DiagnosticReport &d)
 {
   string name = parseName(begin, end, column, d);
-  if(d.catastrophic()) return nullptr;
+  if(d.catastrophic()) throw CompilationError{d};
   if(begin == end) return make_shared<VarRef>(csp, name); 
 
   size_t order = parsePrimes(begin, end, column + (end-begin), d);
@@ -596,7 +592,7 @@ VarRefSP Parser::parseVRef(
         "At symbol " + name,
         currline, column
         });
-    return nullptr;
+    throw CompilationError{d};
   }
   return make_shared<DVarRef>(csp, name, order);
 }

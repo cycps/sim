@@ -114,6 +114,7 @@ ExpressionSP Symbol::clone()
 
 size_t SymbolHash::operator()(SymbolSP a)
 {
+  static const std::hash<std::string> hsh{};
   return hsh(a->value);
 }
 
@@ -198,8 +199,16 @@ ExpressionSP SubExpression::clone()
 void Equation::accept(Visitor &v) 
 {
   v.visit(shared_from_this());
+  if(lhs == nullptr) 
+    throw std::runtime_error("lhs lost"); 
+
   lhs->accept(v);
+
   v.in(shared_from_this());
+
+  if(rhs == nullptr) 
+    throw std::runtime_error("rhs lost"); 
+
   rhs->accept(v);
   v.leave(shared_from_this());
 }

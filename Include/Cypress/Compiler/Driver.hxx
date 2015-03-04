@@ -26,6 +26,8 @@ class Driver
     void parseInput();
     void parseSource(const std::string src);
 
+    void checkSemantics();
+
     std::shared_ptr<Decls> decls;
 
   private:

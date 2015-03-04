@@ -129,7 +129,6 @@ struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
 
 struct SymbolHash
 {
-  static const std::hash<std::string> hsh;
   size_t operator()(SymbolSP a);
 };
 
@@ -200,7 +199,7 @@ struct Equation : public ASTNode,
                   public Clonable<Equation>,
                   public std::enable_shared_from_this<Equation>
 {
-  ExpressionSP lhs, rhs;
+  ExpressionSP lhs{nullptr}, rhs{nullptr};
   void accept(Visitor &v) override;
   EquationSP clone() override;
   using ASTNode::ASTNode;

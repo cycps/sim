@@ -104,6 +104,29 @@ void Driver::parseInput()
   }
 }
 
+void Driver::checkSemantics()
+{
+  vector<ElementSP> elems;
+
+  elems.insert(elems.end(), 
+      decls->objects.begin(), 
+      decls->objects.end());
+
+  elems.insert(elems.end(), 
+      decls->controllers.begin(), 
+      decls->controllers.end());
+
+  for(auto exp : decls->experiments)
+  {
+    DiagnosticReport dr = check(exp, elems);
+    
+    if(!dr.diagnostics.empty())
+      cout << dr << endl;
+    
+    if(dr.catastrophic()) throw CompilationError(dr);
+  }
+}
+
 void Driver::parseSource(const std::string src)
 {
   Parser p(src);
