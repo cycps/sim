@@ -40,12 +40,32 @@ RealSP Component::parameterValue(string s)
 {
   auto it = 
     find_if(params.begin(), params.end(),
-        [s](const pair<SymbolSP, RealSP> &p) { return p.first->value == s; });
+        [s](const pair<SymbolSP, RealSP> &p){ return p.first->value == s; });
 
   if(it != params.end())
     return it->second;
 
-  throw runtime_error{"Component: Undefined parameter value requested"};
+  throw runtime_error{"Component: Undefined parameter value requested: " + s};
+}
+
+double Component::initialValue(string s, VarRef::Kind k)
+{
+  auto it =
+    find_if(initials.begin(), initials.end(),
+        [s,k](const pair<VarRefSP, double> &p)
+        { 
+          return 
+          p.first->name == s && 
+          p.first->kind() == k;
+        });
+
+  if(it != initials.end())
+    return it->second;
+
+  string symb = s;
+  if(k == VarRef::Kind::Derivative) symb += "'";
+
+  throw runtime_error{"Component: Undefined initial value requested: " + symb};
 }
 
 

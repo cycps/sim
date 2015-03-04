@@ -69,6 +69,7 @@ struct Component
   Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
 
   RealSP parameterValue(std::string);
+  double initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
 };
 
 struct Connectable 

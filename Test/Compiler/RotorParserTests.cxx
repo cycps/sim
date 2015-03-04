@@ -67,6 +67,9 @@ TEST(Parser, Rotor)
 
   //Checking argument parsing
   EXPECT_EQ(2.5, rc->parameterValue("H")->value);
-  //EXPECT_EQ("H", rc->praams[0]
-
+  EXPECT_EQ(0.0, rc->initialValue("θ"));
+  EXPECT_EQ(0.0, rc->initialValue("θ", cypress::VarRef::Kind::Derivative));
+  EXPECT_EQ(2.1, rc->initialValue("a"));
+  EXPECT_EQ(2.1, rc->initialValue("τ"));
+  EXPECT_EQ(0.0, rc->initialValue("ω", cypress::VarRef::Kind::Derivative));
 }
