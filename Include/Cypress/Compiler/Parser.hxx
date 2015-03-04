@@ -17,10 +17,12 @@ enum class LineType { Decl, Code, Comment, Empty, SomethingElse };
 class Parser
 {
   public:
-    explicit Parser(std::string source);
+    explicit Parser(std::string source, DiagnosticReport&);
     std::shared_ptr<Decls> run();
 
     std::vector<std::shared_ptr<Object>> objects;
+
+    DiagnosticReport *dr;
 
   private:
     std::vector<std::string> lines;
@@ -53,13 +55,13 @@ class Parser
     std::vector<ConnectionSP> parseConnectionStmt(const std::string &);
 
     std::string parseName(std::string::const_iterator &begin, 
-        std::string::const_iterator end, size_t column, DiagnosticReport &dr);
+        std::string::const_iterator end, size_t column);
 
     VarRefSP parseVRef(ComponentSP csp, std::string::const_iterator &begin, 
-        std::string::const_iterator end, size_t column, DiagnosticReport &d);
+        std::string::const_iterator end, size_t column);
 
     size_t parsePrimes(std::string::const_iterator &begin,
-        std::string::const_iterator end, size_t column, DiagnosticReport &dr);
+        std::string::const_iterator end, size_t column);
 };
 
 std::vector<std::string> &

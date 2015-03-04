@@ -129,13 +129,13 @@ void Driver::checkSemantics()
 
 void Driver::parseSource(const std::string src)
 {
-  Parser p(src);
+  Parser p(src, dr);
   *decls += *p.run();
 }
 
 void Driver::compileSource(const string &src)
 {
-  Parser p(src);
+  Parser p(src, dr);
   *decls += *p.run();
   vector<ElementSP> elems;
 

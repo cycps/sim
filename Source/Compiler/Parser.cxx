@@ -21,7 +21,6 @@ using namespace cypress::compile;
 using std::string;
 using std::cout;
 using std::endl;
-using std::runtime_error;
 using std::invalid_argument;
 using std::regex;
 using std::regex_match;
@@ -39,8 +38,8 @@ using std::stringstream;
 using std::getline;
 using std::unordered_map;
 
-Parser::Parser(string source)
-  : source{source}
+Parser::Parser(string source, DiagnosticReport &dr)
+  : dr{&dr}, source{source}
 {}
 
 shared_ptr<Decls> Parser::run()
@@ -57,12 +56,20 @@ shared_ptr<Decls> Parser::run()
     {
       case LineType::Decl : i += parseDecl(i, dt, decls); break;
       case LineType::Code : 
-        throw runtime_error("[" + to_string(i+1) + "] orphan code");
+        dr->diagnostics.push_back({
+            Diagnostic::Level::Error,
+            "[" + to_string(i+1) + "] orphan code",
+            currline, 0});
+        throw CompilationError(*dr);
+
       case LineType::Comment : break;
       case LineType::Empty : break;
       case LineType::SomethingElse : 
-        throw runtime_error(
-            "[" + to_string(i+1) + "] not sure what this line is doing");
+        dr->diagnostics.push_back({
+            Diagnostic::Level::Error,
+            "[" + to_string(i+1) + "] not sure what this line is doing",
+            currline, 0});
+        throw CompilationError(*dr);
     }
   }
 
@@ -300,7 +307,15 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
         );
     }
     else
-      throw runtime_error{"disformed linkable : " + links[i]};
+    {
+      //TODO: need to track link column positions
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "disformed linkable : " + links[i],
+          currline, 0});
+      throw CompilationError{*dr};
+    }
+
 
     
     if(regex_match(links[i+1], sm, thingrx()))
@@ -335,7 +350,14 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
         );
     }
     else
-      throw runtime_error{"disformed linkable" + links[i+1]};
+    {
+      //TODO: need to track link column positions
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "disformed linkable" + links[i+1],
+          currline, 0});
+      throw CompilationError{*dr};
+    }
 
     from->neighbor = to;
     lnks.push_back(make_shared<Connection>(from, to));
@@ -389,7 +411,15 @@ EquationSP Parser::parseEqtn(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   
-  if(sm.size() != 3) throw runtime_error("disformed equation");
+  if(sm.size() != 3) 
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "disformed equation",
+        currline, 2
+    });
+    throw CompilationError{*dr};
+  }
   auto eqtn = make_shared<Equation>(currline, sm.position(1));
   string lhs = sm[1],
          rhs = sm[2];
@@ -445,7 +475,11 @@ ExpressionSP Parser::parseExpr(const string &s)
               }
     }
   }
-  throw runtime_error{"Malformed Expression: " + s};
+  dr->diagnostics.push_back({
+      Diagnostic::Level::Error,
+      "Malformed Expression: " + s,
+      currline, 2});
+  throw CompilationError{*dr};
 }
     
 TermSP Parser::parseTerm(const string &s)
@@ -477,7 +511,11 @@ TermSP Parser::parseTerm(const string &s)
               }
     }
   }
-  throw runtime_error{"Malformed Term: " + s};
+  dr->diagnostics.push_back({
+      Diagnostic::Level::Error,
+      "Malformed Term: " + s,
+      currline, 2});
+  throw CompilationError{*dr};
 }
     
 FactorSP Parser::parseFactor(const string &s)
@@ -501,9 +539,17 @@ FactorSP Parser::parseFactor(const string &s)
     else if(matches.size()==3 && matches[1][0] == '^')
       return parsePow(matches[0], matches[2], positions[0]);
 
-    throw runtime_error("disformed factor");
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Malformed Factor: " + s,
+        currline, 2});
+    throw CompilationError{*dr};
   }
-  throw runtime_error{"Malformed Factor: " + s};
+  dr->diagnostics.push_back({
+      Diagnostic::Level::Error,
+      "Malformed Factor: " + s,
+      currline, 2});
+  throw CompilationError{*dr};
 }
     
 AtomSP Parser::parseAtom(const string &s, size_t column)
@@ -518,7 +564,12 @@ AtomSP Parser::parseAtom(const string &s, size_t column)
   {
     return make_shared<Symbol>(s, currline, column);
   }
-  throw runtime_error{"Malformed Atom: " + s};
+  
+  dr->diagnostics.push_back({
+      Diagnostic::Level::Error,
+      "Malformed Atom: " + s,
+      currline, 2});
+  throw CompilationError{*dr};
 }
     
 DifferentiateSP Parser::parseDerivative(const string &s, size_t column)
@@ -539,35 +590,38 @@ PowSP Parser::parsePow(const string &lower, const string &upper, size_t column)
 
 string Parser::parseName(
     string::const_iterator &begin, string::const_iterator end,
-    size_t column, DiagnosticReport &dr)
+    size_t column)
 {
   regex rx{"([a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_]*)"};
   smatch sm;
   regex_search(begin, end, sm, rx);
   if(sm.empty())
-    dr.diagnostics.push_back({
+  {
+    dr->diagnostics.push_back({
         Diagnostic::Level::Error,
         "Malformed name: `" + string(begin, end) + "`",
         currline, column
         });
+    throw CompilationError{*dr};
+  }
 
   begin = sm[0].second;
   return sm[0];
 }
     
 size_t Parser::parsePrimes(std::string::const_iterator &begin, 
-    std::string::const_iterator end, size_t column, DiagnosticReport &dr)
+    std::string::const_iterator end, size_t column)
 {
   for(auto it=begin; it!= end; ++it)
   {
     if(*it != '\'') 
     {
-      dr.diagnostics.push_back({
+      dr->diagnostics.push_back({
           Diagnostic::Level::Error,
           "Expected prime or nothing: `" + string(begin,end) + "`" ,
           currline, column
           });
-      return 0;
+      throw CompilationError{*dr};
     }
   }
   size_t order = end-begin;
@@ -578,21 +632,21 @@ size_t Parser::parsePrimes(std::string::const_iterator &begin,
 VarRefSP Parser::parseVRef(
     ComponentSP csp, 
     string::const_iterator &begin, string::const_iterator end, 
-    size_t column, DiagnosticReport &d)
+    size_t column)
 {
-  string name = parseName(begin, end, column, d);
-  if(d.catastrophic()) throw CompilationError{d};
+  string name = parseName(begin, end, column);
+  if(dr->catastrophic()) throw CompilationError{*dr};
   if(begin == end) return make_shared<VarRef>(csp, name); 
 
-  size_t order = parsePrimes(begin, end, column + (end-begin), d);
-  if(d.catastrophic()) 
+  size_t order = parsePrimes(begin, end, column + (end-begin));
+  if(dr->catastrophic()) 
   {
-    d.diagnostics.push_back({
+    dr->diagnostics.push_back({
         Diagnostic::Level::Info,
         "At symbol " + name,
         currline, column
         });
-    throw CompilationError{d};
+    throw CompilationError{*dr};
   }
   return make_shared<DVarRef>(csp, name, order);
 }
@@ -601,7 +655,15 @@ ComponentSP Parser::parseComponent(const string &s)
 {
   smatch sm;
   regex_match(s, sm, comprx());
-  if(sm.size() < 3) throw runtime_error("disformed component instance");
+  if(sm.size() < 3) 
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Info,
+        "Malformed component instance",
+        currline, 2
+        });
+    throw CompilationError{*dr};
+  }
   
   auto cp = make_shared<Component>(
               make_shared<Symbol>(sm[1], currline, sm.position(1)),
@@ -626,19 +688,22 @@ ComponentSP Parser::parseComponent(const string &s)
     {
       auto ps = split(p, '|');
 
-      DiagnosticReport dr;
       auto it = ps[0].cbegin();
-      VarRefSP vr = parseVRef(cp, it, ps[0].cend(), param_pos[i], dr);
-      if(dr.catastrophic())
-        throw CompilationError(dr);
+      VarRefSP vr = parseVRef(cp, it, ps[0].cend(), param_pos[i]);
+      if(dr->catastrophic())
+        throw CompilationError{*dr};
 
       cp->initials[vr] = 
         make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
     }
     else
     {
-      //TODO: Need to do this with the diagnostics API
-      throw runtime_error("disformed component parameterization");
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Info,
+          "disformed component parameterization",
+          currline, param_pos[i]
+          });
+      throw CompilationError{*dr};
     }
   }
 

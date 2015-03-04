@@ -30,6 +30,8 @@ class Driver
 
     std::shared_ptr<Decls> decls;
 
+    DiagnosticReport dr;
+
   private:
     void buildInvocationOptionDescriptions();
 
