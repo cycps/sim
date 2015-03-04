@@ -66,7 +66,6 @@ shared_ptr<Decls> Parser::run()
     }
   }
 
-  //cout << *decls;
   return decls;
 }
 
@@ -119,11 +118,9 @@ void extractParams(const string &s, vector<string> &ps, vector<size_t> &ss,
   ps = split(pstr, ',');
   for(string &s : ps)
   {
-    //std::cout << "pmatch: `" << s << "`" << std::endl;
     smatch sm;
     regex_match(s, sm, rx);
     sp += sm.position(1); //skip whitespace
-    //std::cout << "~~smatch: `" << sm[1].str() << "`" << std::endl;
     ss.push_back(sp);
     sp += sm[1].str().length();
     ++sp; //comma
@@ -151,9 +148,6 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
     object->params.push_back(
         make_shared<Symbol>(params[i], at, param_pos[i]));
   }
-
-  //transform(params.begin(), params.end(), back_inserter(object->params),
-  //    [at](const string &ps){ return make_shared<Symbol>(ps, at); });
 
   size_t idx = at+1;
   currline = idx;
@@ -197,9 +191,6 @@ ControllerSP Parser::parseController(size_t at, size_t &lc)
     controller->params.push_back(
         make_shared<Symbol>(params[i], at, param_pos[i]));
   }
-
-  //transform(params.begin(), params.end(), back_inserter(controller->params),
-  //    [this](const string &ps){ return make_shared<Symbol>(ps, currline); });
 
   size_t idx = at+1;
   currline = idx;
@@ -346,10 +337,7 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     else
       throw runtime_error{"disformed linkable" + links[i+1]};
 
-    //from->neighbors.push_back(to);
     from->neighbor = to;
-    //Directed neighbors only for the time being
-    //to->neighbors.push_back(from);
     lnks.push_back(make_shared<Connection>(from, to));
   }
 
@@ -441,8 +429,6 @@ ExpressionSP Parser::parseExpr(const string &s)
   if(sm.size()>1)
   {
 
-    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
-    //    [](const string &m){ return !m.empty(); });
     nonEmptyMatchesAndPositions(sm, matches, positions);
 
     switch(matches.size())
@@ -478,8 +464,6 @@ TermSP Parser::parseTerm(const string &s)
 
   if(sm.size()>1)
   {
-    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
-    //    [](const string &m){ return !m.empty(); });
     nonEmptyMatchesAndPositions(sm, matches, positions);
     switch(matches.size())
     {
@@ -509,8 +493,6 @@ FactorSP Parser::parseFactor(const string &s)
   TermSP rhs{nullptr};
   if(sm.size()>1)
   {
-    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches),
-    //    [](const string &m){ return !m.empty(); });
     nonEmptyMatchesAndPositions(sm, matches, positions);
     if(matches.size()==1)
       return parseAtom(matches[0], positions[0]);
@@ -631,17 +613,10 @@ ComponentSP Parser::parseComponent(const string &s)
               currline, sm.position(1)
           );
 
-  //string _pstr = sm[3];
-  //size_t sp = sm.position(3);
-  //string pstr = string(_pstr.begin()+1, _pstr.end()-1);
-  //pstr.erase(remove_if(pstr.begin(), pstr.end(), isspace), pstr.end());
-
   vector<string> params;
   vector<size_t> param_pos;
   size_t sp = sm.position(3);
   extractParams(sm[3], params, param_pos, sp);
-  //auto params = split(pstr, ',');
-  //for(const string &p : params)
   for(size_t i=0; i<params.size(); ++i)
   {
     string &p = params[i];
@@ -661,10 +636,6 @@ ComponentSP Parser::parseComponent(const string &s)
       if(dr.catastrophic())
         throw CompilationError(dr);
 
-      /*
-      cp->initials[make_shared<Symbol>(ps[0], currline)] = 
-        make_shared<Real>(stod(ps[1]), currline);
-      */
       cp->initials[vr] = 
         make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
     }
