@@ -72,7 +72,7 @@ TEST(Parser, Rotor)
   EXPECT_EQ(11ul, xsp->name->column);
 
   //rotor component instance
-  cypress::ComponentSP rc = xsp->components[0];
+  cypress::ComponentSP rc = (*xsp)["rotor"];
   EXPECT_EQ("rotor", rc->name->value);
   EXPECT_EQ("Rotor", rc->kind->value);
   //not until smea
@@ -128,8 +128,45 @@ TEST(Parser, Rotor)
   EXPECT_EQ(55ul, dω->column);
 
   //ctrl component instance
-  cypress::ComponentSP ctrl = xsp->components[1];
+  cypress::ComponentSP ctrl = (*xsp)["ctrl"];
   EXPECT_EQ("ctrl", ctrl->name->value);
   EXPECT_EQ("RotorSpeedController", ctrl->kind->value);
   EXPECT_EQ(13ul, ctrl->line);
+
+  EXPECT_EQ(100, ctrl->parameterValue("ωt")->value);
+  EXPECT_EQ(0, ctrl->initialValue("τ")->value);
+  EXPECT_EQ(0, ctrl->initialValue("a", cypress::VarRef::Kind::Derivative)->value);
+
+  //link 0
+  cypress::ComponentSP lnk0 = (*xsp)["lnk0"];
+  EXPECT_EQ(5, lnk0->parameterValue("Latency")->value);
+  EXPECT_EQ(100, lnk0->parameterValue("Bandwidth")->value);
+  
+  //link 1
+  cypress::ComponentSP lnk1 = (*xsp)["lnk1"];
+  EXPECT_EQ(10, lnk1->parameterValue("Latency")->value);
+  EXPECT_EQ(250, lnk1->parameterValue("Bandwidth")->value);
+
+  //rotor.ω > |0.01|
+  cypress::ConnectionSP cnx = xsp->connections[0];
+  EXPECT_EQ(cypress::Connectable::Kind::SubComponent, cnx->from->kind());
+  auto sc = std::static_pointer_cast<cypress::SubComponentRef>(cnx->from);
+  EXPECT_EQ("rotor", sc->name->value);
+  EXPECT_EQ("ω", sc->subname->value);
+
+  EXPECT_EQ(cypress::Connectable::Kind::AtoD, cnx->to->kind());
+  auto a2d = std::static_pointer_cast<cypress::AtoD>(cnx->to);
+  EXPECT_EQ(0.01, a2d->rate->value);
+
+  //|0.01| > lnk0
+  cnx = xsp->connections[1];
+  EXPECT_EQ(cypress::Connectable::Kind::AtoD, cnx->from->kind());
+  a2d = std::static_pointer_cast<cypress::AtoD>(cnx->from);
+  EXPECT_EQ(0.01, a2d->rate->value);
+
+  EXPECT_EQ(cypress::Connectable::Kind::Component, cnx->to->kind());
+  auto c = std::static_pointer_cast<cypress::ComponentRef>(cnx->to);
+  EXPECT_EQ("lnk0", c->name->value);
+
+
 }

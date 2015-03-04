@@ -304,7 +304,9 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     {
       auto uuid = boost::uuids::random_generator()();
       from_name = "AtoD::"+boost::lexical_cast<string>(uuid);
-      from = make_shared<AtoD>(stod(sm[1]));
+      from = make_shared<AtoD>(
+          make_shared<Real>(stod(sm[1]), currline, sm.position(1))
+        );
     }
     else
       throw runtime_error{"disformed linkable : " + links[i]};
@@ -337,7 +339,9 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     {
       auto uuid = boost::uuids::random_generator()();
       to_name = "AtoD::"+boost::lexical_cast<string>(uuid);
-      to = make_shared<AtoD>(stod(sm[1]));
+      to = make_shared<AtoD>(
+          make_shared<Real>(stod(sm[1]), currline, sm.position(1))
+        );
     }
     else
       throw runtime_error{"disformed linkable" + links[i+1]};

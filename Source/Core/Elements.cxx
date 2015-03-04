@@ -12,6 +12,16 @@ using std::runtime_error;
 using std::find_if;
 using std::pair;
 
+ComponentSP Experiment::operator[](string s)
+{
+  auto it = find_if(components.begin(), components.end(),
+      [s](ComponentSP c){ return c->name->value == s; });
+
+  if(it != components.end()) return *it;
+
+  throw runtime_error{"Experiment component not found: " + s};
+}
+
 Decls & Decls::operator += (const Decls &b)
 {
   Decls &a = *this;

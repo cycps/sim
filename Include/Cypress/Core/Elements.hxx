@@ -76,6 +76,7 @@ struct Component : public Lexeme
 struct Connectable 
 {
   enum class Kind { Component, SubComponent, AtoD };
+  //only 1 neighbor for now
   //std::vector<ConnectableSP> neighbors;
   ConnectableSP neighbor{nullptr};
   virtual Kind kind() const = 0;
@@ -99,9 +100,9 @@ struct SubComponentRef : public ComponentRef
 
 struct AtoD : public Connectable
 {
-  double rate;
+  RealSP rate;
   Kind kind() const override { return Kind::AtoD; }
-  AtoD(double rate) : rate{rate} {}
+  AtoD(RealSP rate) : rate{rate} {}
 };
 
 struct Connection
@@ -118,6 +119,8 @@ struct Experiment : public Decl
   Kind kind() const override { return Kind::Experiment; }
   Experiment(SymbolSP name, size_t line, size_t column) 
     : Decl{line, column}, name{name} {}
+
+  ComponentSP operator[](std::string);
 };
 
 struct Decls
