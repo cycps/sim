@@ -2,6 +2,7 @@
 #define CYPRESS_COMMON
 
 #include <memory>
+#include <utility>
 
 //Forward declarations --------------------------------------------------------
 namespace cypress
@@ -21,13 +22,13 @@ struct Clonable
 struct Lexeme
 {
   size_t line, column;
-  explicit Lexeme(size_t line, size_t column=0) : line{line}, column{column} {}
+  Lexeme(size_t line, size_t column) : line{line}, column{column} {}
 };
 
 struct ASTNode : public Lexeme
 {
   virtual void accept(Visitor &) = 0;
-  ASTNode(size_t line) : Lexeme{line} {}
+  using Lexeme::Lexeme;
 };
 
 template<class Type, class Thing>

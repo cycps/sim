@@ -210,13 +210,13 @@ void Sim::addCVarResiduals()
     std::cout << p.second << std::endl;
     //-1 indicates generated code e.g., there is no source line
     static constexpr int nosrc{-1};
-    EquationSP eq = make_shared<Equation>(nosrc); 
-    eq->lhs = make_shared<Real>(0, nosrc);
+    EquationSP eq = make_shared<Equation>(nosrc, nosrc); 
+    eq->lhs = make_shared<Real>(0, nosrc, nosrc);
     eq->rhs = 
       make_shared<Subtract>(
-        make_shared<CVar>(make_shared<Symbol>(p.second, nosrc)),
-        make_shared<CCVar>(make_shared<Symbol>(p.second, nosrc)),
-        nosrc);
+        make_shared<CVar>(make_shared<Symbol>(p.second, nosrc, nosrc)),
+        make_shared<CCVar>(make_shared<Symbol>(p.second, nosrc, nosrc)),
+        nosrc, nosrc);
     psys.insert({p.first, eq});
   }
   
@@ -237,11 +237,11 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
     {
       if(p.first->kind() == VarRef::Kind::Normal)
       {
-        initials[p.first->qname()].v = p.second;
+        initials[p.first->qname()].v = p.second->value;
       }
       else //kind == Derivative
       {
-        initials[p.first->qname()].d = p.second;
+        initials[p.first->qname()].d = p.second->value;
       }
     }
   }

@@ -24,7 +24,7 @@ void Add::accept(Visitor &v)
 
 ExpressionSP Add::clone()
 {
-  return make_shared<Add>(lhs->clone(), rhs->clone(), line);
+  return make_shared<Add>(lhs->clone(), rhs->clone(), line, column);
 }
 
 //Subtract --------------------------------------------------------------------
@@ -39,7 +39,7 @@ void Subtract::accept(Visitor &v)
 
 ExpressionSP Subtract::clone()
 {
-  return make_shared<Subtract>(lhs->clone(), rhs->clone(), line);
+  return make_shared<Subtract>(lhs->clone(), rhs->clone(), line, column);
 }
 
 //Multiply --------------------------------------------------------------------
@@ -57,7 +57,7 @@ ExpressionSP Multiply::clone()
   return make_shared<Multiply>(
       static_pointer_cast<Term>(lhs->clone()), 
       static_pointer_cast<Term>(rhs->clone()),
-      line
+      line, column
       );
 }
 
@@ -76,7 +76,7 @@ ExpressionSP Divide::clone()
   return make_shared<Multiply>(
       static_pointer_cast<Term>(lhs->clone()), 
       static_pointer_cast<Term>(rhs->clone()),
-      line
+      line, column
       );
 }
 
@@ -95,7 +95,7 @@ ExpressionSP Pow::clone()
   return make_shared<Pow>(
       static_pointer_cast<Atom>(lhs->clone()), 
       static_pointer_cast<Atom>(rhs->clone()),
-      line
+      line, column
       );
 }
 
@@ -109,7 +109,7 @@ void Symbol::accept(Visitor &v)
 
 ExpressionSP Symbol::clone()
 {
-  return make_shared<Symbol>(value, line);
+  return make_shared<Symbol>(value, line, column);
 }
 
 size_t SymbolHash::operator()(SymbolSP a)
@@ -162,7 +162,7 @@ void Differentiate::accept(Visitor &v)
 ExpressionSP Differentiate::clone()
 {
   return make_shared<Differentiate>(static_pointer_cast<Symbol>(arg->clone()), 
-      line);
+      line, column);
 }
 
 //Real ------------------------------------------------------------------------
@@ -175,7 +175,7 @@ void Real::accept(Visitor &v)
 
 ExpressionSP Real::clone()
 {
-  return make_shared<Real>(value, line);
+  return make_shared<Real>(value, line, column);
 }
 
 //SubExpression ---------------------------------------------------------------
@@ -193,6 +193,7 @@ ExpressionSP SubExpression::clone()
       static_pointer_cast<Expression>(value->clone()));
 }
 
+
 //Equation --------------------------------------------------------------------
 void Equation::accept(Visitor &v) 
 {
@@ -205,7 +206,7 @@ void Equation::accept(Visitor &v)
 
 EquationSP Equation::clone()
 {
-  auto cln = make_shared<Equation>(line);
+  auto cln = make_shared<Equation>(line, column);
   cln->lhs = lhs->clone();
   cln->rhs = rhs->clone();
   return cln;
@@ -218,10 +219,10 @@ EquationSP cypress::setToZero(EquationSP eq)
   auto new_rhs = make_shared<Subtract>(
       make_shared<SubExpression>(eq->lhs), 
       make_shared<SubExpression>(eq->rhs),
-      eq->line
+      eq->line, eq->column
       );
 
-  eq->lhs = make_shared<Real>(0, eq->line);
+  eq->lhs = make_shared<Real>(0, eq->line, eq->column);
   eq->rhs = new_rhs;
   return eq;
 }

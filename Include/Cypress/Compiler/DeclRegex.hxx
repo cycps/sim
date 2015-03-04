@@ -40,6 +40,9 @@ static inline std::regex& comprx()
   return *rx;
 }
 
+#define CHR "[a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_\\.]"
+#define NUM "[0-9]"
+
 static inline std::regex& lnkrx()
 {
   static std::regex *rx = 

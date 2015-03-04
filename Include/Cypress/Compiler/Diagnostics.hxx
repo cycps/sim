@@ -12,9 +12,9 @@ struct Diagnostic
   enum class Level : int { Error=0, Warning=1, Info=2 };
   Level level{Level::Info};
   std::string message;
-  size_t line{0};
-  Diagnostic(Level level, std::string message, size_t line)
-    : level{level}, message{message}, line{line} 
+  size_t line{0}, column{0};
+  Diagnostic(Level level, std::string message, size_t line, size_t column)
+    : level{level}, message{message}, line{line}, column{column}
   {}
 };
 

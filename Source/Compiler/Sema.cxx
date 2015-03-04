@@ -74,47 +74,6 @@ void VarCollector::showDerivs()
 }
 
 
-// Diagnostics ================================================================
-
-bool DiagnosticReport::catastrophic()
-{
-  for(const Diagnostic d: diagnostics)
-    if(d.level == Diagnostic::Level::Error)
-      return true;
-
-  return false;
-}
-
-const char* CompilationError::what() const noexcept
-{
-  stringstream ss;
-  ss << report;
-  what_ = ss.str();
-  return what_.c_str();
-}
-
-ostream& cypress::compile::operator<<(ostream &o, const Diagnostic &d)
-{
-  string sev;
-  switch(d.level)
-  {
-    case Diagnostic::Level::Error: sev = "Error"; break;
-    case Diagnostic::Level::Warning: sev = "Warning"; break;
-    case Diagnostic::Level::Info: sev = "Info"; break;
-  }
-  o << "[" << sev << "]:" << d.line+1 << " " << d.message << endl;
-  
-  return o;
-}
-
-ostream& cypress::compile::operator<<(ostream &o, const DiagnosticReport &dr)
-{
-  for(Diagnostic diag : dr.diagnostics)
-    if(diag.level <= dr.level)
-      o << diag;
-
-  return o;
-}
 
 // Semantic Checks ============================================================
 
@@ -152,7 +111,7 @@ cypress::compile::checkComponentType(ComponentSP c,
 {
   if(c->kind->value == "Link") 
   {
-    c->element = make_shared<Link>(c->name);
+    c->element = make_shared<Link>(c->name, c->kind->line, c->kind->column);
     return dr;
   }
 
@@ -168,7 +127,7 @@ cypress::compile::checkComponentType(ComponentSP c,
   dr.diagnostics.push_back({
       Diagnostic::Level::Error,
       "Undefined Component Type: " + c->kind->value,
-      c->kind->line
+      c->kind->line, c->kind->column
       });
 
   return dr;
@@ -206,7 +165,7 @@ cypress::compile::checkComponentParams(ComponentSP c, DiagnosticReport &dr)
       missing_params + "}";
 
     dr.diagnostics.push_back({
-        Diagnostic::Level::Error, diag_string, c->name->line});
+        Diagnostic::Level::Error, diag_string, c->name->line, c->name->column});
 
   }
 
@@ -228,7 +187,7 @@ cypress::compile::checkComponentParams(ComponentSP c, DiagnosticReport &dr)
       extra_params + "} they will be ignored";
     
     dr.diagnostics.push_back({
-        Diagnostic::Level::Warning, diag_string, c->name->line});
+        Diagnostic::Level::Warning, diag_string, c->name->line, c->name->column});
   }
 
   return dr;
@@ -263,7 +222,7 @@ cypress::compile::checkComponentRef(ComponentRefSP c, vector<ComponentSP> &cs,
     dr.diagnostics.push_back({
         Diagnostic::Level::Error,
         "Undefined component reference `" + c->name->value + "`",
-        c->name->line});
+        c->name->line, c->name->column});
     return dr;
   }
 
@@ -284,7 +243,7 @@ cypress::compile::checkComponentRef(ComponentRefSP c, vector<ComponentSP> &cs,
       dr.diagnostics.push_back({
           Diagnostic::Level::Error,
           "Undefined component subreference `" + c->name->value +"."+ sr + "`",
-          c->name->line});
+          c->name->line, c->name->column});
     }
   }
 

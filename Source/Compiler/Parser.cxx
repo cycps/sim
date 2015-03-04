@@ -107,19 +107,53 @@ LineType Parser::classifyLine(const string &s, DeclType &dt)
   return LineType::SomethingElse;
 }
 
+void extractParams(const string &s, vector<string> &ps, vector<size_t> &ss, 
+    size_t &sp)
+{
+  //remove parens
+  ++sp;
+  string pstr = string(s.begin()+1, s.end()-1);
+
+  regex rx{"\\s*(" CHR "*.*)"};
+
+  ps = split(pstr, ',');
+  for(string &s : ps)
+  {
+    //std::cout << "pmatch: `" << s << "`" << std::endl;
+    smatch sm;
+    regex_match(s, sm, rx);
+    sp += sm.position(1); //skip whitespace
+    //std::cout << "~~smatch: `" << sm[1].str() << "`" << std::endl;
+    ss.push_back(sp);
+    sp += sm[1].str().length();
+    ++sp; //comma
+    s.erase(remove_if(s.begin(), s.end(), isspace), s.end());
+  }
+}
+
 ObjectSP Parser::parseObject(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, objrx());
-  auto object = make_shared<Object>(make_shared<Symbol>(sm[1], at));
+  auto sym = make_shared<Symbol>(sm[1], at, sm.position(1));
+  auto object = make_shared<Object>(sym, at, sm.position(0));
 
   //Parse the parameters
+  //save the column starting point
+  size_t sp = sm.position(2);
   string _pstr = sm[2];
-  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
-  auto params = split(pstr, ',');
 
-  transform(params.begin(), params.end(), back_inserter(object->params),
-      [at](const string &ps){ return make_shared<Symbol>(ps, at); });
+  vector<string> params;
+  vector<size_t> param_pos;
+  extractParams(sm[2], params, param_pos, sp);
+  for(size_t i=0; i<params.size(); ++i)
+  {
+    object->params.push_back(
+        make_shared<Symbol>(params[i], at, param_pos[i]));
+  }
+
+  //transform(params.begin(), params.end(), back_inserter(object->params),
+  //    [at](const string &ps){ return make_shared<Symbol>(ps, at); });
 
   size_t idx = at+1;
   currline = idx;
@@ -147,14 +181,25 @@ ControllerSP Parser::parseController(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, contrx());
-  auto controller = make_shared<Controller>(make_shared<Symbol>(sm[1], currline));
+  auto controller = 
+    make_shared<Controller>(
+        make_shared<Symbol>(sm[1], currline, sm.position(1)),
+        currline, sm.position(0)
+        );
 
-  string _pstr = sm[2];
-  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
-  auto params = split(pstr, ',');
+  size_t sp = sm.position(2);
+  
+  vector<string> params;
+  vector<size_t> param_pos;
+  extractParams(sm[2], params, param_pos, sp);
+  for(size_t i=0; i<params.size(); ++i)
+  {
+    controller->params.push_back(
+        make_shared<Symbol>(params[i], at, param_pos[i]));
+  }
 
-  transform(params.begin(), params.end(), back_inserter(controller->params),
-      [this](const string &ps){ return make_shared<Symbol>(ps, currline); });
+  //transform(params.begin(), params.end(), back_inserter(controller->params),
+  //    [this](const string &ps){ return make_shared<Symbol>(ps, currline); });
 
   size_t idx = at+1;
   currline = idx;
@@ -182,7 +227,12 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
 {
   smatch sm;
   regex_match(lines[at], sm, exprx());
-  auto experiment = make_shared<Experiment>(make_shared<Symbol>(sm[1], currline));
+  auto experiment = 
+    make_shared<Experiment>(
+        make_shared<Symbol>(sm[1], currline, sm.position(1)),
+        currline, sm.position(0)
+      );
+
   size_t idx = at+1;
   currline = idx;
 
@@ -233,7 +283,8 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
       if(table.find(from_name) == table.end())
       {
         table[from_name] = 
-          make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+          make_shared<ComponentRef>(
+              make_shared<Symbol>(sm[1], currline, sm.position(1)));
       }
       from = table[from_name];
     }
@@ -244,8 +295,8 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
       {
         table[from_name] = 
           make_shared<SubComponentRef>(
-            make_shared<Symbol>(sm[1], currline),
-            make_shared<Symbol>(sm[2], currline));
+            make_shared<Symbol>(sm[1], currline, sm.position(1)),
+            make_shared<Symbol>(sm[2], currline, sm.position(2)));
       }
       from = table[from_name];
     }
@@ -265,7 +316,8 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
       if(table.find(to_name) == table.end())
       {
         table[to_name] = 
-          make_shared<ComponentRef>(make_shared<Symbol>(sm[1], currline));
+          make_shared<ComponentRef>(
+              make_shared<Symbol>(sm[1], currline, sm.position(1)));
       }
       to = table[to_name];
     }
@@ -276,8 +328,8 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
       {
         table[to_name] =
           make_shared<SubComponentRef>(
-              make_shared<Symbol>(sm[1], currline),
-              make_shared<Symbol>(sm[2], currline));
+              make_shared<Symbol>(sm[1], currline, sm.position(1)),
+              make_shared<Symbol>(sm[2], currline, sm.position(2)));
       }
       to = table[to_name];
     }
@@ -345,8 +397,8 @@ EquationSP Parser::parseEqtn(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   
-  auto eqtn = make_shared<Equation>(currline);
   if(sm.size() != 3) throw runtime_error("disformed equation");
+  auto eqtn = make_shared<Equation>(currline, sm.position(1));
   string lhs = sm[1],
          rhs = sm[2];
 
@@ -359,6 +411,19 @@ EquationSP Parser::parseEqtn(const string &s)
 
   return eqtn;
 }
+
+void nonEmptyMatchesAndPositions(const smatch &sm, vector<string> &matches,
+    vector<size_t> &positions)
+{
+  for(size_t i=0; i<sm.size(); i++)
+  {
+    if(!sm[i].str().empty())
+    {
+      matches.push_back(sm[i]);
+      positions.push_back(sm.position(i));
+    }
+  }
+}
     
 ExpressionSP Parser::parseExpr(const string &s)
 {
@@ -366,12 +431,16 @@ ExpressionSP Parser::parseExpr(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
+  vector<size_t> positions;
   TermSP lhs{nullptr};
   ExpressionSP rhs{nullptr};
   if(sm.size()>1)
   {
-    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
-        [](const string &m){ return !m.empty(); });
+
+    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
+    //    [](const string &m){ return !m.empty(); });
+    nonEmptyMatchesAndPositions(sm, matches, positions);
+
     switch(matches.size())
     {
       //Unary Term
@@ -381,8 +450,10 @@ ExpressionSP Parser::parseExpr(const string &s)
               rhs = parseExpr(matches[2]);
               switch(matches[1][0])
               {
-                case '+' : return make_shared<Add>(lhs, rhs, currline);
-                case '-' : return make_shared<Subtract>(lhs, rhs, currline);
+                case '+' : 
+                  return make_shared<Add>(lhs, rhs, currline, positions[1]);
+                case '-' : 
+                  return make_shared<Subtract>(lhs, rhs, currline, positions[1]);
               }
     }
   }
@@ -395,12 +466,17 @@ TermSP Parser::parseTerm(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
+  vector<size_t> positions;
+
   FactorSP lhs{nullptr};
   TermSP rhs{nullptr};
+
+
   if(sm.size()>1)
   {
-    copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
-        [](const string &m){ return !m.empty(); });
+    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches), 
+    //    [](const string &m){ return !m.empty(); });
+    nonEmptyMatchesAndPositions(sm, matches, positions);
     switch(matches.size())
     {
       case 1: return parseFactor(matches[0]);
@@ -408,8 +484,10 @@ TermSP Parser::parseTerm(const string &s)
               rhs = parseTerm(matches[2]);
               switch(matches[1][0])
               {
-                case '*' : return make_shared<Multiply>(lhs, rhs, currline);
-                case '/' : return make_shared<Divide>(lhs, rhs, currline);
+                case '*' : 
+                  return make_shared<Multiply>(lhs, rhs, currline, positions[1]);
+                case '/' : 
+                  return make_shared<Divide>(lhs, rhs, currline, positions[1]);
               }
     }
   }
@@ -422,20 +500,22 @@ FactorSP Parser::parseFactor(const string &s)
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
+  vector<size_t> positions;
   FactorSP lhs{nullptr};
   TermSP rhs{nullptr};
   if(sm.size()>1)
   {
-    copy_if(sm.begin()+1, sm.end(), back_inserter(matches),
-        [](const string &m){ return !m.empty(); });
+    //copy_if(sm.begin()+1, sm.end(), back_inserter(matches),
+    //    [](const string &m){ return !m.empty(); });
+    nonEmptyMatchesAndPositions(sm, matches, positions);
     if(matches.size()==1)
-      return parseAtom(matches[0]);
+      return parseAtom(matches[0], positions[0]);
 
     else if(matches.size()==2 && matches[1][0] == '\'')
-      return parseDerivative(matches[0]);
+      return parseDerivative(matches[0], positions[0]);
 
     else if(matches.size()==3 && matches[1][0] == '^')
-      return parsePow(matches[0], matches[2]);
+      return parsePow(matches[0], matches[2], positions[0]);
 
     throw runtime_error("disformed factor");
   }
@@ -443,36 +523,41 @@ FactorSP Parser::parseFactor(const string &s)
   return nullptr;
 }
     
-AtomSP Parser::parseAtom(const string &s)
+AtomSP Parser::parseAtom(const string &s, size_t column)
 {
   double value{0}; 
   try
   { 
     value = stod(s); 
-    return make_shared<Real>(value, currline);
+    return make_shared<Real>(value, currline, column);
   }
   catch(const invalid_argument &e)
   {
-    return make_shared<Symbol>(s, currline);
+    return make_shared<Symbol>(s, currline, column);
   }
 
   return nullptr;
 }
     
-DifferentiateSP Parser::parseDerivative(const string &s)
+DifferentiateSP Parser::parseDerivative(const string &s, size_t column)
 {
-  return make_shared<Differentiate>(make_shared<Symbol>(s, currline), currline);
+  return 
+    make_shared<Differentiate>(
+        make_shared<Symbol>(s, currline, column), currline, column);
 }
     
-PowSP Parser::parsePow(const string &lower, const string &upper)
+PowSP Parser::parsePow(const string &lower, const string &upper, size_t column)
 {
   return make_shared<Pow>(
-      make_shared<Symbol>(lower, currline), parseAtom(upper), currline);
+      make_shared<Symbol>(lower, currline, column), 
+      parseAtom(upper, column), 
+      currline, column
+    );
 }
 
 string Parser::parseName(
     string::const_iterator &begin, string::const_iterator end,
-    DiagnosticReport &dr)
+    size_t column, DiagnosticReport &dr)
 {
   regex rx{"([a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_]*)"};
   smatch sm;
@@ -481,7 +566,7 @@ string Parser::parseName(
     dr.diagnostics.push_back({
         Diagnostic::Level::Error,
         "Malformed name: `" + string(begin, end) + "`",
-        currline
+        currline, column
         });
 
   begin = sm[0].second;
@@ -489,7 +574,7 @@ string Parser::parseName(
 }
     
 size_t Parser::parsePrimes(std::string::const_iterator &begin, 
-    std::string::const_iterator end, DiagnosticReport &dr)
+    std::string::const_iterator end, size_t column, DiagnosticReport &dr)
 {
   for(auto it=begin; it!= end; ++it)
   {
@@ -498,7 +583,7 @@ size_t Parser::parsePrimes(std::string::const_iterator &begin,
       dr.diagnostics.push_back({
           Diagnostic::Level::Error,
           "Expected prime or nothing: `" + string(begin,end) + "`" ,
-          currline
+          currline, column
           });
       return 0;
     }
@@ -511,19 +596,19 @@ size_t Parser::parsePrimes(std::string::const_iterator &begin,
 VarRefSP Parser::parseVRef(
     ComponentSP csp, 
     string::const_iterator &begin, string::const_iterator end, 
-    DiagnosticReport &d)
+    size_t column, DiagnosticReport &d)
 {
-  string name = parseName(begin, end, d);
+  string name = parseName(begin, end, column, d);
   if(d.catastrophic()) return nullptr;
   if(begin == end) return make_shared<VarRef>(csp, name); 
 
-  size_t order = parsePrimes(begin, end, d);
+  size_t order = parsePrimes(begin, end, column + (end-begin), d);
   if(d.catastrophic()) 
   {
     d.diagnostics.push_back({
         Diagnostic::Level::Info,
         "At symbol " + name,
-        currline
+        currline, column
         });
     return nullptr;
   }
@@ -537,21 +622,30 @@ ComponentSP Parser::parseComponent(const string &s)
   if(sm.size() < 3) throw runtime_error("disformed component instance");
   
   auto cp = make_shared<Component>(
-              make_shared<Symbol>(sm[1], currline),
-              make_shared<Symbol>(sm[2], currline));
+              make_shared<Symbol>(sm[1], currline, sm.position(1)),
+              make_shared<Symbol>(sm[2], currline, sm.position(2)),
+              currline, sm.position(1)
+          );
 
-  string _pstr = sm[3];
-  string pstr = string(_pstr.begin()+1, _pstr.end()-1);
-  pstr.erase(remove_if(pstr.begin(), pstr.end(), isspace), pstr.end());
+  //string _pstr = sm[3];
+  //size_t sp = sm.position(3);
+  //string pstr = string(_pstr.begin()+1, _pstr.end()-1);
+  //pstr.erase(remove_if(pstr.begin(), pstr.end(), isspace), pstr.end());
 
-  auto params = split(pstr, ',');
-  for(const string &p : params)
+  vector<string> params;
+  vector<size_t> param_pos;
+  size_t sp = sm.position(3);
+  extractParams(sm[3], params, param_pos, sp);
+  //auto params = split(pstr, ',');
+  //for(const string &p : params)
+  for(size_t i=0; i<params.size(); ++i)
   {
+    string &p = params[i];
     if(p.find(":") != string::npos)
     {
       auto ps = split(p, ':');
-      cp->params[make_shared<Symbol>(ps[0], currline)] = 
-        make_shared<Real>(stod(ps[1]), currline);
+      cp->params[make_shared<Symbol>(ps[0], currline, param_pos[i])] = 
+        make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
     }
     else if(p.find("|") != string::npos)
     {
@@ -559,7 +653,7 @@ ComponentSP Parser::parseComponent(const string &s)
 
       DiagnosticReport dr;
       auto it = ps[0].cbegin();
-      VarRefSP vr = parseVRef(cp, it, ps[0].cend(), dr);
+      VarRefSP vr = parseVRef(cp, it, ps[0].cend(), param_pos[i], dr);
       if(dr.catastrophic())
         throw CompilationError(dr);
 
@@ -567,7 +661,8 @@ ComponentSP Parser::parseComponent(const string &s)
       cp->initials[make_shared<Symbol>(ps[0], currline)] = 
         make_shared<Real>(stod(ps[1]), currline);
       */
-      cp->initials[vr] = stod(ps[1]);
+      cp->initials[vr] = 
+        make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
     }
     else
     {

@@ -38,7 +38,8 @@ struct Element : public Decl
   SymbolSP name;
   std::vector<SymbolSP> params;
   std::vector<EquationSP> eqtns; 
-  Element(SymbolSP name) : name{name} {}
+  Element(SymbolSP name, size_t line, size_t column) 
+    : Decl{line, column}, name{name} {}
 };
 
 struct Object : public Element
@@ -56,20 +57,20 @@ struct Controller : public Element
 struct Link : public Element
 {
   Kind kind() const override { return Kind::Link; }
-  Link(SymbolSP name);
+  Link(SymbolSP name, size_t line, size_t column);
 };
 
-struct Component
+struct Component : public Lexeme
 {
   SymbolSP kind, name;
   std::unordered_map<SymbolSP, RealSP> params;
-  //std::unordered_map<SymbolSP, RealSP> initials;
-  std::unordered_map<VarRefSP, double, VarRefSPHash, VarRefSPCmp> initials;
+  std::unordered_map<VarRefSP, RealSP, VarRefSPHash, VarRefSPCmp> initials;
   ElementSP element;
-  Component(SymbolSP kind, SymbolSP name) : kind{kind}, name{name} {}
+  Component(SymbolSP kind, SymbolSP name, size_t line, size_t column) 
+    : Lexeme{line, column}, kind{kind}, name{name} {}
 
   RealSP parameterValue(std::string);
-  double initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
+  RealSP initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
 };
 
 struct Connectable 
@@ -115,7 +116,8 @@ struct Experiment : public Decl
   std::vector<ComponentSP> components;
   std::vector<ConnectionSP> connections;
   Kind kind() const override { return Kind::Experiment; }
-  Experiment(SymbolSP name) : name{name} {}
+  Experiment(SymbolSP name, size_t line, size_t column) 
+    : Decl{line, column}, name{name} {}
 };
 
 struct Decls

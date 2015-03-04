@@ -1,4 +1,4 @@
-add_library(CypressC SHARED Driver.cxx Parser.cxx Sema.cxx)
+add_library(CypressC SHARED Driver.cxx Parser.cxx Sema.cxx Diagnostics.cxx)
 target_link_libraries(CypressC 
   ${Boost_PROGRAM_OPTIONS_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}

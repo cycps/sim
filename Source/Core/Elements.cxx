@@ -48,11 +48,11 @@ RealSP Component::parameterValue(string s)
   throw runtime_error{"Component: Undefined parameter value requested: " + s};
 }
 
-double Component::initialValue(string s, VarRef::Kind k)
+RealSP Component::initialValue(string s, VarRef::Kind k)
 {
   auto it =
     find_if(initials.begin(), initials.end(),
-        [s,k](const pair<VarRefSP, double> &p)
+        [s,k](const pair<VarRefSP, RealSP> &p)
         { 
           return 
           p.first->name == s && 
@@ -107,10 +107,10 @@ void EqtnQualifier::run(EquationSP eqtn)
 }
 
 //Link ------------------------------------------------------------------------
-Link::Link(SymbolSP name) : Element(name)
+Link::Link(SymbolSP name, size_t line, size_t column) : Element(name, line, column)
 {
-  params.push_back(make_shared<Symbol>("Latency", name->line));
-  params.push_back(make_shared<Symbol>("Bandwidth", name->line));
+  params.push_back(make_shared<Symbol>("Latency", name->line, name->column));
+  params.push_back(make_shared<Symbol>("Bandwidth", name->line, name->column));
 }
 
 // Eqtn Printer ---------------------------------------------------------------

@@ -43,21 +43,23 @@ class Parser
     std::shared_ptr<Expression> parseExpr(const std::string &);
     std::shared_ptr<Term> parseTerm(const std::string &);
     std::shared_ptr<Factor> parseFactor(const std::string &);
-    std::shared_ptr<Atom> parseAtom(const std::string &);
-    std::shared_ptr<Differentiate> parseDerivative(const std::string &);
-    std::shared_ptr<Pow> parsePow(const std::string &, const std::string &);
+    std::shared_ptr<Atom> parseAtom(const std::string &, size_t column);
+    std::shared_ptr<Differentiate> parseDerivative(const std::string &,
+        size_t column);
+    std::shared_ptr<Pow> parsePow(const std::string &, const std::string &,
+        size_t column);
 
     std::shared_ptr<Component> parseComponent(const std::string &);
     std::vector<ConnectionSP> parseConnectionStmt(const std::string &);
 
     std::string parseName(std::string::const_iterator &begin, 
-        std::string::const_iterator end, DiagnosticReport &dr);
+        std::string::const_iterator end, size_t column, DiagnosticReport &dr);
 
     VarRefSP parseVRef(ComponentSP csp, std::string::const_iterator &begin, 
-        std::string::const_iterator end, DiagnosticReport &d);
+        std::string::const_iterator end, size_t column, DiagnosticReport &d);
 
     size_t parsePrimes(std::string::const_iterator &begin,
-        std::string::const_iterator end, DiagnosticReport &dr);
+        std::string::const_iterator end, size_t column, DiagnosticReport &dr);
 };
 
 std::vector<std::string> &
