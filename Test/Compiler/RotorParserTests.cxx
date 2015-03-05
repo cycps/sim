@@ -222,7 +222,7 @@ TEST(Sim, Rotor)
 
   ASSERT_TRUE(!d.decls->experiments.empty());
 
-  d.buildSim(1);
+  d.buildSim(2);
   d.createCypk();
   
   //cypress::Sim 
