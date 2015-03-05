@@ -249,8 +249,6 @@ void Sim::buildSymbolSet()
       ext.run(c);  
   }
   vars.insert(ext.vars.begin(), ext.vars.end());
-  for(auto v : vars)
-    std::cout << v->name << std::endl;
 }
 
 vector<ComputeNode> Sim::buildComputeTopology(size_t N)
