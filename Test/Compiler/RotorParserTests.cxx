@@ -222,14 +222,9 @@ TEST(Sim, Rotor)
 
   ASSERT_TRUE(!d.decls->experiments.empty());
 
-  d.buildSim(2);
+  d.buildSim(1);
   d.createCypk();
   
-  //cypress::Sim 
-  //  sim(d.decls->objects, d.decls->controllers, d.decls->experiments[0]);  
-
-  //sim.buildPhysics();
-
   EXPECT_EQ(1ul, d.sim->controlled_vars.size());
   EXPECT_EQ(4ul, d.sim->vars.size());
 
@@ -237,7 +232,5 @@ TEST(Sim, Rotor)
   EXPECT_LE(2ul, d.sim->initial_trajectory.size());
 
   EXPECT_EQ(4ul, d.sim->psys.size());
-
-  //auto topo = sim.buildComputeTopology(1);
 
 }

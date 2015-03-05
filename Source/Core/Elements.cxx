@@ -283,7 +283,7 @@ void CxxResidualFuncBuilder::in(RealSP r)
 
 void CxxResidualFuncBuilder::visit(DifferentiateSP) 
 { 
-  //ss << "d_";
+  ss << "d_";
 }
 
 void CxxResidualFuncBuilder::visit(SubExpressionSP) 
