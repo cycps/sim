@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <Cypress/Compiler/Driver.hxx>
+#include <Cypress/Sim/Sim.hxx>
 
 using std::string;
 using std::vector;
@@ -193,4 +194,40 @@ TEST(Sema, Rotor)
   d.init();
   d.parseInput();
   d.checkSemantics(); 
+}
+
+TEST(Sim, Rotor)
+{
+  std::locale::global(std::locale("en_US.UTF-8"));
+
+  char *cyp_home = getenv("CYPRESS_HOME");
+  if(cyp_home == nullptr) 
+    FAIL() << "The environment variable CYPRESS_HOME must be set to run tests";
+
+  string
+    loc = "nolocation",
+    inp = string(cyp_home) + "/Example/RotorControl.cyp";
+
+  const char* args[] = 
+  {
+    loc.c_str(),
+    inp.c_str()
+  };
+
+ 
+  cypress::compile::Driver d{2, const_cast<char**>(args)};
+  d.init();
+  d.parseInput();
+  d.checkSemantics(); 
+
+  ASSERT_TRUE(!d.decls->experiments.empty());
+  
+  cypress::Sim 
+    sim(d.decls->objects, d.decls->controllers, d.decls->experiments[0]);  
+
+  sim.buildPhysics();
+
+  EXPECT_EQ(1ul, sim.controlled_vars.size());
+  EXPECT_EQ(4ul, sim.vars.size());
+
 }

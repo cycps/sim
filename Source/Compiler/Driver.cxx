@@ -155,8 +155,6 @@ void Driver::compileSource(const string &src)
 
     if(dr.catastrophic()) exit(1);
 
-    //-- ~~ --
-
     Sim sim(decls->objects, decls->controllers, exp); 
     sim.buildPhysics();
     SimEx sx = sim.buildSimEx();
@@ -164,19 +162,6 @@ void Driver::compileSource(const string &src)
     boost::filesystem::path pkgdir(exp->name->value+".cypk");
     boost::filesystem::create_directory(pkgdir);
     
-    /*
-    string simfile = sx.toString();
-    ofstream ofs(pkgdir.string() + "/" + "metadata.cymx");
-    ofs << simfile;
-    ofs.close();
-    */
-
-    /*
-    ofs.open(pkgdir.string() + "/" + "ResidualClosure.cxx");
-    ofs << sx.residualClosureSource;
-    ofs.close();
-    */
-
     ofstream ofs;
 
     size_t ix{0};

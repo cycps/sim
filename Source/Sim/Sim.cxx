@@ -25,10 +25,7 @@ using std::array;
 Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
     ExperimentSP exp) 
   : objects{objects}, controllers{controllers}, exp{exp}
-{
-  elements.insert(elements.end(), objects.begin(), objects.end());
-  elements.insert(elements.end(), controllers.begin(), controllers.end());
-}
+{ }
 
 void Sim::addObjectToSim(ComponentSP c)
 {
@@ -109,6 +106,7 @@ void Sim::buildSystemEquations()
 void Sim::buildPhysics()
 {
   buildSystemEquations();
+  buildSymbolSet();
 }
 
 SimEx Sim::buildSimEx()
@@ -198,29 +196,33 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
 
 void Sim::addCVarResiduals()
 {
-  CVarExtractor cvx;
+  auto cvx = VarExtractorFactory::CVarExtractor();
   //for(auto eqtn_p: psys) eqtn_p.second->accept(cvx);
   for(auto eqtn_p: psys) cvx.run(eqtn_p.first, eqtn_p.second);
 
-  std::cout << "--" << std::endl;
+  controlled_vars = cvx.vars;
 
-  std::cout << "system controlled variables:" << std::endl;
-  for(auto p: cvx.cvars)
+  for(auto p: cvx.vars)
   {
-    std::cout << p.second << std::endl;
     //-1 indicates generated code e.g., there is no source line
     static constexpr int nosrc{-1};
     EquationSP eq = make_shared<Equation>(nosrc, nosrc); 
     eq->lhs = make_shared<Real>(0, nosrc, nosrc);
     eq->rhs = 
       make_shared<Subtract>(
-        make_shared<CVar>(make_shared<Symbol>(p.second, nosrc, nosrc)),
-        make_shared<CCVar>(make_shared<Symbol>(p.second, nosrc, nosrc)),
+        make_shared<CVar>(make_shared<Symbol>(p->name, nosrc, nosrc)),
+        make_shared<CCVar>(make_shared<Symbol>(p->name, nosrc, nosrc)),
         nosrc, nosrc);
-    psys.insert({p.first, eq});
+    psys.insert({p->component, eq});
   }
-  
-  std::cout << "--" << std::endl;
+}
+
+void Sim::buildSymbolSet()
+{
+  //TODO: you are here --- the hash on this set is not doing what you would like
+  auto ext = VarExtractorFactory::AnyVarExtractor();  
+  for(ComponentSP c : exp->components) ext.run(c);  
+  vars.insert(ext.vars.begin(), ext.vars.end());
 }
 
 vector<ComputeNode> Sim::buildComputeTopology(size_t N)
@@ -320,64 +322,6 @@ string rcname(ExperimentSP ex)
 {
   return ex->name->value + "RC";
 }
-
-/*
-string Sim::buildResidualClosure()
-{
-  using std::endl;
-  stringstream ss;
-
-  EqtnVarCollector evc;
-  for(EquationSP eqtn: psys) evc.run(eqtn);
-
-  ss 
-    << sysinclude("Cypress/Sim/ResidualClosure.hxx") << endl
-    << sysinclude("cmath") << endl;
-  ss << endl;
-
-  ss << use_namespace("cypress") << endl;
-  ss << use("std::string") << endl;
-  ss << endl;
-
-  ss 
-    << "struct " << rcname(exp) << " : ResidualClosure" << endl
-    << "{" << endl;
-
-  size_t ax{0};
-  for(MetaVar v: evc.vars) 
-    ss << "  " 
-      << "static constexpr size_t " << vax(v.name) << "{" << ax++ << "};" 
-      << endl;
-  ss << endl;
-  
-  for(MetaVar v: evc.vars) 
-    ss << "  realtype " << v.name << "()" << endl
-       << "  {" << endl
-       << "    return " 
-        << qdif(v.name) << "yresolve(varmap[" << vax(v.name) << "]);" << endl
-       << "  }" << endl << endl;
-
-  ss << "  " << "void compute(realtype *r) override" << endl;
-  ss << "  " << "{" << endl;
-  CxxResidualFuncBuilder rcb;
-  size_t idx{0};
-  for(EquationSP eqtn: psys) ss << "    " << rcb.run(eqtn, idx++) << endl;
-  ss << "  " << "}" << endl;
-
-  ss << "  " << "string experimentInfo() override" << endl
-     << "  " << "{" << endl
-     << "  " << "  " << "return \"" << exp->name->value << "\";" << endl
-     << "  " << "}" << endl;
-
-  ss << "};" << endl << endl;
-
-  ss << rcname(exp) << " *rc = new " << rcname(exp) << ";" << endl << endl;
-
-
-  return ss.str();
-}
-*/
-
 
 //Cypress::EqtnVarCollector ---------------------------------------------------
 

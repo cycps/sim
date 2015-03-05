@@ -303,41 +303,44 @@ void CxxResidualFuncBuilder::visit(CCVarSP)
 
 //Controlled variable extraction ----------------------------------------------
 
-void CVarExtractor::run(ComponentSP c, EquationSP e)
+void VarExtractor::run(ComponentSP c, EquationSP e)
 {
   component = c;  
   e->accept(*this);
 }
+  
+void VarExtractor::run(ComponentSP c)
+{
+  component = c;
+  for(EquationSP eqtn : c->element->eqtns) eqtn->accept(*this);
+}
 
-void CVarExtractor::visit(CVarSP)
+void VarExtractor::visit(CVarSP)
 {
   inCVar = true;
 }
 
-void CVarExtractor::leave(CVarSP)
+void VarExtractor::leave(CVarSP)
 {
   inCVar = false;
 }
   
-void CVarExtractor::visit(DifferentiateSP)
+void VarExtractor::visit(DifferentiateSP)
 {
   inDeriv = true;
 }
   
-void CVarExtractor::leave(DifferentiateSP)
+void VarExtractor::leave(DifferentiateSP)
 {
   inDeriv = false;
 }
 
-void CVarExtractor::in(SymbolSP s)
+void VarExtractor::in(SymbolSP s)
 {
-  if(inCVar)
+  if(filter(s, inCVar, inDeriv))
   {
-    /*
-    if(inDeriv) cderivs.insert(s->value);
-    else cvars.insert(s->value);
-    */
-    if(inDeriv) cderivs.insert({component, s->value});
-    else cvars.insert({component, s->value});
+    //if(inDeriv) derivs.insert(make_shared<VarRef>(component, s->value));
+    //else vars.insert(make_shared<VarRef>(component, s->value));
+    vars.insert(make_shared<VarRef>(component, s->value));
   }
 }

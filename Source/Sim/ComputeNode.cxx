@@ -114,10 +114,10 @@ string ComputeNode::emitSource()
 
   ss << "  // Controll Access Variables ---------------------------------------"
      << endl;
-  CVarExtractor cvx;
+  auto cvx = VarExtractorFactory::CVarExtractor();
   for(auto p: eqtns) cvx.run(p.first, p.second);
-  for(auto p: cvx.cvars)
-    controlAccessor(p.second, ss);
+  for(auto v: cvx.vars)
+    controlAccessor(v->name, ss);
 
   ss << "  // Residual Computation --------------------------------------------"
      << endl;

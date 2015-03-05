@@ -211,16 +211,23 @@ struct CxxResidualFuncBuilder : public Visitor
 };
 
 //Controlled variable extraction ----------------------------------------------
-struct CVarExtractor : Visitor
+struct VarExtractor : Visitor
 {
   ComponentSP component;
 
+  //filter(symbol, inCVar, inDeriv)
+  std::function<bool(SymbolSP,bool, bool)> filter;
+
   bool inCVar{false}, inDeriv{false};
-  //std::unordered_set<std::string> cvars, cderivs;
-  std::unordered_multimap<ComponentSP, std::string>
-    cvars, cderivs;
+  std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp>
+    vars;
 
   void run(ComponentSP, EquationSP);
+  void run(ComponentSP);
+
+  VarExtractor(std::function<bool(SymbolSP, bool, bool)> f)
+    : filter{f}
+  {}
 
   private:
     void visit(DifferentiateSP) override;
@@ -229,6 +236,60 @@ struct CVarExtractor : Visitor
     void leave(CVarSP) override;
     void in(SymbolSP) override;
 };
+
+struct VarExtractorFactory
+{
+  static VarExtractor CVarExtractor()
+  {
+    return 
+      VarExtractor(
+        [](SymbolSP, bool inCVar, bool)
+        {
+          return inCVar;
+        });
+  }
+  
+  static VarExtractor NonCVarExtractor()
+  {
+    return 
+      VarExtractor(
+        [](SymbolSP, bool inCVar, bool)
+        {
+          return !inCVar;
+        });
+  }
+  
+  static VarExtractor AnyVarExtractor()
+  {
+    return 
+      VarExtractor(
+        [](SymbolSP, bool, bool)
+        {
+          return true;
+        });
+  }
+
+  static VarExtractor NonDerivExtractor()
+  {
+    return
+      VarExtractor(
+          [](SymbolSP, bool, bool inDeriv)
+          {
+            return !inDeriv;
+          });
+  }
+  
+  static VarExtractor DerivExtractor()
+  {
+    return
+      VarExtractor(
+          [](SymbolSP, bool, bool inDeriv)
+          {
+            return inDeriv;
+          });
+  }
+};
+
 
 }
 
