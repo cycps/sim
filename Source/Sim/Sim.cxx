@@ -29,19 +29,21 @@ Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
 
 void Sim::addObjectToSim(ComponentSP c)
 {
-  EqtnQualifier eqq;
-  eqq.setQualifier(c);
+  //EqtnQualifier eqq;
+  //eqq.setQualifier(c);
   for(auto eqtn: c->element->eqtns)
   {
     auto cpy = eqtn->clone();
-    eqq.run(cpy);
+    //eqq.run(cpy);
     setToZero(cpy);
 
+    /*
     for(auto p: c->params)
     {
       string sym_name{c->name->value+"."+p.first->value};
       applyParameter(cpy, sym_name, p.second->value);
     }
+    */
       
     //psys.push_back(cpy);
     psys.insert({c, cpy});
@@ -58,8 +60,8 @@ void Sim::addControllerToSim(ComponentSP c)
   //vector<SubComponentRefSP> uc = findControlledSubComponents(c);  
 }
 
-//TODO: This should be a semantic action
-string getControlled(ConnectableSP c)
+//TODO: This should be a semantic action?
+VarRefSP getControlled(ConnectableSP c)
 {
   if(c->neighbor != nullptr) return getControlled(c->neighbor);
 
@@ -67,16 +69,20 @@ string getControlled(ConnectableSP c)
     throw runtime_error{"well fuck"};
 
   auto x = static_pointer_cast<SubComponentRef>(c);
-  return x->name->value + "." + x->subname->value;
+  //return x->name->value + "." + x->subname->value;
+  //return x->subname->value;
+  return make_shared<VarRef>(x->component, x->subname->value);
 }
 
 void Sim::addControllerRefToSim(SubComponentRefSP c)
 {
-  string under_control = getControlled(c);
+  //string under_control = getControlled(c);
+  VarRefSP under_control = getControlled(c);
 
   for(auto eqtn_p: psys)
   {
-    liftControlledVars(eqtn_p.second, under_control);
+    if(eqtn_p.first->name == under_control->component->name)
+      liftControlledVars(eqtn_p.second, under_control->name);
   }
 }
 
@@ -125,17 +131,17 @@ void Sim::applyComponentParameters()
 
 void Sim::buildPhysics()
 {
-  buildSystemEquations();
 
   applyComponentParameters();
   buildSymbolSet();
   buildInitials();
+  
+  buildSystemEquations();
 }
 
 SimEx Sim::buildSimEx()
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
-  //sx.residualClosureSource = buildResidualClosure();
   sx.computeNodes = buildComputeTopology(1);
   for(ComputeNode &c: sx.computeNodes) 
     sx.computeNodeSources.push_back(c.emitSource());
@@ -223,7 +229,7 @@ void Sim::addCVarResiduals()
   //for(auto eqtn_p: psys) eqtn_p.second->accept(cvx);
   for(auto eqtn_p: psys) cvx.run(eqtn_p.first, eqtn_p.second);
 
-  controlled_vars = cvx.vars;
+  controlled_vars.insert(cvx.vars.begin(), cvx.vars.end());
 
   for(auto p: cvx.vars)
   {
