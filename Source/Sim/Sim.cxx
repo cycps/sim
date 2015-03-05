@@ -149,14 +149,19 @@ SimEx Sim::buildSimEx()
   return sx;
 }
 
-vector<RVar> Sim::mapVariables(size_t N)
+vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
 {
+  size_t N = topo.size();
   vector<RVar> m;
-  vector<RVar> c;
+  //vector<RVar> c;
 
   EqtnVarCollector evc;
   //for(EquationSP eqtn: psys) evc.run(eqtn);
-  for(ComponentSP cp: exp->components) evc.run(cp);
+  for(ComponentSP cp: exp->components) 
+  {
+    if(cp->element->kind() != Decl::Kind::Object) continue;
+    evc.run(cp);
+  }
 
   if(N > evc.vars.size())
     throw runtime_error(
@@ -176,16 +181,26 @@ vector<RVar> Sim::mapVariables(size_t N)
   size_t i{0};
   for(auto v: evc.vars)
   {
-    m.push_back( RVar{v->qname(), DCoordinate{i/L, i, i%L}} );
+    m.push_back( RVar{v, DCoordinate{i/L, i, i%L}} );
     ++i;
+  }
+  
+  for(RVar v: m)
+  {
+    if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
+    topo[v.coord.px].vars.push_back(v.var->qname());
+    //topo[v.coord.px].initials[v.coord.lx] = initials[v.name];
+    topo[v.coord.px].initials[v.coord.lx].v = initial_state[v.var];
+    topo[v.coord.px].initials[v.coord.lx].d = initial_trajectory[v.var];
   }
 
   return m;
 }
 
-vector<REqtn> Sim::mapEquations(size_t N)
+vector<REqtn> Sim::mapEquations(vector<ComputeNode> &topo)
 {
   vector<REqtn> m;
+  size_t N = topo.size();
 
   size_t L = ceil(static_cast<double>(psys.size()) / N);
 
@@ -194,6 +209,13 @@ vector<REqtn> Sim::mapEquations(size_t N)
   {
     m.push_back( REqtn{eqtn_p.second->clone(), eqtn_p.first, DCoordinate{i/L, i, i%L}} );
     ++i;
+  }
+  
+  for(REqtn e: m)
+  {
+    if(e.coord.px >= N) 
+      throw runtime_error("Equation Balderdashery! " + to_string(e.coord.px));
+    topo[e.coord.px].eqtns.insert({e.component, e.eqtn});
   }
 
   return m;
@@ -215,7 +237,7 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
 
     auto rit =
       find_if(rvars.begin(), rvars.end(),
-        [v](RVar r){ return r.name == v->qname(); });
+        [v](RVar r){ return r.var->qname() == v->qname(); }); //dumb! need eq op!
 
     if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + v->qname());
 
@@ -278,55 +300,8 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
 {
   vector<ComputeNode> topo(N);
 
-  vector<RVar> vars = mapVariables(N);
-  std::cout << "VC=" << vars.size() << std::endl;
-
-  unordered_map<string, Initials> initials;
-  for(ComponentSP c : exp->components)
-  {
-    for(auto p : c->initials)
-    {
-      if(p.first->kind() == VarRef::Kind::Normal)
-      {
-        initials[p.first->qname()].v = p.second->value;
-      }
-      else //kind == Derivative
-      {
-        initials[p.first->qname()].d = p.second->value;
-      }
-    }
-  }
-
-  /*
-  for(auto p : vref_map) 
-  {
-    for(MetaVar m: p.second)
-    {
-      if(!m.derivative)
-        m.initial = initials[p.first].v;
-      else
-        m.initial = initials[p.first].d;
-    }
-  }
-  */
-
-
-  vector<REqtn> eqtns = mapEquations(N);
-  std::cout << "EC=" << eqtns.size() << std::endl;
-
-  for(REqtn e: eqtns)
-  {
-    if(e.coord.px >= N) 
-      throw runtime_error("Equation Balderdashery! " + to_string(e.coord.px));
-    topo[e.coord.px].eqtns.insert({e.component, e.eqtn});
-  }
-
-  for(RVar v: vars)
-  {
-    if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
-    topo[v.coord.px].vars.push_back(v.name);
-    topo[v.coord.px].initials[v.coord.lx] = initials[v.name];
-  }
+  vector<RVar> vars = mapVariables(topo);
+  vector<REqtn> eqtns = mapEquations(topo);
 
   size_t i{0};
   for(ComputeNode &n: topo)

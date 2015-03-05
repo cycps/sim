@@ -233,4 +233,8 @@ TEST(Sim, Rotor)
   EXPECT_EQ(4ul, sim.initial_state.size());
   EXPECT_EQ(2ul, sim.initial_trajectory.size());
 
+  EXPECT_EQ(4ul, sim.psys.size());
+
+  auto topo = sim.buildComputeTopology(1);
+
 }

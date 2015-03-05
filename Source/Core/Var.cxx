@@ -9,6 +9,7 @@ VarRef::VarRef(ComponentSP component, string name)
 {}
 
 string VarRef::qname() const { return component->name->value + "_" + name; }
+string DVarRef::qname() const { return component->name->value + "_d" + name; }
 
 VarRef::Kind VarRef::kind() const { return Kind::Normal; }
 

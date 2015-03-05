@@ -22,7 +22,7 @@ void localAccessor(string var, string from, size_t i, stringstream &ss)
 
 void remoteAccessor(RVar v, size_t i, string mod, string from, stringstream &ss)
 {
-  ss << "  inline realtype " << mod << v.name << "()" << endl
+  ss << "  inline realtype " << mod << v.var->qname() << "()" << endl
      << "  {" << endl
      << "    return r" << from << "["<<i<<"];" << endl
      << "  }" << endl
@@ -209,12 +209,18 @@ ostream & cypress::operator << (ostream &o, const ComputeNode &n)
 
   o << "[rvar]" << endl;
   for(RVar r: n.rvars)
-    o << "  " << r.name << " (" << r.coord.px << ")" << endl;
+    o << "  " << r.var->qname() << " (" << r.coord.px << ")" << endl;
 
   EqtnPrinter eqp;
   o << "[eqtn]" << endl;
   for(auto p: n.eqtns) eqp.run(p.second);
   for(auto eq_str : eqp.strings) o << "  " << eq_str << endl;
+
+  o << "[inital]" << endl;
+  for(auto p: n.initials) 
+    o << n.vars[p.first] << " --> " 
+      << "{" << p.second.v << "," << p.second.d << "}" << endl;
+
 
   return o;
 }

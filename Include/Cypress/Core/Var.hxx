@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <memory>
-#include "Cypress/Sim/Resolve.hxx"
+//#include "Cypress/Sim/Resolve.hxx"
 //#include "Cypress/Core/Elements.hxx"
 
 //Forward Declarations --------------------------------------------------------
@@ -36,7 +36,7 @@ struct VarRef
   std::string name;
   bool controlled{false};
   
-  std::string qname() const;
+  virtual std::string qname() const;
 };
 
 struct DVarRef : public VarRef
@@ -45,6 +45,7 @@ struct DVarRef : public VarRef
   DVarRef(ComponentSP, std::string, size_t);
 
   Kind kind() const override;
+  std::string qname() const override;
   size_t order;
 };
 

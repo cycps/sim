@@ -7,6 +7,7 @@
 #include <sundials/sundials_types.h>
 #include <mpi.h>
 #include <string>
+#include "Cypress/Core/Var.hxx"
 
 namespace cypress
 {
@@ -27,10 +28,11 @@ struct DCoordinate
 //TODO: RVar not a good name
 struct RVar
 {
-  std::string name;
+  //std::string name;
+  VarRefSP var;
   DCoordinate coord;
 
-  RVar(std::string name, DCoordinate coord) : name{name}, coord{coord}
+  RVar(VarRefSP var, DCoordinate coord) : var{var}, coord{coord}
   {}
 };
 

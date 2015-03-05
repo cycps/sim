@@ -51,8 +51,8 @@ struct Sim
   void addControllerRefToSim(SubComponentRefSP);
 
   SimEx buildSimEx();
-  std::vector<RVar> mapVariables(size_t);
-  std::vector<REqtn> mapEquations(size_t);
+  std::vector<RVar> mapVariables(std::vector<ComputeNode> &);
+  std::vector<REqtn> mapEquations(std::vector<ComputeNode> &);
   std::vector<ComputeNode> buildComputeTopology(size_t);
   std::string buildComputeNodeSource(const ComputeNode &);
 
