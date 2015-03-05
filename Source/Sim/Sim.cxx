@@ -129,6 +129,7 @@ void Sim::buildPhysics()
 
   applyComponentParameters();
   buildSymbolSet();
+  buildInitials();
 }
 
 SimEx Sim::buildSimEx()
@@ -241,7 +242,6 @@ void Sim::addCVarResiduals()
 
 void Sim::buildSymbolSet()
 {
-  //TODO: you are here --- the hash on this set is not doing what you would like
   auto ext = VarExtractorFactory::AnyVarExtractor();  
   for(ComponentSP c : exp->components) 
   {
@@ -249,6 +249,23 @@ void Sim::buildSymbolSet()
       ext.run(c);  
   }
   vars.insert(ext.vars.begin(), ext.vars.end());
+}
+
+void Sim::buildInitials()
+{
+  for(ComponentSP c : exp->components)
+  {
+    if(c->element->kind() != Decl::Kind::Object) continue;
+
+    for(auto p: c->initials)
+    {
+      if(p.first->kind() == VarRef::Kind::Normal)
+        initial_state[p.first] = p.second->value;
+
+      if(p.first->kind() == VarRef::Kind::Derivative)
+        initial_trajectory[p.first] = p.second->value;
+    }
+  }
 }
 
 vector<ComputeNode> Sim::buildComputeTopology(size_t N)

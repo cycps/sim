@@ -42,6 +42,7 @@ struct Sim
 
   void applyComponentParameters();
   void buildSymbolSet();
+  void buildInitials();
 
   void addCVarResiduals();
   void addObjectToSim(ComponentSP);

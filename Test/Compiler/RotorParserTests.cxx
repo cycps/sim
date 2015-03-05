@@ -230,4 +230,7 @@ TEST(Sim, Rotor)
   EXPECT_EQ(1ul, sim.controlled_vars.size());
   EXPECT_EQ(4ul, sim.vars.size());
 
+  EXPECT_EQ(4ul, sim.initial_state.size());
+  EXPECT_EQ(2ul, sim.initial_trajectory.size());
+
 }

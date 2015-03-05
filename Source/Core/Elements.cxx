@@ -341,6 +341,5 @@ void VarExtractor::in(SymbolSP s)
   {
     if(inDeriv) vars.insert(make_shared<DVarRef>(component, s->value, 1));
     else vars.insert(make_shared<VarRef>(component, s->value));
-    //vars.insert(make_shared<VarRef>(component, s->value));
   }
 }
