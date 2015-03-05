@@ -24,7 +24,7 @@ struct Sim
   std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp>
     controlled_vars;
 
-  std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp>
+  std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp>
     vars;
 
   std::unordered_map<VarRefSP, double, VarRefSPHash, VarRefSPCmp> 
@@ -39,6 +39,8 @@ struct Sim
 
   void buildPhysics();
   void buildSystemEquations();
+
+  void applyComponentParameters();
   void buildSymbolSet();
 
   void addCVarResiduals();

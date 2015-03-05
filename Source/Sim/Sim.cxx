@@ -88,6 +88,7 @@ void Sim::buildSystemEquations()
     //if(c->element->kind() == Decl::Kind::Controller) addControllerToSim(c);
   }
 
+
   for(ConnectionSP cx : exp->connections)
   {
     if(isa(cx->from, Connectable::Kind::SubComponent))
@@ -103,9 +104,30 @@ void Sim::buildSystemEquations()
   addCVarResiduals();
 }
 
+void Sim::applyComponentParameters()
+{
+  for(ComponentSP c : exp->components)
+  {
+    if(c->element->kind() != Decl::Kind::Object) continue;
+
+    ObjectSP o = std::static_pointer_cast<Object>(c->element);
+
+    for(auto p: c->params)
+    {
+      
+      for(EquationSP eq: o->eqtns)
+      {
+        applyParameter(eq, p.first->value, p.second->value);
+      }
+    }
+  }
+}
+
 void Sim::buildPhysics()
 {
   buildSystemEquations();
+
+  applyComponentParameters();
   buildSymbolSet();
 }
 
@@ -221,8 +243,14 @@ void Sim::buildSymbolSet()
 {
   //TODO: you are here --- the hash on this set is not doing what you would like
   auto ext = VarExtractorFactory::AnyVarExtractor();  
-  for(ComponentSP c : exp->components) ext.run(c);  
+  for(ComponentSP c : exp->components) 
+  {
+    if(c->element->kind() == Decl::Kind::Object)
+      ext.run(c);  
+  }
   vars.insert(ext.vars.begin(), ext.vars.end());
+  for(auto v : vars)
+    std::cout << v->name << std::endl;
 }
 
 vector<ComputeNode> Sim::buildComputeTopology(size_t N)

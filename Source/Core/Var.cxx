@@ -36,3 +36,21 @@ size_t VarRefSPHash::operator()(const VarRefSP v) const
 
   return result;
 }
+
+size_t VarRefSPNameHash::operator()(const VarRefSP v) const
+{
+  size_t result = 
+    //std::hash<int>{}(static_cast<int>(v->kind())) +
+    std::hash<std::string>{}(v->name) +
+    std::hash<std::string>{}(v->component->name->value);
+
+  /*
+  if(v->kind() == VarRef::Kind::Derivative)
+  {
+    auto dsp = std::static_pointer_cast<DVarRef>(v);
+    result += std::hash<size_t>{}(dsp->order);
+  }
+  */
+
+  return result;
+}

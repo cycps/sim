@@ -62,6 +62,20 @@ struct VarRefSPCmp
   }
 };
 
+struct VarRefSPNameHash
+{
+  size_t operator()(const VarRefSP v) const;
+};
+
+struct VarRefSPNameCmp
+{
+  bool operator()(const VarRefSP a, const VarRefSP b) const
+  {
+    VarRefSPNameHash hsh{};
+    return hsh(a) == hsh(b);
+  }
+};
+
 /*
 struct MetaVar
 {

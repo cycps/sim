@@ -21,7 +21,6 @@ void EqtnParametizer::parametize(std::shared_ptr<Kinded> *x)
   }
 }
 
-
 //CVarLifter ------------------------------------------------------------------
 template<class BinOp>
 void CVarLifter::applyBinary(std::shared_ptr<BinOp> x)
