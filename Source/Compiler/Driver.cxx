@@ -1,7 +1,6 @@
 #include "Cypress/Compiler/Driver.hxx"
 #include "Cypress/Compiler/Sema.hxx"
 #include "Cypress/Core/Equation.hxx"
-#include "Cypress/Sim/Sim.hxx"
 
 #include <boost/exception/info.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -133,6 +132,56 @@ void Driver::parseSource(const std::string src)
   *decls += *p.run();
 }
 
+void Driver::buildSim(size_t N)
+{
+  sim = make_shared<Sim>(decls->objects, decls->controllers, decls->experiments[0]); 
+  sim->buildPhysics();
+  sim_ex = sim->buildSimEx(N);
+}
+    
+void Driver::createCypk()
+{
+  boost::filesystem::path pkgdir(decls->experiments[0]->name->value+".cypk");
+  boost::filesystem::create_directory(pkgdir);
+  
+  ofstream ofs;
+
+  size_t ix{0};
+  for(const string &s: sim_ex.computeNodeSources)
+  {
+    ofs.open(pkgdir.string() + "/" + "CNode" + to_string(ix++) + ".cxx");
+    ofs << s;
+    ofs.close();
+  }
+
+  string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
+  ofs.open(brs);
+  char *cyh_ = getenv("CYPRESS_HOME");
+  if(cyh_ == nullptr)
+    throw runtime_error("CYPRESS_HOME environment variable must be set");
+
+  string cyhome{cyh_};
+  ofs << "#!/bin/sh" << endl;
+  for(size_t i=0; i<sim_ex.computeNodeSources.size(); ++i)
+  {
+    ofs
+      << "clang++ -std=c++11 " 
+      << "Cnode"<<i<<".cxx "
+      << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
+      << "-I" << cyhome << "/Include "
+      << "-I" << "/usr/local/include "
+      << "-L" << "/usr/local/lib "
+      << "-lmpi "
+      << "-lsundials_ida "
+      << "-lsundials_nvecparallel "
+      << "-o " << "rcomp" << i << endl;
+  }
+  ofs.close();
+    
+  chmod(brs.c_str(), strtol("0755", 0, 8));
+
+}
+
 void Driver::compileSource(const string &src)
 {
   Parser p(src, dr);
@@ -157,7 +206,7 @@ void Driver::compileSource(const string &src)
 
     Sim sim(decls->objects, decls->controllers, exp); 
     sim.buildPhysics();
-    SimEx sx = sim.buildSimEx();
+    SimEx sx = sim.buildSimEx(1);
 
     boost::filesystem::path pkgdir(exp->name->value+".cypk");
     boost::filesystem::create_directory(pkgdir);

@@ -82,9 +82,12 @@ string ComputeNode::emitSource()
      << endl;
 
   size_t i{0};
-  for(const string &s: vars)
-    localAccessor(s, "y", i, ss),
-    localAccessor("d_"+s, "dy", i++, ss);
+  for(const VarRefSP v: vars)
+  {
+    string name = v->component->name->value + "_" + v->name;
+    localAccessor(name, "y", i, ss),
+    localAccessor("d_"+name, "dy", i++, ss);
+  }
 
   ss << "  // Remote Access Variables -----------------------------------------"
      << endl;
@@ -117,7 +120,7 @@ string ComputeNode::emitSource()
   auto cvx = VarExtractorFactory::CVarExtractor();
   for(auto p: eqtns) cvx.run(p.first, p.second);
   for(auto v: cvx.vars)
-    controlAccessor(v->name, ss);
+    controlAccessor(v->component->name->value + "_" + v->name, ss);
 
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
@@ -128,7 +131,7 @@ string ComputeNode::emitSource()
 
   CxxResidualFuncBuilder cxr;
   i=0;
-  for(auto p: eqtns) ss << "    " << cxr.run(p.second, i++) << endl;
+  for(auto p: eqtns) ss << "    " << cxr.run(p.first, p.second, i++) << endl;
 
   ss << "  }" << endl
      << endl;
@@ -204,8 +207,8 @@ ostream & cypress::operator << (ostream &o, const ComputeNode &n)
   o << "id=" << n.id << endl;
 
   o << "[var]" << endl;
-  for(string s: n.vars)
-    o << "  " << s << endl;
+  for(VarRefSP v: n.vars)
+    o << "  " << v->component->name->value << "_" << v->name << endl;
 
   o << "[rvar]" << endl;
   for(RVar r: n.rvars)
@@ -218,7 +221,8 @@ ostream & cypress::operator << (ostream &o, const ComputeNode &n)
 
   o << "[inital]" << endl;
   for(auto p: n.initials) 
-    o << n.vars[p.first] << " --> " 
+    o << n.vars[p.first]->component->name->value << "_"
+      << n.vars[p.first]->name << " --> " 
       << "{" << p.second.v << "," << p.second.d << "}" << endl;
 
 

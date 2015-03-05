@@ -16,7 +16,7 @@ struct ComputeNode
 {
   size_t id, N;
   std::string expInfo;
-  std::vector<std::string> vars;
+  std::vector<VarRefSP> vars;
   std::vector<RVar> rvars;  
   //std::vector<EquationSP> eqtns;
   std::unordered_multimap<ComponentSP, EquationSP> eqtns;

@@ -192,7 +192,8 @@ struct CxxResidualFuncBuilder : public Visitor
 {
   std::stringstream ss;
 
-  std::string run(EquationSP, size_t idx);
+  std::string run(ComponentSP cp, EquationSP, size_t idx);
+  ComponentSP cp;
 
   void in(AddSP) override;
   void in(SubtractSP) override;

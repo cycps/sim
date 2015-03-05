@@ -223,8 +223,9 @@ void EqtnPrinter::leave(CCVarSP)
 //Cypress::CxxResidualFuncBuilder ---------------------------------------------
 
 //Assumes eqtn is already in residual form e.g., 0 = f(x);
-string CxxResidualFuncBuilder::run(EquationSP eqtn, size_t idx)
+string CxxResidualFuncBuilder::run(ComponentSP cp, EquationSP eqtn, size_t idx)
 {
+  this->cp = cp;
   ss.str("");
   //ss << "[this](){ return ";
   ss << "r[" << idx << "] = ";
@@ -255,9 +256,9 @@ void CxxResidualFuncBuilder::in(DivideSP)
 
 void CxxResidualFuncBuilder::in(SymbolSP s) 
 { 
-  string sname = s->value;
-  boost::replace_all(sname, ".", "_");
-  ss << sname << "()"; 
+  //string sname = s->value;
+  //boost::replace_all(sname, ".", "_");
+  ss << cp->name->value << "_" << s->value << "()"; 
 }
 
 void CxxResidualFuncBuilder::visit(PowSP) 
@@ -282,7 +283,7 @@ void CxxResidualFuncBuilder::in(RealSP r)
 
 void CxxResidualFuncBuilder::visit(DifferentiateSP) 
 { 
-  ss << "d_";
+  //ss << "d_";
 }
 
 void CxxResidualFuncBuilder::visit(SubExpressionSP) 

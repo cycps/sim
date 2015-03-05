@@ -20,6 +20,7 @@ struct SimEx
 
   std::string residualClosureSource;
 
+  SimEx() = default;
   explicit SimEx(size_t neq, double rtol, double satol);
   explicit SimEx(std::string source);
   void run();

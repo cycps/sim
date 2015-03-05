@@ -139,10 +139,10 @@ void Sim::buildPhysics()
   buildSystemEquations();
 }
 
-SimEx Sim::buildSimEx()
+SimEx Sim::buildSimEx(size_t N)
 {
   SimEx sx{psys.size(), 1e-4, 1e-6}; 
-  sx.computeNodes = buildComputeTopology(1);
+  sx.computeNodes = buildComputeTopology(N);
   for(ComputeNode &c: sx.computeNodes) 
     sx.computeNodeSources.push_back(c.emitSource());
 
@@ -188,7 +188,8 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
   for(RVar v: m)
   {
     if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
-    topo[v.coord.px].vars.push_back(v.var->qname());
+    //topo[v.coord.px].vars.push_back(v.var->qname());
+    topo[v.coord.px].vars.push_back(v.var);
     //topo[v.coord.px].initials[v.coord.lx] = initials[v.name];
     topo[v.coord.px].initials[v.coord.lx].v = initial_state[v.var];
     topo[v.coord.px].initials[v.coord.lx].d = initial_trajectory[v.var];
@@ -231,7 +232,7 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
     if(v->kind() == VarRef::Kind::Derivative) continue;
     auto lit =
       find_if(n.vars.begin(), n.vars.end(),
-          [v](string s){ return s == v->qname(); });
+          [v](VarRefSP x){ return x->qname() == v->qname(); });
 
     if(lit != n.vars.end()) continue;
 

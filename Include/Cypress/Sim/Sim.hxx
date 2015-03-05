@@ -15,6 +15,9 @@
 namespace cypress
 {
 
+struct Sim; using SimSP = std::shared_ptr<Sim>;
+struct SimEx; using SimExSP = std::shared_ptr<SimEx>;
+
 struct Sim
 {
   std::vector<std::shared_ptr<Object>> objects;
@@ -50,7 +53,7 @@ struct Sim
 
   void addControllerRefToSim(SubComponentRefSP);
 
-  SimEx buildSimEx();
+  SimEx buildSimEx(size_t);
   std::vector<RVar> mapVariables(std::vector<ComputeNode> &);
   std::vector<REqtn> mapEquations(std::vector<ComputeNode> &);
   std::vector<ComputeNode> buildComputeTopology(size_t);
@@ -60,7 +63,7 @@ struct Sim
 
 struct EqtnVarCollector : Visitor
 {
-  std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp> vars;
+  std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp> vars;
   ComponentSP component;
   void run(ComponentSP);
 

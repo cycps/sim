@@ -3,6 +3,7 @@
 
 //#include "Grammar.hxx"
 #include "Parser.hxx"
+#include "Cypress/Sim/Sim.hxx"
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>
@@ -26,10 +27,14 @@ class Driver
     void parseInput();
     void parseSource(const std::string src);
     void checkSemantics();
+    void buildSim(size_t);
+    void createCypk();
 
     std::shared_ptr<Decls> decls;
 
     DiagnosticReport dr;
+    SimSP sim{nullptr};
+    SimEx sim_ex;
 
   private:
     void buildInvocationOptionDescriptions();
