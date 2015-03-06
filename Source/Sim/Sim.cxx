@@ -29,23 +29,10 @@ Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
 
 void Sim::addObjectToSim(ComponentSP c)
 {
-  //EqtnQualifier eqq;
-  //eqq.setQualifier(c);
   for(auto eqtn: c->element->eqtns)
   {
     auto cpy = eqtn->clone();
-    //eqq.run(cpy);
     setToZero(cpy);
-
-    /*
-    for(auto p: c->params)
-    {
-      string sym_name{c->name->value+"."+p.first->value};
-      applyParameter(cpy, sym_name, p.second->value);
-    }
-    */
-      
-    //psys.push_back(cpy);
     psys.insert({c, cpy});
   }
 }
@@ -57,7 +44,6 @@ void Sim::addControllerToSim(ComponentSP c)
             << c->name->value << " :: "
             << c->kind->value << std::endl;
 
-  //vector<SubComponentRefSP> uc = findControlledSubComponents(c);  
 }
 
 //TODO: This should be a semantic action?
@@ -69,14 +55,11 @@ VarRefSP getControlled(ConnectableSP c)
     throw runtime_error{"well fuck"};
 
   auto x = static_pointer_cast<SubComponentRef>(c);
-  //return x->name->value + "." + x->subname->value;
-  //return x->subname->value;
   return make_shared<VarRef>(x->component, x->subname->value);
 }
 
 void Sim::addControllerRefToSim(SubComponentRefSP c)
 {
-  //string under_control = getControlled(c);
   VarRefSP under_control = getControlled(c);
 
   for(auto eqtn_p: psys)
@@ -91,7 +74,6 @@ void Sim::buildSystemEquations()
   for(auto c: exp->components)
   {
     if(c->element->kind() == Decl::Kind::Object) addObjectToSim(c);
-    //if(c->element->kind() == Decl::Kind::Controller) addControllerToSim(c);
   }
 
 
@@ -153,10 +135,8 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
 {
   size_t N = topo.size();
   vector<RVar> m;
-  //vector<RVar> c;
 
   EqtnVarCollector evc;
-  //for(EquationSP eqtn: psys) evc.run(eqtn);
   for(ComponentSP cp: exp->components) 
   {
     if(cp->element->kind() != Decl::Kind::Object) continue;
@@ -168,14 +148,6 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
         "The number of compute nodes is greater than" 
         "the number of system variables");
 
-
-  //unordered_map<string, vector<MetaVar>> vref_map;
-  //for(MetaVar v: evc.vars)
-  //{
-  //  vref_map[v.name].push_back(v);
-  //}
-  
-  //size_t L = ceil(static_cast<double>(vref_map.size()) / N);
   size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
 
   size_t i{0};
@@ -188,9 +160,7 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
   for(RVar v: m)
   {
     if(v.coord.px >= N) throw runtime_error("Variable Balderdashery!");
-    //topo[v.coord.px].vars.push_back(v.var->qname());
     topo[v.coord.px].vars.push_back(v.var);
-    //topo[v.coord.px].initials[v.coord.lx] = initials[v.name];
     topo[v.coord.px].initials[v.coord.lx].v = initial_state[v.var];
     topo[v.coord.px].initials[v.coord.lx].d = initial_trajectory[v.var];
   }
@@ -249,7 +219,6 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
 void Sim::addCVarResiduals()
 {
   auto cvx = VarExtractorFactory::CVarExtractor();
-  //for(auto eqtn_p: psys) eqtn_p.second->accept(cvx);
   for(auto eqtn_p: psys) cvx.run(eqtn_p.first, eqtn_p.second);
 
   controlled_vars.insert(cvx.vars.begin(), cvx.vars.end());
@@ -356,16 +325,8 @@ void EqtnVarCollector::run(ComponentSP c)
   for(EquationSP eqtn : c->element->eqtns) eqtn->accept(*this);
 }
 
-//void EqtnVarCollector::run(EquationSP eqtn)
-//{
-//  eqtn->accept(*this);
-//}
-
 void EqtnVarCollector::in(SymbolSP s)
 {
-  //string sname = s->value;
-  //boost::replace_all(sname, ".", "_");
-  //vars.insert({sname, in_derivative, in_cvar});
   if(in_derivative)
     vars.insert(make_shared<DVarRef>(component, s->value, derivative_order));
   else
