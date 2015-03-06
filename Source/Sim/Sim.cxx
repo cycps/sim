@@ -96,14 +96,17 @@ void Sim::applyComponentParameters()
 {
   for(ComponentSP c : exp->components)
   {
-    if(c->element->kind() != Decl::Kind::Object) continue;
+    //if(c->element->kind() != Decl::Kind::Object) continue;
 
-    ObjectSP o = std::static_pointer_cast<Object>(c->element);
+    //ObjectSP o = std::static_pointer_cast<Object>(c->element);
 
     for(auto p: c->params)
     {
-      
-      for(EquationSP eq: o->eqtns)
+      std::cout << c->name->value << ": " 
+        << p.first->value << " --> " << p.second->value
+        << std::endl;
+
+      for(EquationSP eq: c->element->eqtns)
       {
         applyParameter(eq, p.first->value, p.second->value);
       }
@@ -113,7 +116,6 @@ void Sim::applyComponentParameters()
 
 void Sim::buildPhysics()
 {
-
   applyComponentParameters();
   buildSymbolSet();
   buildInitials();
