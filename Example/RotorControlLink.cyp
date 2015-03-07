@@ -1,14 +1,22 @@
 //Cypress Rotor Controller Experiment
 
-//A very simple mathematical model of a link
-//there is a send (tx) and receive (rx) buffer
+//Cypress Rotor Controller Experiment
+
+//~ A very simple mathematical model of a link
+//    tx, rx: send, receive buffers
+//    txs, rxs, ixs: send, receive, input buffer sizes
+//    lt, elt, bw: latency, effective latency, bandwidth
+//    cc: congenstion coeffecient
+//    qd: queue delay
+//    tp: throughput
 
 Link SLink(lt, bw, cc)
-  srx = stx(t - lt)
-  stx = ix |< bw
-  qd =  ix - bw |> 0
-  tp = (srx' + stx')/2
-  rx[0:srx] = tx[0:srx](t - lt)
+  rx[0:rxs] = tx[0:rxs](t - elt)
+  rxs = txs(t - lt)
+  txs = ixs |< bw
+  elt = lt*qd*cc
+  qd =  ixs - bw |> 0
+  tp = (rxs' + txs')/2
 
 Object Rotor(H)
   ω = θ'
