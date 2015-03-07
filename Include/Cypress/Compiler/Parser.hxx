@@ -20,7 +20,7 @@ class Parser
     explicit Parser(std::string source, DiagnosticReport&);
     std::shared_ptr<Decls> run();
 
-    std::vector<std::shared_ptr<Object>> objects;
+    std::vector<ObjectSP> objects;
 
     DiagnosticReport *dr;
 
@@ -38,23 +38,21 @@ class Parser
     bool isEqtn(const std::string &);
 
     size_t parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls);
-    std::shared_ptr<Object> parseObject(size_t at, size_t &lc);
-    std::shared_ptr<Controller> parseController(size_t at, size_t &lc);
+    ObjectSP parseObject(size_t at, size_t &lc);
+    ControllerSP parseController(size_t at, size_t &lc);
     LinkSP parseLink(size_t at, size_t &lc);
-    std::shared_ptr<Experiment> parseExperiment(size_t at, size_t &lc);
-    std::shared_ptr<Equation> parseEqtn(const std::string &);
-    std::shared_ptr<Expression> parseExpr(const std::string &);
-    std::shared_ptr<Term> parseTerm(const std::string &);
-    std::shared_ptr<Factor> parseFactor(const std::string &);
-    std::shared_ptr<Atom> parseAtom(const std::string &, size_t column);
-    std::shared_ptr<Differentiate> parseDerivative(const std::string &,
-        size_t column);
-    std::shared_ptr<Pow> parsePow(const std::string &, const std::string &,
-        size_t column);
+    ExperimentSP parseExperiment(size_t at, size_t &lc);
+    EquationSP parseEqtn(const std::string &);
+    ExpressionSP parseExpr(const std::string &);
+    TermSP parseTerm(const std::string &);
+    FactorSP parseFactor(const std::string &);
+    AtomSP parseAtom(const std::string &, size_t column);
+    DifferentiateSP parseDerivative(const std::string &, size_t column);
+    PowSP parsePow(const std::string &, const std::string &, size_t column);
 
     void parseElementContent(ElementSP e, size_t at, size_t &lc);
 
-    std::shared_ptr<Component> parseComponent(const std::string &);
+    ComponentSP parseComponent(const std::string &);
     std::vector<ConnectionSP> parseConnectionStmt(const std::string &);
 
     std::string parseName(std::string::const_iterator &begin, 

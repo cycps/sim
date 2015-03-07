@@ -457,7 +457,10 @@ void nonEmptyMatchesAndPositions(const smatch &sm, vector<string> &matches,
     
 ExpressionSP Parser::parseExpr(const string &s)
 {
-  regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
+  //regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
+  //TODO: need to figure out how to get . to accept greeks
+  std::locale::global(std::locale("el_GR.UTF-8"));
+  regex rx{"([^\\+\\-\\n]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
   regex_match(s, sm, rx);
   vector<string> matches;
