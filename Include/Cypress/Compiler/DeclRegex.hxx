@@ -25,6 +25,13 @@ static inline std::regex& contrx()
   return *rx;
 }
 
+static inline std::regex& linkdeclrx()
+{
+  static std::regex *rx = 
+    new std::regex{"Link\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))"};
+  return *rx;
+}
+
 static inline std::regex& exprx()
 {
   static std::regex *rx = 

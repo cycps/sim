@@ -127,6 +127,7 @@ struct Decls
 {
   std::vector<ObjectSP> objects;
   std::vector<ControllerSP> controllers;
+  std::vector<LinkSP> links;
   std::vector<ExperimentSP> experiments;
   Decls & operator += (const Decls &b);
 };

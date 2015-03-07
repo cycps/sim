@@ -11,7 +11,7 @@
 
 namespace cypress { namespace compile {
 
-enum class DeclType { Object, Controller, Experiment };
+enum class DeclType { Object, Controller, Experiment, Link };
 enum class LineType { Decl, Code, Comment, Empty, SomethingElse };
 
 class Parser
@@ -40,6 +40,7 @@ class Parser
     size_t parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls);
     std::shared_ptr<Object> parseObject(size_t at, size_t &lc);
     std::shared_ptr<Controller> parseController(size_t at, size_t &lc);
+    LinkSP parseLink(size_t at, size_t &lc);
     std::shared_ptr<Experiment> parseExperiment(size_t at, size_t &lc);
     std::shared_ptr<Equation> parseEqtn(const std::string &);
     std::shared_ptr<Expression> parseExpr(const std::string &);
@@ -50,6 +51,8 @@ class Parser
         size_t column);
     std::shared_ptr<Pow> parsePow(const std::string &, const std::string &,
         size_t column);
+
+    void parseElementContent(ElementSP e, size_t at, size_t &lc);
 
     std::shared_ptr<Component> parseComponent(const std::string &);
     std::vector<ConnectionSP> parseConnectionStmt(const std::string &);

@@ -94,6 +94,13 @@ size_t Parser::parseDecl(size_t at, DeclType dt, shared_ptr<Decls> decls)
       decls->controllers.push_back(controller);
       return advance;
     }
+    
+    case DeclType::Link:
+    {
+      auto lnk = parseLink(at, advance);
+      decls->links.push_back(lnk);
+      return advance;
+    }
 
     case DeclType::Experiment: 
     {
@@ -113,8 +120,8 @@ LineType Parser::classifyLine(const string &s, DeclType &dt)
   return LineType::SomethingElse;
 }
 
-void extractParams(const string &s, vector<string> &ps, vector<size_t> &ss, 
-    size_t &sp)
+void extractParams(const string &s, vector<string> &params, 
+    vector<size_t> &param_pos, size_t &sp)
 {
   //remove parens
   ++sp;
@@ -122,16 +129,31 @@ void extractParams(const string &s, vector<string> &ps, vector<size_t> &ss,
 
   regex rx{"\\s*(" CHR "*.*)"};
 
-  ps = split(pstr, ',');
-  for(string &s : ps)
+  params = split(pstr, ',');
+  for(string &s : params)
   {
     smatch sm;
     regex_match(s, sm, rx);
     sp += sm.position(1); //skip whitespace
-    ss.push_back(sp);
+    param_pos.push_back(sp);
     sp += sm[1].str().length();
     ++sp; //comma
     s.erase(remove_if(s.begin(), s.end(), isspace), s.end());
+  }
+}
+
+void extractParams(ElementSP e, size_t at, const string &s, size_t &sp)
+{
+
+  vector<size_t> param_pos;
+  vector<string> params;
+  
+  extractParams(s, params, param_pos, sp);
+  
+  for(size_t i=0; i<params.size(); ++i)
+  {
+    e->params.push_back(
+        make_shared<Symbol>(params[i], at, param_pos[i]));
   }
 }
 
@@ -147,15 +169,13 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
   size_t sp = sm.position(2);
   string _pstr = sm[2];
 
-  vector<string> params;
-  vector<size_t> param_pos;
-  extractParams(sm[2], params, param_pos, sp);
-  for(size_t i=0; i<params.size(); ++i)
-  {
-    object->params.push_back(
-        make_shared<Symbol>(params[i], at, param_pos[i]));
-  }
+  extractParams(object, at, sm[2], sp);
+  parseElementContent(object, at, lc);
+  return object;
+}
 
+void Parser::parseElementContent(ElementSP e, size_t at, size_t &lc)
+{
   size_t idx = at+1;
   currline = idx;
   while(isCode(lines[idx]) || isEmpty(lines[idx]))
@@ -167,7 +187,7 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
       if(isEqtn(lines[idx])) 
       {
         EquationSP eqtn = parseEqtn(lines[idx]);
-        object->eqtns.push_back(eqtn);
+        e->eqtns.push_back(eqtn);
       }
     }
     ++idx; 
@@ -175,7 +195,24 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
     currline = idx;
   }
   lc = idx - at - 1;
-  return object;
+
+}
+
+LinkSP Parser::parseLink(size_t at, size_t &lc)
+{
+  smatch sm;
+  regex_match(lines[at], sm, linkdeclrx());
+  auto lnk =
+    make_shared<Link>(
+        make_shared<Symbol>(sm[1], currline, sm.position(1)),
+        currline, sm.position(0)
+        );
+
+  size_t sp = sm.position(2);
+  extractParams(lnk, at, sm[2], sp);
+  parseElementContent(lnk, at, lc);
+
+  return lnk;
 }
     
 ControllerSP Parser::parseController(size_t at, size_t &lc)
@@ -190,34 +227,8 @@ ControllerSP Parser::parseController(size_t at, size_t &lc)
 
   size_t sp = sm.position(2);
   
-  vector<string> params;
-  vector<size_t> param_pos;
-  extractParams(sm[2], params, param_pos, sp);
-  for(size_t i=0; i<params.size(); ++i)
-  {
-    controller->params.push_back(
-        make_shared<Symbol>(params[i], at, param_pos[i]));
-  }
-
-  size_t idx = at+1;
-  currline = idx;
-  while(isCode(lines[idx]) || isEmpty(lines[idx]))
-  { 
-    if(isEmpty(lines[idx])) {}
-    else if(isComment(lines[idx])) {}
-    else 
-    {
-      if(isEqtn(lines[idx])) 
-      {
-        EquationSP eqtn = parseEqtn(lines[idx]);
-        controller->eqtns.push_back(eqtn);
-      }
-    }
-    ++idx; 
-    if(idx >= lines.size()) break;
-    currline = idx;
-  }
-  lc = idx - at - 1;
+  extractParams(controller, at, sm[2], sp);
+  parseElementContent(controller, at, lc);
   return controller;
 }
 
@@ -368,15 +379,12 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 
 bool Parser::isDecl(const string &s, DeclType &dt)
 {
-  string Object{"Object"}, 
-         Controller{"Controller"},
-         Experiment{"Experiment"};
-
   smatch sm;
 
   if(regex_match(s, sm, objrx())) { dt = DeclType::Object; return true; }
   if(regex_match(s, sm, contrx())) { dt = DeclType::Controller; return true; }
   if(regex_match(s, sm, exprx())) { dt = DeclType::Experiment; return true; }
+  if(regex_match(s, sm, linkdeclrx())) { dt = DeclType::Link; return true; }
   
   return false;
 }
