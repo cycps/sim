@@ -3,7 +3,7 @@
 Object Rotor(H)
   w = theta'
   w' = tau - H*w^2
-  a = w'
+  //a = w'
 
 Controller RotorSpeedController(wt)
   a' = wt - w
