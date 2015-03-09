@@ -12,17 +12,20 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 
 using std::cout;
 using std::endl;
 using std::ofstream;
 using std::to_string;
+using std::runtime_error;
 using namespace cypress;
 
 extern ResidualClosure *rc;
 
 int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
 int FL(long int L, realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
+bool checkInitialConds();
 
 int main(int argc, char **argv)
 {
@@ -52,7 +55,7 @@ int main(int argc, char **argv)
 
   //TODO: Kill hardcode
   //tolerances
-  double rtl = 0,
+  double rtl = 1.0e-3,
          atl = 1.0e-3;
 
   //TODO: Kill hardcode
@@ -102,6 +105,13 @@ int main(int argc, char **argv)
     exit(1);
   }
 
+  bool init_ok = checkInitialConds();
+  if(!init_ok)
+  {
+    *rc->lg << "Bad Initial Conditions" << endl;
+    throw runtime_error("Bad Initial Conditions");
+  }
+
   //TODO: no hardcode step
   for(double tout=0.01, tret=0; tout<te; tout += 0.01)
   {
@@ -121,28 +131,27 @@ int main(int argc, char **argv)
   return 0;
 }
 
+bool checkInitialConds()
+{
+  realtype *r = (realtype*)malloc(sizeof(realtype) * rc->L());
+  rc->compute(r, 0);
+  bool ok{true};
+
+  *rc->lg << "Initial Check" << endl;
+  for(size_t i=0; i<rc->L(); ++i)
+  {
+    *rc->lg << "r[0]: " << r[i] << endl;  
+    if(std::abs(r[i]) > 1e-6) ok = false;
+  }
+  
+  return ok;
+}
+
 int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
 {
   ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
   rc->resolve();
   FL(rc->L(), t, y, dy, r, udata);
-
-
-  /*
-  *(rc->lg) << "-- ";
-  for(size_t i=0; i<rc->L(); ++i)
-  {
-    *(rc->lg) << rc->y[i] << ",";
-  }
-  *(rc->lg) << endl;
-  
-  *(rc->lg) << "++ ";
-  for(size_t i=0; i<rc->L(); ++i)
-  {
-    *(rc->lg) << rc->ry[i] << ",";
-  }
-  *(rc->lg) << endl;
-  */
 
   return 0;  
 }

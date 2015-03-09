@@ -7,12 +7,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-register"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp> 
-#pragma clang diagnostic pop
 #include <boost/lexical_cast.hpp>
 
 using namespace cypress;
@@ -127,7 +121,7 @@ void extractParams(const string &s, vector<string> &params,
   ++sp;
   string pstr = string(s.begin()+1, s.end()-1);
 
-  regex rx{"\\s*(" CHR "*.*)"};
+  regex rx{"\\s*([^\\)]*)"};
 
   params = split(pstr, ',');
   for(string &s : params)
@@ -311,8 +305,6 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     }
     else if(regex_match(links[i], sm, atodrx()))
     {
-      auto uuid = boost::uuids::random_generator()();
-      from_name = "AtoD::"+boost::lexical_cast<string>(uuid);
       from = make_shared<AtoD>(
           make_shared<Real>(stod(sm[1]), currline, sm.position(1))
         );
@@ -354,8 +346,6 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     }
     else if(regex_match(links[i+1], sm, atodrx()))
     {
-      auto uuid = boost::uuids::random_generator()();
-      to_name = "AtoD::"+boost::lexical_cast<string>(uuid);
       to = make_shared<AtoD>(
           make_shared<Real>(stod(sm[1]), currline, sm.position(1))
         );
@@ -459,10 +449,9 @@ ExpressionSP Parser::parseExpr(const string &s)
 {
   //regex rx{"([a-zA-Zα-ωΑ-Ω0-9'/\\*\\^ ]+)(?:([\\+\\-])(.*))?"};
   //TODO: need to figure out how to get . to accept greeks
-  std::locale::global(std::locale("el_GR.UTF-8"));
   regex rx{"([^\\+\\-\\n]+)(?:([\\+\\-])(.*))?"};
   smatch sm;
-  regex_match(s, sm, rx);
+  regex_search(s, sm, rx);
   vector<string> matches;
   vector<size_t> positions;
   TermSP lhs{nullptr};
@@ -488,7 +477,11 @@ ExpressionSP Parser::parseExpr(const string &s)
   }
   dr->diagnostics.push_back({
       Diagnostic::Level::Error,
-      "Malformed Expression: " + s,
+      "Malformed Expression: `" + s + "`",
+      currline, 2});
+  dr->diagnostics.push_back({
+      Diagnostic::Level::Info,
+      "Match Size: " + to_string(sm.size()),
       currline, 2});
   throw CompilationError{*dr};
 }

@@ -1,20 +1,20 @@
 //Cypress Rotor Controller Experiment
 
 Object Rotor(H)
-  ω = θ'
-  a = τ - H*ω^2
-  a = ω'
+  w = theta'
+  w' = tau - H*w^2
+  a = w'
 
-Controller RotorSpeedController(ωt)
-  a' = ωt - ω
-  τ = a
+Controller RotorSpeedController(wt)
+  a' = wt - w
+  tau = a
 
 Experiment RotorControl
-  Rotor rotor(H:2.5, ω|0, θ|0, θ'|0, a|2.1, τ|2.1, ω'|0)
-  RotorSpeedController ctrl(ωt:100, τ|0, a'|0)
+  Rotor rotor(H:2.5)
+  RotorSpeedController ctrl(wt:100)
   Link lnk0(Latency:5, Bandwidth:100)
   Link lnk1(Latency:10, Bandwidth:250)
 
-  rotor.ω > |0.01| > lnk0 > ctrl.ω 
-  ctrl.τ > lnk1 > rotor.τ
+  rotor.w > |0.01| > lnk0 > ctrl.w 
+  ctrl.tau > lnk1 > rotor.tau
 

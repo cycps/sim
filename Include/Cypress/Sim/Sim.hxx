@@ -30,7 +30,7 @@ struct Sim
   std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp>
     vars;
 
-  std::unordered_map<VarRefSP, double, VarRefSPHash, VarRefSPCmp> 
+  std::unordered_map<VarRefSP, double, VarRefSPNameHash, VarRefSPNameCmp> 
     initial_state,
     initial_trajectory;
 

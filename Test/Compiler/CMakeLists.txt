@@ -6,3 +6,12 @@ target_link_libraries(RotorParserTests
   CypressC
   CypressCore
 )
+
+add_executable(RotorLinkTests RotorLinkTests.cxx)
+
+target_link_libraries(RotorLinkTests
+  gtest 
+  gtest_main
+  CypressC
+  CypressCore
+)

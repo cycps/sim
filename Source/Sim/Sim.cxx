@@ -262,7 +262,7 @@ void Sim::buildInitials()
       if(p.first->kind() == VarRef::Kind::Normal)
         initial_state[p.first] = p.second->value;
 
-      if(p.first->kind() == VarRef::Kind::Derivative)
+      else if(p.first->kind() == VarRef::Kind::Derivative)
         initial_trajectory[p.first] = p.second->value;
     }
   }

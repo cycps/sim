@@ -167,13 +167,13 @@ void Driver::createCypk()
     ofs
       << "clang++ -std=c++11 " 
       << "Cnode"<<i<<".cxx "
-      << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
+      << cyhome << "/Source/Sim/ComputeNodeDirectMain.cxx "
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "
       << "-L" << "/usr/local/lib "
       << "-lmpi "
       << "-lsundials_ida "
-      << "-lsundials_nvecparallel "
+      << "-lsundials_nvecserial "
       << "-o " << "rcomp" << i << endl;
   }
   ofs.close();
