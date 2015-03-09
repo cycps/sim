@@ -38,6 +38,7 @@ struct Element : public Decl
   SymbolSP name;
   std::vector<SymbolSP> params;
   std::vector<EquationSP> eqtns; 
+  std::vector<BoundSP> bounds;
   Element(SymbolSP name, size_t line, size_t column) 
     : Decl{line, column}, name{name} {}
 };

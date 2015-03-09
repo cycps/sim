@@ -183,6 +183,16 @@ void Parser::parseElementContent(ElementSP e, size_t at, size_t &lc)
         EquationSP eqtn = parseEqtn(lines[idx]);
         e->eqtns.push_back(eqtn);
       }
+      if(isBound(lines[idx]))
+      {
+        //TODO: You are here
+        dr->diagnostics.push_back({
+            Diagnostic::Level::Error,
+            "Bound variables not implemented yet",
+            currline, 2
+        });
+        throw CompilationError{*dr};
+      }
     }
     ++idx; 
     if(idx >= lines.size()) break;
@@ -400,6 +410,12 @@ bool Parser::isEmpty(const string &s)
 bool Parser::isEqtn(const string &s)
 {
   regex rx{".*=.*"};
+  return regex_match(s, rx);
+}
+
+bool Parser::isBound(const string &s)
+{
+  regex rx{"([^<|>]*)(<|>|\\|>|\\|<)(.*)"};
   return regex_match(s, rx);
 }
 

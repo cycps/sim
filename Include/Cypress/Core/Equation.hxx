@@ -24,6 +24,7 @@ namespace cypress
   struct Term;          using TermSP = std::shared_ptr<Term>;
   struct Factor;        using FactorSP = std::shared_ptr<Factor>;
   struct Atom;          using AtomSP = std::shared_ptr<Atom>;
+  struct Bound;         using BoundSP = std::shared_ptr<Bound>;
 }
 
 namespace cypress 
@@ -156,13 +157,13 @@ struct CCVar : public Atom, public std::enable_shared_from_this<CCVar>
   ExpressionSP clone() override;
 };
 
-struct Differentiate : public Factor, 
+struct Differentiate : public Atom, 
                        public std::enable_shared_from_this<Differentiate>
 {
   SymbolSP arg;
   Kind kind() const{ return Kind::Differentiate; }
   Differentiate(SymbolSP arg, size_t line, size_t column) 
-    : Factor{line, column}, arg{arg} {}
+    : Atom{line, column}, arg{arg} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -203,6 +204,13 @@ struct Equation : public ASTNode,
   void accept(Visitor &v) override;
   EquationSP clone() override;
   using ASTNode::ASTNode;
+};
+
+struct Bound : public Lexeme
+{
+  enum class Kind { LT, AbsLT, GT, AbsGT };
+  Kind kind;
+  AtomSP lhs{nullptr}, rhs{nullptr};
 };
 
 

@@ -7,6 +7,7 @@ Object Rotor(H)
 
 Controller RotorSpeedController(wt)
   a' = wt - w
+  a' |< 0.4
   tau = a
 
 Experiment RotorControl

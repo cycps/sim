@@ -36,6 +36,7 @@ class Parser
     bool isComment(const std::string &);
     bool isEmpty(const std::string &);
     bool isEqtn(const std::string &);
+    bool isBound(const std::string &);
 
     size_t parseDecl(size_t at, DeclType dt, std::shared_ptr<Decls> decls);
     ObjectSP parseObject(size_t at, size_t &lc);
