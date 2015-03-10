@@ -188,6 +188,8 @@ struct EqtnPrinter : public Visitor
   void leave(CVarSP) override;
   void visit(CCVarSP) override;
   void leave(CCVarSP) override;
+  void visit(BoundVarSP) override;
+  void leave(BoundVarSP) override;
 };
 
 struct CxxResidualFuncBuilder : public Visitor

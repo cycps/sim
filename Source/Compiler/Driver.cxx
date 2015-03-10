@@ -126,6 +126,34 @@ void Driver::checkSemantics()
   }
 }
 
+void Driver::applyBounds()
+{
+  vector<ElementSP> elems;
+
+  elems.insert(elems.end(), 
+      decls->objects.begin(), 
+      decls->objects.end());
+
+  elems.insert(elems.end(), 
+      decls->controllers.begin(), 
+      decls->controllers.end());
+
+  //VarLifter<BoundedVar> vl;
+  for(ElementSP e : elems)
+  {
+    for(BoundSP b : e->bounds)
+    {
+      VarLifter<BoundVar> vl(b->lhs->varname());
+      if(b->lhs->kind() == Expression::Kind::Differentiate)
+        vl.lifts_vars = false,
+        vl.lifts_derivs = true;
+
+      for(EquationSP eq: e->eqtns) eq->accept(vl);
+    }
+  }
+
+}
+
 void Driver::parseSource(const std::string src)
 {
   Parser p(src, dr);

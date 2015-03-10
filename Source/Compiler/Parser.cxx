@@ -475,8 +475,32 @@ BoundSP Parser::parseBound(const std::string &s)
   lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
   rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
 
-  bound->lhs = parseAtom(lhs, sm.position(1));
-  bound->rhs = parseAtom(rhs, sm.position(3));
+  AtomSP atm = parseAtom(lhs, sm.position(1));
+  if(atm->kind() != Expression::Kind::Symbol &&
+      atm->kind() != Expression::Kind::Differentiate)
+  {
+    //TODO: This should be a semanitky thing?
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "a bounding target must be a variable or derivative",
+        currline, static_cast<size_t>(sm.position(1))
+    });
+    throw CompilationError{*dr};
+  }
+  bound->lhs = std::static_pointer_cast<VarType>(atm);
+
+  atm = parseAtom(rhs, sm.position(3));
+  if(atm->kind() != Expression::Kind::Real)
+  {
+    //TODO: This should be a semanitky thing?
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "a bound must be a real number",
+        currline, static_cast<size_t>(sm.position(3))
+    });
+    throw CompilationError{*dr};
+  }
+  bound->rhs = std::static_pointer_cast<Real>(atm);
 
   return bound;
 }

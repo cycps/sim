@@ -123,6 +123,7 @@ struct Pow : public Factor, public std::enable_shared_from_this<Pow>
 struct VarType : public Atom
 {
   using Atom::Atom;
+  virtual std::string varname() = 0;
 };
 
 struct Symbol : public VarType, public std::enable_shared_from_this<Symbol>
@@ -133,6 +134,7 @@ struct Symbol : public VarType, public std::enable_shared_from_this<Symbol>
     : VarType{line, column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
+  std::string varname() override { return value; }
 };
 
 struct SymbolHash
@@ -183,6 +185,7 @@ struct Differentiate : public VarType,
     : VarType{line, column}, arg{arg} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
+  std::string varname() override { return arg->value; }
 };
 
 struct Real : public Atom, public std::enable_shared_from_this<Real>
@@ -227,7 +230,8 @@ struct Bound : public Lexeme
 {
   enum class Kind { LT, AbsLT, GT, AbsGT };
   Kind kind;
-  AtomSP lhs{nullptr}, rhs{nullptr};
+  VarTypeSP lhs{nullptr};
+  RealSP rhs{nullptr};
   using Lexeme::Lexeme;
 };
 
@@ -318,10 +322,10 @@ void applyParameter(EquationSP, std::string symbol_name, double value);
 template<class Lifter>
 struct VarLifter : public Visitor
 {
-  bool lifts_derivs;
+  bool lifts_derivs{false}, lifts_vars{true};
   std::string symbol_name;
-  VarLifter(bool lifts_derivs, std::string symbol_name)
-    : lifts_derivs{lifts_derivs}, symbol_name{symbol_name}
+  VarLifter(std::string symbol_name)
+    : symbol_name{symbol_name}
   {}
   void visit(EquationSP) override;
   void visit(AddSP) override;
@@ -340,7 +344,6 @@ struct VarLifter : public Visitor
   template<class Kinded>
   void lift(std::shared_ptr<Kinded>*, std::string symbol_name);
 };
-  
 
 void liftControlledVars(EquationSP, std::string symbol_name);
 

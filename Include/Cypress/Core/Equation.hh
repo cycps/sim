@@ -47,7 +47,7 @@ void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x,
   if((*x)->kind() == Expression::Kind::Symbol)
   {
     auto symb = std::static_pointer_cast<Symbol>(*x);
-    if(symb->value == symbol_name)
+    if(lifts_vars && symb->value == symbol_name)
     {
       *x = std::make_shared<Lifter>(symb);
     }

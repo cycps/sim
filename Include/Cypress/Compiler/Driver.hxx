@@ -27,6 +27,7 @@ class Driver
     void parseInput();
     void parseSource(const std::string src);
     void checkSemantics();
+    void applyBounds();
     void buildSim(size_t);
     void createCypk();
 
