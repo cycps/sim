@@ -14,6 +14,7 @@
 #include <string>
 
 using namespace cypress::compile;
+using namespace cypress::sim;
 namespace po = boost::program_options;
 using std::cout;
 using std::endl;
@@ -162,7 +163,7 @@ void Driver::parseSource(const std::string src)
 
 void Driver::buildSim(size_t N)
 {
-  sim = make_shared<Sim>(decls->objects, decls->controllers, decls->experiments[0]); 
+  sim = make_shared<Sim>(decls->objects, decls->experiments[0]); 
   sim->buildPhysics();
   sim_ex = sim->buildSimEx(N);
 }
@@ -207,7 +208,6 @@ void Driver::createCypk()
   ofs.close();
     
   chmod(brs.c_str(), strtol("0755", 0, 8));
-
 }
 
 void Driver::compileSource(const string &src)
@@ -232,7 +232,7 @@ void Driver::compileSource(const string &src)
 
     if(dr.catastrophic()) exit(1);
 
-    Sim sim(decls->objects, decls->controllers, exp); 
+    Sim sim(decls->objects, exp); 
     sim.buildPhysics();
     SimEx sx = sim.buildSimEx(1);
 

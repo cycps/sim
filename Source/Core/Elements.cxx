@@ -78,6 +78,17 @@ RealSP Component::initialValue(string s, VarRef::Kind k)
   throw runtime_error{"Component: Undefined initial value requested: " + symb};
 }
 
+void Component::applyParameters()
+{
+  for(auto p: params)
+  {
+    for(EquationSP eq: element->eqtns)
+    {
+      applyParameter(eq, p.first->value, p.second->value);
+    }
+  }
+}
+
 
 //Free functions over elements ================================================
 void cypress::setEqtnsToZero(ElementSP e)

@@ -72,6 +72,8 @@ struct Component : public Lexeme
 
   RealSP parameterValue(std::string);
   RealSP initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
+  
+  void applyParameters();
 };
 
 struct Connectable 

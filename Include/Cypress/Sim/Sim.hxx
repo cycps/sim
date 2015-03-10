@@ -12,8 +12,7 @@
 #include <string>
 #include <sstream>
 
-namespace cypress
-{
+namespace cypress { namespace sim {
 
 struct Sim; using SimSP = std::shared_ptr<Sim>;
 struct SimEx; using SimExSP = std::shared_ptr<SimEx>;
@@ -21,38 +20,23 @@ struct SimEx; using SimExSP = std::shared_ptr<SimEx>;
 struct Sim
 {
   std::vector<std::shared_ptr<Object>> objects;
-  std::vector<std::shared_ptr<Controller>> controllers;
   std::shared_ptr<Experiment> exp;
-
-  std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp>
-    controlled_vars;
-
-  std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp>
-    vars;
-
+  std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp> controlled_vars;
+  std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp> vars;
+  std::unordered_multimap<ComponentSP, EquationSP> psys;
   std::unordered_map<VarRefSP, double, VarRefSPNameHash, VarRefSPNameCmp> 
     initial_state,
     initial_trajectory;
 
-  std::unordered_multimap<ComponentSP, EquationSP> psys;
-
-  Sim(std::vector<std::shared_ptr<Object>>,
-      std::vector<std::shared_ptr<Controller>>,
-      std::shared_ptr<Experiment>);
+  Sim(std::vector<std::shared_ptr<Object>>, std::shared_ptr<Experiment>);
 
   void buildPhysics();
   void buildSystemEquations();
-
-  void applyComponentParameters();
   void buildSymbolSet();
   void buildInitials();
-
   void addCVarResiduals();
   void addObjectToSim(ComponentSP);
-  void addControllerToSim(ComponentSP);
-
-  void addControllerRefToSim(SubComponentRefSP);
-
+  void liftControlledSimVars(SubComponentRefSP);
   SimEx buildSimEx(size_t);
   std::vector<RVar> mapVariables(std::vector<ComputeNode> &);
   std::vector<REqtn> mapEquations(std::vector<ComputeNode> &);
@@ -78,6 +62,6 @@ struct EqtnVarCollector : Visitor
     void leave(CVarSP) override;
 };
 
-}
+}} //::cypress::sim
 
 #endif

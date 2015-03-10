@@ -6,8 +6,10 @@
 #include <unordered_map>
 #include <algorithm>
 #include <array>
+#include <iostream>
 
 using namespace cypress;
+using namespace cypress::sim;
 using std::vector;
 using std::runtime_error;
 using std::make_shared;
@@ -22,9 +24,8 @@ using std::array;
 
 //Cypress::Sim ----------------------------------------------------------------
 
-Sim::Sim( vector<ObjectSP> objects, vector<ControllerSP> controllers,
-    ExperimentSP exp) 
-  : objects{objects}, controllers{controllers}, exp{exp}
+Sim::Sim( vector<ObjectSP> objects, ExperimentSP exp) 
+  : objects{objects}, exp{exp}
 { }
 
 void Sim::addObjectToSim(ComponentSP c)
@@ -35,15 +36,6 @@ void Sim::addObjectToSim(ComponentSP c)
     setToZero(cpy);
     psys.insert({c, cpy});
   }
-}
-
-#include <iostream>
-void Sim::addControllerToSim(ComponentSP c)
-{
-  std::cout << "adding controller " 
-            << c->name->value << " :: "
-            << c->kind->value << std::endl;
-
 }
 
 //TODO: This should be a semantic action?
@@ -58,7 +50,7 @@ VarRefSP getControlled(ConnectableSP c)
   return make_shared<VarRef>(x->component, x->subname->value);
 }
 
-void Sim::addControllerRefToSim(SubComponentRefSP c)
+void Sim::liftControlledSimVars(SubComponentRefSP c)
 {
   VarRefSP under_control = getControlled(c);
 
@@ -84,7 +76,7 @@ void Sim::buildSystemEquations()
       auto sc = static_pointer_cast<SubComponentRef>(cx->from);
       if(isa(sc->component->element, Decl::Kind::Controller))
       {
-        addControllerRefToSim(sc); 
+        liftControlledSimVars(sc); 
       }
     }
   }
@@ -92,40 +84,17 @@ void Sim::buildSystemEquations()
   addCVarResiduals();
 }
 
-void Sim::applyComponentParameters()
-{
-  for(ComponentSP c : exp->components)
-  {
-    //if(c->element->kind() != Decl::Kind::Object) continue;
-
-    //ObjectSP o = std::static_pointer_cast<Object>(c->element);
-
-    for(auto p: c->params)
-    {
-      std::cout << c->name->value << ": " 
-        << p.first->value << " --> " << p.second->value
-        << std::endl;
-
-      for(EquationSP eq: c->element->eqtns)
-      {
-        applyParameter(eq, p.first->value, p.second->value);
-      }
-    }
-  }
-}
-
 void Sim::buildPhysics()
 {
-  applyComponentParameters();
+  for(ComponentSP c : exp->components) c->applyParameters();
   buildSymbolSet();
   buildInitials();
-  
   buildSystemEquations();
 }
 
 SimEx Sim::buildSimEx(size_t N)
 {
-  SimEx sx{psys.size(), 1e-4, 1e-6}; 
+  SimEx sx{psys.size()}; 
   sx.computeNodes = buildComputeTopology(N);
   for(ComputeNode &c: sx.computeNodes) 
     sx.computeNodeSources.push_back(c.emitSource());

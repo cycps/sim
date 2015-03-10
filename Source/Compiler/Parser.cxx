@@ -185,17 +185,8 @@ void Parser::parseElementContent(ElementSP e, size_t at, size_t &lc)
       }
       if(isBound(lines[idx]))
       {
-        //TODO: You are here
         BoundSP bound = parseBound(lines[idx]);
         e->bounds.push_back(bound);
-        /*
-        dr->diagnostics.push_back({
-            Diagnostic::Level::Error,
-            "Bound variables not implemented yet",
-            currline, 2
-        });
-        throw CompilationError{*dr};
-        */
       }
     }
     ++idx; 

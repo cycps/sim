@@ -29,13 +29,14 @@ class Driver
     void checkSemantics();
     void applyBounds();
     void buildSim(size_t);
+    void buildControlSystem();
     void createCypk();
 
     std::shared_ptr<Decls> decls;
 
     DiagnosticReport dr;
-    SimSP sim{nullptr};
-    SimEx sim_ex;
+    sim::SimSP sim{nullptr};
+    sim::SimEx sim_ex;
 
   private:
     void buildInvocationOptionDescriptions();
