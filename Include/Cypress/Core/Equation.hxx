@@ -166,10 +166,10 @@ struct CCVar : public Atom, public std::enable_shared_from_this<CCVar>
 
 struct BoundVar : public Atom, public std::enable_shared_from_this<BoundVar>
 {
-  SymbolSP value;
+  VarTypeSP value;
   BoundSP bound;
   Kind kind() const{ return Kind::BoundVar; }
-  BoundVar(SymbolSP value) : Atom{value->line, value->column}, value{value} {}
+  BoundVar(VarTypeSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -318,7 +318,11 @@ void applyParameter(EquationSP, std::string symbol_name, double value);
 template<class Lifter>
 struct VarLifter : public Visitor
 {
+  bool lifts_derivs;
   std::string symbol_name;
+  VarLifter(bool lifts_derivs, std::string symbol_name)
+    : lifts_derivs{lifts_derivs}, symbol_name{symbol_name}
+  {}
   void visit(EquationSP) override;
   void visit(AddSP) override;
   void visit(SubtractSP) override;
@@ -326,19 +330,17 @@ struct VarLifter : public Visitor
   void visit(DivideSP) override;
   void visit(PowSP) override;
   void visit(SubExpressionSP) override;
+
+  template<class BinOp>
+  void liftBinary(std::shared_ptr<BinOp>, std::string symbol_name);
+
+  template<class UnOp>
+  void liftUnary(std::shared_ptr<UnOp>, std::string symbol_name);
+
+  template<class Kinded>
+  void lift(std::shared_ptr<Kinded>*, std::string symbol_name);
 };
   
-template<class Lifter, class BinOp>
-void liftBinary(std::shared_ptr<BinOp>, std::string symbol_name,
-    bool lift_deriv=false);
-
-template<class Lifter, class UnOp>
-void liftUnary(std::shared_ptr<UnOp>, std::string symbol_name,
-    bool lift_deriv=false);
-
-template<class Lifter, class Kinded>
-void lift(std::shared_ptr<Kinded>*, std::string symbol_name, 
-    bool lift_deriv=false);
 
 void liftControlledVars(EquationSP, std::string symbol_name);
 

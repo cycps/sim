@@ -288,8 +288,7 @@ void cypress::applyParameter(EquationSP eq, string symbol_name, double value)
 
 void cypress::liftControlledVars(EquationSP eq, string symbol_name)
 {
-  VarLifter<CVar> cvl;
-  cvl.symbol_name = symbol_name;
+  VarLifter<CVar> cvl(false, symbol_name);
   eq->accept(cvl);
 }
 

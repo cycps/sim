@@ -293,20 +293,6 @@ struct VarExtractorFactory
   }
 };
 
-/*
-struct BoundLifter : public Visitor
-{
-  BoundSP bound;
-  void visit(EquationSP) override;
-  void visit(AddSP) override;
-  void visit(SubtractSP) override;
-  void visit(MultiplySP) override;
-  void visit(DivideSP) override;
-  void visit(PowSP) override;
-  void visit(SubExpressionSP) override;
-};
-*/
-
 }
 
 #endif

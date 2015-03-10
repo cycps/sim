@@ -22,23 +22,27 @@ void EqtnParametizer::parametize(std::shared_ptr<Kinded> *x)
 }
 
 //CVarLifter ------------------------------------------------------------------
-template<class Lifter, class BinOp>
-void liftBinary(std::shared_ptr<BinOp> x, std::string symbol_name, 
-    bool lift_deriv)
+template<class Lifter>
+template<class BinOp>
+void VarLifter<Lifter>::liftBinary(std::shared_ptr<BinOp> x, 
+    std::string symbol_name)
 {
-  lift<Lifter>(&(x->lhs), symbol_name, lift_deriv);
-  lift<Lifter>(&(x->rhs), symbol_name, lift_deriv);
+  lift(&(x->lhs), symbol_name);
+  lift(&(x->rhs), symbol_name);
 }
 
-template<class Lifter, class UnOp>
-void liftUnary(std::shared_ptr<UnOp> x, std::string symbol_name, 
-    bool lift_deriv)
+template<class Lifter>
+template<class UnOp>
+void VarLifter<Lifter>::liftUnary(std::shared_ptr<UnOp> x, 
+    std::string symbol_name)
 {
-  lift<Lifter>(&(x->value), symbol_name, lift_deriv);
+  lift(&(x->value), symbol_name);
 }
 
-template<class Lifter, class Kinded>
-void lift(std::shared_ptr<Kinded> *x, std::string symbol_name, bool lift_deriv)
+template<class Lifter>
+template<class Kinded>
+void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x, 
+    std::string symbol_name)
 {
   if((*x)->kind() == Expression::Kind::Symbol)
   {
@@ -48,7 +52,7 @@ void lift(std::shared_ptr<Kinded> *x, std::string symbol_name, bool lift_deriv)
       *x = std::make_shared<Lifter>(symb);
     }
   }
-  else if(lift_deriv && ((*x)->kind() == Expression::Kind::Differentiate))
+  else if(lifts_derivs && ((*x)->kind() == Expression::Kind::Differentiate))
   {
     auto dif = std::static_pointer_cast<Differentiate>(*x);
     if(dif->arg->value == symbol_name)
@@ -62,43 +66,43 @@ void lift(std::shared_ptr<Kinded> *x, std::string symbol_name, bool lift_deriv)
 template<class Lifter>
 void VarLifter<Lifter>::visit(EquationSP ep)
 {
-  liftBinary<Lifter>(ep, symbol_name);
+  liftBinary(ep, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(AddSP ap)
 {
-  liftBinary<Lifter>(ap, symbol_name);
+  liftBinary(ap, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(SubtractSP sp)
 {
-  liftBinary<Lifter>(sp, symbol_name);
+  liftBinary(sp, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(MultiplySP mp)
 {
-  liftBinary<Lifter>(mp, symbol_name);
+  liftBinary(mp, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(DivideSP dp)
 {
-  liftBinary<Lifter>(dp, symbol_name);
+  liftBinary(dp, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(PowSP pp)
 {
-  liftBinary<Lifter>(pp, symbol_name);
+  liftBinary(pp, symbol_name);
 }
 
 template<class Lifter>
 void VarLifter<Lifter>::visit(SubExpressionSP sp)
 {
-  liftUnary<Lifter>(sp, symbol_name);  
+  liftUnary(sp, symbol_name);  
 }
 
 }
