@@ -285,45 +285,10 @@ void cypress::applyParameter(EquationSP eq, string symbol_name, double value)
   eq->accept(eqp);
 }
 
-//CVarLifter ------------------------------------------------------------------
-void CVarLifter::visit(EquationSP ep)
-{
-  liftBinary<CVar>(ep, symbol_name, false);
-}
-
-void CVarLifter::visit(AddSP ap)
-{
-  liftBinary<CVar>(ap, symbol_name);
-}
-
-void CVarLifter::visit(SubtractSP sp)
-{
-  liftBinary<CVar>(sp, symbol_name);
-}
-
-void CVarLifter::visit(MultiplySP mp)
-{
-  liftBinary<CVar>(mp, symbol_name);
-}
-
-void CVarLifter::visit(DivideSP dp)
-{
-  liftBinary<CVar>(dp, symbol_name);
-}
-
-void CVarLifter::visit(PowSP pp)
-{
-  liftBinary<CVar>(pp, symbol_name);
-}
-
-void CVarLifter::visit(SubExpressionSP sp)
-{
-  liftUnary<CVar>(sp, symbol_name);  
-}
 
 void cypress::liftControlledVars(EquationSP eq, string symbol_name)
 {
-  CVarLifter cvl;
+  VarLifter<CVar> cvl;
   cvl.symbol_name = symbol_name;
   eq->accept(cvl);
 }

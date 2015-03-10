@@ -58,4 +58,47 @@ void lift(std::shared_ptr<Kinded> *x, std::string symbol_name, bool lift_deriv)
   }
 }
 
+//VarLifter ------------------------------------------------------------------
+template<class Lifter>
+void VarLifter<Lifter>::visit(EquationSP ep)
+{
+  liftBinary<Lifter>(ep, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(AddSP ap)
+{
+  liftBinary<Lifter>(ap, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(SubtractSP sp)
+{
+  liftBinary<Lifter>(sp, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(MultiplySP mp)
+{
+  liftBinary<Lifter>(mp, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(DivideSP dp)
+{
+  liftBinary<Lifter>(dp, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(PowSP pp)
+{
+  liftBinary<Lifter>(pp, symbol_name);
+}
+
+template<class Lifter>
+void VarLifter<Lifter>::visit(SubExpressionSP sp)
+{
+  liftUnary<Lifter>(sp, symbol_name);  
+}
+
 }

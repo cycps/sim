@@ -315,7 +315,8 @@ struct EqtnParametizer : public Visitor
 void applyParameter(EquationSP, std::string symbol_name, double value);
 
 //Controlled variable lifting -------------------------------------------------
-struct CVarLifter : public Visitor
+template<class Lifter>
+struct VarLifter : public Visitor
 {
   std::string symbol_name;
   void visit(EquationSP) override;
