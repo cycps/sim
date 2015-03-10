@@ -3,7 +3,7 @@ target_link_libraries(CypressC
   ${Boost_PROGRAM_OPTIONS_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
-  CypressCore CypressSim)
+  CypressCore CypressSim CypressControl)
 
 add_executable(cyc main.cxx)
 target_link_libraries(cyc CypressC)

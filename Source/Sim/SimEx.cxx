@@ -18,5 +18,8 @@ using std::runtime_error;
 using std::stol;
 using std::stod;
 
-SimEx::SimEx(size_t neq) : neq{neq} {}
-
+void SimEx::emitSources()
+{
+  for(ComputeNode &c: computeNodes) 
+    computeNodeSources.push_back(c.emitSource());
+}

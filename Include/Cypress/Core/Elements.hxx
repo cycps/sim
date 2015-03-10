@@ -154,8 +154,12 @@ setEqtnsToZero(ElementSP);
 ElementSP
 qualifyEqtns(ElementSP);
 
+/*
 std::vector<SubComponentRefSP>
 findControlledSubComponents(ExperimentSP);
+*/
+
+VarRefSP getControlled(ConnectableSP c);
 
 //Element Visitors ------------------------------------------------------------
 struct EqtnQualifier : public Visitor
@@ -192,6 +196,8 @@ struct EqtnPrinter : public Visitor
   void leave(CCVarSP) override;
   void visit(BoundVarSP) override;
   void leave(BoundVarSP) override;
+  void visit(IOVarSP) override;
+  void leave(IOVarSP) override;
 };
 
 struct CxxResidualFuncBuilder : public Visitor

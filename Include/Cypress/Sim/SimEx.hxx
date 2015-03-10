@@ -11,12 +11,10 @@ namespace cypress { namespace sim {
 
 struct SimEx
 {
-  size_t neq;
   std::vector<ComputeNode> computeNodes;
   std::vector<std::string> computeNodeSources;
 
-  SimEx() = default;
-  explicit SimEx(size_t neq);
+  void emitSources();
 };
 
 }} //::cypress::sim

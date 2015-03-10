@@ -15,6 +15,7 @@
 
 using namespace cypress::compile;
 using namespace cypress::sim;
+using namespace cypress::control;
 namespace po = boost::program_options;
 using std::cout;
 using std::endl;
@@ -145,6 +146,10 @@ void Driver::applyBounds()
     for(BoundSP b : e->bounds)
     {
       VarLifter<BoundVar> vl(b->lhs->varname());
+
+      vl.onlift =
+        [b](BoundVarSP bv){ bv->bound = b; };
+
       if(b->lhs->kind() == Expression::Kind::Differentiate)
         vl.lifts_vars = false,
         vl.lifts_derivs = true;
@@ -166,6 +171,13 @@ void Driver::buildSim(size_t N)
   sim = make_shared<Sim>(decls->objects, decls->experiments[0]); 
   sim->buildPhysics();
   sim_ex = sim->buildSimEx(N);
+}
+
+void Driver::buildControlSystem()
+{
+  ctrlsys = make_shared<ControlSystem>(decls->controllers, 
+                                       decls->experiments[0]);
+  ctrlsys->buildControlNodes();
 }
     
 void Driver::createCypk()

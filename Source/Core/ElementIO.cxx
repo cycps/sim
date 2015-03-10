@@ -182,6 +182,18 @@ void cypress::showExpr(size_t indent, ostream &o, const Expression &expr)
       break;
     }
 
+    case Expression::Kind::IOVar:
+    {
+      auto &iv = static_cast<const IOVar &>(expr);
+      switch(iv.iokind)
+      {
+        case IOVar::IOKind::Input: o << I << "|In|" << endl; break;
+        case IOVar::IOKind::Output: o << I << "|Out|" << endl; break;
+      }
+      showExpr(indent+2, o, *iv.value);
+      break;
+    }
+
     case Expression::Kind::Symbol: o << I 
                                      << static_cast<const Symbol&>(expr).value 
                                      << endl; break;

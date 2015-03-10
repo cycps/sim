@@ -162,7 +162,25 @@ void BoundVar::accept(Visitor &v)
 
 ExpressionSP BoundVar::clone()
 {
-  return make_shared<BoundVar>(static_pointer_cast<Symbol>(value->clone()));
+  auto bv = make_shared<BoundVar>(static_pointer_cast<Symbol>(value->clone()));
+  bv->bound = bound;
+  return bv;
+}
+
+//IOVar -----------------------------------------------------------------------
+void IOVar::accept(Visitor &v)
+{
+  v.visit(shared_from_this());
+  value->accept(v);
+  v.in(shared_from_this());
+  v.leave(shared_from_this());
+}
+
+ExpressionSP IOVar::clone()
+{
+  auto iov = make_shared<IOVar>(static_pointer_cast<Symbol>(value->clone()));
+  iov->iokind = iokind;
+  return iov;
 }
 
 //Differentiate ---------------------------------------------------------------

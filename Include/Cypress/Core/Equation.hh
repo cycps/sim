@@ -44,12 +44,15 @@ template<class Kinded>
 void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x, 
     std::string symbol_name)
 {
+  std::shared_ptr<Lifter> lifted{nullptr};
   if((*x)->kind() == Expression::Kind::Symbol)
   {
     auto symb = std::static_pointer_cast<Symbol>(*x);
     if(lifts_vars && symb->value == symbol_name)
     {
-      *x = std::make_shared<Lifter>(symb);
+      lifted = std::make_shared<Lifter>(symb);
+      *x = lifted;
+      onlift(lifted);
     }
   }
   else if(lifts_derivs && ((*x)->kind() == Expression::Kind::Differentiate))
@@ -57,7 +60,9 @@ void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x,
     auto dif = std::static_pointer_cast<Differentiate>(*x);
     if(dif->arg->value == symbol_name)
     {
-      *x = std::make_shared<Lifter>(dif);
+      lifted = std::make_shared<Lifter>(dif);
+      *x = lifted;
+      onlift(lifted);
     }
   }
 }

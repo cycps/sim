@@ -101,6 +101,7 @@ ElementSP cypress::qualifyEqtns(ElementSP e)
   return e;
 }
 
+/*
 vector<SubComponentRefSP>
 cypress::findControlledSubComponents(ExperimentSP)
 {
@@ -109,6 +110,28 @@ cypress::findControlledSubComponents(ExperimentSP)
   //TODO: When you get to links
   
   return result;
+}
+*/
+
+//TODO: This should be a semantic action?
+VarRefSP cypress::getControlled(ConnectableSP c)
+{
+  if(c->neighbor != nullptr) return getControlled(c->neighbor);
+
+  /*
+  if(c->kind() != Connectable::Kind::SubComponent)
+    throw runtime_error{"invalid variable flow"};
+    */
+
+  if(c->kind() == Connectable::Kind::Component)
+    throw runtime_error{"Control ends at component: `" +
+      std::static_pointer_cast<ComponentRef>(c)->name->value + "`"};
+
+  if(c->kind() == Connectable::Kind::AtoD)
+    throw runtime_error{"Control ends at AtoD converter"};
+
+  auto x = std::static_pointer_cast<SubComponentRef>(c);
+  return make_shared<VarRef>(x->component, x->subname->value);
 }
 
 // EqtnQualifier --------------------------------------------------------------
@@ -231,14 +254,35 @@ void EqtnPrinter::leave(CCVarSP)
   ss << "}";
 }
 
-void EqtnPrinter::visit(BoundVarSP)
+#include <iostream>
+void EqtnPrinter::visit(BoundVarSP x)
 {
-  ss << "|";
+  string t;
+  switch(x->bound->kind)
+  {
+    case Bound::Kind::LT: t = "<"; break;
+    case Bound::Kind::AbsLT: t = "|<"; break;
+    case Bound::Kind::GT: t = ">"; break;
+    case Bound::Kind::AbsGT: t = "|>"; break;
+      
+  }
+  ss << "[" << t << x->bound->rhs->value << "|";
 }
 
 void EqtnPrinter::leave(BoundVarSP)
 {
-  ss << "|";
+  ss << "]";
+}
+
+void EqtnPrinter::visit(IOVarSP x)
+{
+  string t = x->iokind == IOVar::IOKind::Input ? "i" : "o";
+  ss << "[" << t << "|";
+}
+
+void EqtnPrinter::leave(IOVarSP)
+{
+  ss << "]";
 }
 
 //Cypress::CxxResidualFuncBuilder ---------------------------------------------

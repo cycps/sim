@@ -279,6 +279,7 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 
   unordered_map<string, ConnectableSP> table;
   vector<ConnectionSP> lnks;
+  AtoDSP a2d{nullptr};
   smatch sm;
   for(size_t i=0; i<links.size()-1; ++i)
   {
@@ -310,9 +311,20 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
     }
     else if(regex_match(links[i], sm, atodrx()))
     {
+      /*
       from = make_shared<AtoD>(
           make_shared<Real>(stod(sm[1]), currline, sm.position(1))
         );
+        */
+      from = a2d;
+      if(from == nullptr)
+      {
+        dr->diagnostics.push_back({
+            Diagnostic::Level::Error,
+            "orphan AtoD",
+            currline, 0});
+        throw CompilationError{*dr};
+      }
     }
     else
     {
@@ -354,6 +366,7 @@ vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
       to = make_shared<AtoD>(
           make_shared<Real>(stod(sm[1]), currline, sm.position(1))
         );
+      a2d = std::static_pointer_cast<AtoD>(to);
     }
     else
     {
@@ -460,11 +473,27 @@ BoundSP Parser::parseBound(const std::string &s)
   }
   auto bound = make_shared<Bound>(currline, sm.position(1));
   string lhs = sm[1],
+         op = sm[2],
          rhs = sm[3];
 
   //remove whitespace
   lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
   rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
+  op.erase(remove_if(op.begin(), op.end(), isspace), op.end());
+
+       if(op == "<") bound->kind = Bound::Kind::LT;
+  else if(op == "|<") bound->kind = Bound::Kind::AbsLT;
+  else if(op == ">") bound->kind = Bound::Kind::GT;
+  else if(op == "|>") bound->kind = Bound::Kind::AbsGT;
+  else
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "unknown bounding operator `" + op + "`",
+        currline, static_cast<size_t>(sm.position(2))
+    });
+    throw CompilationError{*dr};
+  }
 
   AtomSP atm = parseAtom(lhs, sm.position(1));
   if(atm->kind() != Expression::Kind::Symbol &&

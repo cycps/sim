@@ -38,17 +38,6 @@ void Sim::addObjectToSim(ComponentSP c)
   }
 }
 
-//TODO: This should be a semantic action?
-VarRefSP getControlled(ConnectableSP c)
-{
-  if(c->neighbor != nullptr) return getControlled(c->neighbor);
-
-  if(c->kind() != Connectable::Kind::SubComponent)
-    throw runtime_error{"well fuck"};
-
-  auto x = static_pointer_cast<SubComponentRef>(c);
-  return make_shared<VarRef>(x->component, x->subname->value);
-}
 
 void Sim::liftControlledSimVars(SubComponentRefSP c)
 {
@@ -94,10 +83,9 @@ void Sim::buildPhysics()
 
 SimEx Sim::buildSimEx(size_t N)
 {
-  SimEx sx{psys.size()}; 
+  SimEx sx{}; 
   sx.computeNodes = buildComputeTopology(N);
-  for(ComputeNode &c: sx.computeNodes) 
-    sx.computeNodeSources.push_back(c.emitSource());
+  sx.emitSources();
 
   return sx;
 }

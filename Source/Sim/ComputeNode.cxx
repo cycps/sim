@@ -141,9 +141,11 @@ string ComputeNode::emitSource()
 
   ss << "  void init() override" << endl
      << "  {" << endl;
-     
+    
+  /*
   ss << "    ywin = pointerWindow(y, L(), ycomm);" << endl
      << "    dywin = pointerWindow(dy, L(), dycomm);" << endl;
+     */
 
   for(auto p: initials)
   {

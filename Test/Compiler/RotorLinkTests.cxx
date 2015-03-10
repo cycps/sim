@@ -28,7 +28,19 @@ TEST(RotorLink, Basic)
   d.init();
   d.parseInput();
   d.checkSemantics(); 
+  d.applyBounds();
   d.buildSim(1);
+  d.buildControlSystem();
+ 
+  cout << "Controllers ------------------------------------------------"
+    << endl << endl;
+
+  for(const cypress::control::ControlNode &n: d.ctrlsys->controlNodes)
+    cout << n << endl;
+  
+  cout << "------------------------------------------------------------"
+    << endl;
+
   d.createCypk();
 
   cypress::ObjectSP rotor = d.decls->objects[0];
@@ -40,7 +52,6 @@ TEST(RotorLink, Basic)
   cypress::BoundSP bd = ctrl->bounds[0];
   EXPECT_EQ(cypress::Expression::Kind::Differentiate, bd->lhs->kind());
 
-  d.applyBounds();
   cypress::EqtnPrinter eqp;
   eqp.run(ctrl);
   for(string s : eqp.strings)
