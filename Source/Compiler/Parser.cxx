@@ -186,12 +186,16 @@ void Parser::parseElementContent(ElementSP e, size_t at, size_t &lc)
       if(isBound(lines[idx]))
       {
         //TODO: You are here
+        BoundSP bound = parseBound(lines[idx]);
+        e->bounds.push_back(bound);
+        /*
         dr->diagnostics.push_back({
             Diagnostic::Level::Error,
             "Bound variables not implemented yet",
             currline, 2
         });
         throw CompilationError{*dr};
+        */
       }
     }
     ++idx; 
@@ -429,7 +433,7 @@ EquationSP Parser::parseEqtn(const string &s)
   {
     dr->diagnostics.push_back({
         Diagnostic::Level::Error,
-        "disformed equation",
+        "malformed equation",
         currline, 2
     });
     throw CompilationError{*dr};
@@ -446,6 +450,35 @@ EquationSP Parser::parseEqtn(const string &s)
   eqtn->rhs = parseExpr(rhs);
 
   return eqtn;
+}
+
+BoundSP Parser::parseBound(const std::string &s)
+{
+  regex rx{"([^<|>]*)(<|>|\\|>|\\|<)(.*)"};
+  smatch sm; 
+  regex_match(s, sm, rx);
+
+  if(sm.size() != 4)
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "malformed bound",
+        currline, 2
+    });
+    throw CompilationError{*dr};
+  }
+  auto bound = make_shared<Bound>(currline, sm.position(1));
+  string lhs = sm[1],
+         rhs = sm[3];
+
+  //remove whitespace
+  lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
+  rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
+
+  bound->lhs = parseAtom(lhs, sm.position(1));
+  bound->rhs = parseAtom(rhs, sm.position(3));
+
+  return bound;
 }
 
 void nonEmptyMatchesAndPositions(const smatch &sm, vector<string> &matches,
@@ -501,6 +534,7 @@ ExpressionSP Parser::parseExpr(const string &s)
       currline, 2});
   throw CompilationError{*dr};
 }
+    
     
 TermSP Parser::parseTerm(const string &s)
 {
@@ -582,7 +616,19 @@ AtomSP Parser::parseAtom(const string &s, size_t column)
   }
   catch(const invalid_argument &e)
   {
-    return make_shared<Symbol>(s, currline, column);
+    regex rx{"([a-zA-Zα-ωΑ-Ω0-9]+)(?:(['\\^])(.*))?"};
+    smatch sm;
+    regex_match(s, sm, rx);
+    vector<string> matches;
+    vector<size_t> positions;
+    nonEmptyMatchesAndPositions(sm, matches, positions);
+    if(matches.size()==1)
+      return make_shared<Symbol>(s, currline, column);
+
+    else if(matches.size()==2 && matches[1][0] == '\'')
+      return parseDerivative(matches[0], positions[0]);
+
+    //return make_shared<Symbol>(s, currline, column);
   }
   
   dr->diagnostics.push_back({

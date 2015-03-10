@@ -99,8 +99,8 @@ int main()
     retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
 
     cout << std::setprecision(6) << std::fixed;
-    for(int i=0; i<rc->N(); ++i) cout << rc->y[i] << ","; 
-    for(int i=0; i<rc->N()-1; ++i) cout << rc->dy[i] << ","; 
+    for(size_t i=0; i<rc->N(); ++i) cout << rc->y[i] << ","; 
+    for(size_t i=0; i<rc->N()-1; ++i) cout << rc->dy[i] << ","; 
     cout << rc->dy[rc->N()-1];
     cout << endl;
 
@@ -158,7 +158,7 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void*)
 
 int J(long int N, 
       realtype t, 
-      realtype cj,
+      realtype /*cj*/,
       N_Vector nv_y,
       N_Vector nv_dy,
       N_Vector /*r*/,

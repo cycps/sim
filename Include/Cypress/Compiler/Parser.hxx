@@ -50,6 +50,7 @@ class Parser
     AtomSP parseAtom(const std::string &, size_t column);
     DifferentiateSP parseDerivative(const std::string &, size_t column);
     PowSP parsePow(const std::string &, const std::string &, size_t column);
+    BoundSP parseBound(const std::string &);
 
     void parseElementContent(ElementSP e, size_t at, size_t &lc);
 

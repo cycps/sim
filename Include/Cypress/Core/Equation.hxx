@@ -19,11 +19,13 @@ namespace cypress
   struct Symbol;        using SymbolSP = std::shared_ptr<Symbol>;
   struct CVar;          using CVarSP = std::shared_ptr<CVar>;
   struct CCVar;         using CCVarSP = std::shared_ptr<CCVar>;
+  struct BoundVar;      using BoundVarSP = std::shared_ptr<BoundVar>;
   struct Real;          using RealSP = std::shared_ptr<Real>;
   struct SubExpression; using SubExpressionSP = std::shared_ptr<SubExpression>;
   struct Term;          using TermSP = std::shared_ptr<Term>;
   struct Factor;        using FactorSP = std::shared_ptr<Factor>;
   struct Atom;          using AtomSP = std::shared_ptr<Atom>;
+  struct VarType;       using VarTypeSP = std::shared_ptr<VarType>;
   struct Bound;         using BoundSP = std::shared_ptr<Bound>;
 }
 
@@ -38,7 +40,7 @@ struct Expression : public ASTNode, public Clonable<Expression>
     Multiply, Divide,
     Pow,
     Differentiate,
-    Symbol, CVar, CCVar,
+    Symbol, CVar, CCVar, BoundVar,
     Real,
     SubExpression
   };
@@ -118,12 +120,17 @@ struct Pow : public Factor, public std::enable_shared_from_this<Pow>
   ExpressionSP clone() override;
 };
 
-struct Symbol : public Atom, public std::enable_shared_from_this<Symbol>
+struct VarType : public Atom
+{
+  using Atom::Atom;
+};
+
+struct Symbol : public VarType, public std::enable_shared_from_this<Symbol>
 {
   std::string value;
   Kind kind() const{ return Kind::Symbol; }
   Symbol(std::string value, size_t line, size_t column) 
-    : Atom{line, column}, value{value} {}
+    : VarType{line, column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -141,9 +148,9 @@ struct SymbolEq
 
 struct CVar : public Atom, public std::enable_shared_from_this<CVar>
 {
-  SymbolSP value;
+  VarTypeSP value;
   Kind kind() const{ return Kind::CVar; }
-  CVar(SymbolSP value) : Atom{value->line, value->column}, value{value} {}
+  CVar(VarTypeSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -157,13 +164,23 @@ struct CCVar : public Atom, public std::enable_shared_from_this<CCVar>
   ExpressionSP clone() override;
 };
 
-struct Differentiate : public Atom, 
+struct BoundVar : public Atom, public std::enable_shared_from_this<BoundVar>
+{
+  SymbolSP value;
+  BoundSP bound;
+  Kind kind() const{ return Kind::BoundVar; }
+  BoundVar(SymbolSP value) : Atom{value->line, value->column}, value{value} {}
+  void accept(Visitor &v) override;
+  ExpressionSP clone() override;
+};
+
+struct Differentiate : public VarType, 
                        public std::enable_shared_from_this<Differentiate>
 {
   SymbolSP arg;
   Kind kind() const{ return Kind::Differentiate; }
   Differentiate(SymbolSP arg, size_t line, size_t column) 
-    : Atom{line, column}, arg{arg} {}
+    : VarType{line, column}, arg{arg} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };
@@ -211,6 +228,7 @@ struct Bound : public Lexeme
   enum class Kind { LT, AbsLT, GT, AbsGT };
   Kind kind;
   AtomSP lhs{nullptr}, rhs{nullptr};
+  using Lexeme::Lexeme;
 };
 
 
@@ -252,6 +270,10 @@ struct Visitor
   virtual void visit(CCVarSP) {}
   virtual void in(CCVarSP) {}
   virtual void leave(CCVarSP) {}
+  
+  virtual void visit(BoundVarSP) {}
+  virtual void in(BoundVarSP) {}
+  virtual void leave(BoundVarSP) {}
 
   virtual void visit(SymbolSP) {}
   virtual void in(SymbolSP) {}
@@ -303,16 +325,20 @@ struct CVarLifter : public Visitor
   void visit(DivideSP) override;
   void visit(PowSP) override;
   void visit(SubExpressionSP) override;
-
-  template<class BinOp>
-  void applyBinary(std::shared_ptr<BinOp>);
-
-  template<class UnOp>
-  void applyUnary(std::shared_ptr<UnOp>);
-
-  template<class Kinded>
-  void lift(std::shared_ptr<Kinded>*);
 };
+  
+template<class Lifter, class BinOp>
+void liftBinary(std::shared_ptr<BinOp>, std::string symbol_name,
+    bool lift_deriv=false);
+
+template<class Lifter, class UnOp>
+void liftUnary(std::shared_ptr<UnOp>, std::string symbol_name,
+    bool lift_deriv=false);
+
+template<class Lifter, class Kinded>
+void lift(std::shared_ptr<Kinded>*, std::string symbol_name, 
+    bool lift_deriv=false);
+
 void liftControlledVars(EquationSP, std::string symbol_name);
 
 } //::cypress

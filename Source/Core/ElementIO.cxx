@@ -168,6 +168,20 @@ void cypress::showExpr(size_t indent, ostream &o, const Expression &expr)
       showExpr(indent+2, o, *static_cast<const CCVar &>(expr).value);
       break;
 
+    case Expression::Kind::BoundVar:
+    {
+      auto &bv = static_cast<const BoundVar &>(expr);
+      switch(bv.bound->kind)
+      {
+        case Bound::Kind::LT: o << I << "<" << endl; break;
+        case Bound::Kind::AbsLT: o << I << "|<" << endl; break;
+        case Bound::Kind::GT: o << I << ">" << endl; break;
+        case Bound::Kind::AbsGT: o << I << "|>" << endl; break;
+      }
+      showExpr(indent+2, o, *bv.value);
+      break;
+    }
+
     case Expression::Kind::Symbol: o << I 
                                      << static_cast<const Symbol&>(expr).value 
                                      << endl; break;

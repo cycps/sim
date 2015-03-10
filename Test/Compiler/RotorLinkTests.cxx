@@ -29,4 +29,13 @@ TEST(RotorLink, Basic)
   d.buildSim(1);
   d.createCypk();
 
+  cypress::ObjectSP rotor = d.decls->objects[0];
+  EXPECT_EQ(0ul, rotor->bounds.size());
+
+  cypress::ControllerSP ctrl = d.decls->controllers[0];
+  EXPECT_EQ(1ul, ctrl->bounds.size());
+
+  cypress::BoundSP bd = ctrl->bounds[0];
+  EXPECT_EQ(cypress::Expression::Kind::Differentiate, bd->lhs->kind());
+  
 }

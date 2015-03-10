@@ -151,6 +151,20 @@ ExpressionSP CCVar::clone()
   return make_shared<CCVar>(static_pointer_cast<Symbol>(value->clone()));
 }
 
+//BoundVar --------------------------------------------------------------------
+void BoundVar::accept(Visitor &v)
+{
+  v.visit(shared_from_this());
+  value->accept(v);
+  v.in(shared_from_this());
+  v.leave(shared_from_this());
+}
+
+ExpressionSP BoundVar::clone()
+{
+  return make_shared<BoundVar>(static_pointer_cast<Symbol>(value->clone()));
+}
+
 //Differentiate ---------------------------------------------------------------
 void Differentiate::accept(Visitor &v)
 {
@@ -274,37 +288,37 @@ void cypress::applyParameter(EquationSP eq, string symbol_name, double value)
 //CVarLifter ------------------------------------------------------------------
 void CVarLifter::visit(EquationSP ep)
 {
-  applyBinary(ep);
+  liftBinary<CVar>(ep, symbol_name, false);
 }
 
 void CVarLifter::visit(AddSP ap)
 {
-  applyBinary(ap);
+  liftBinary<CVar>(ap, symbol_name);
 }
 
 void CVarLifter::visit(SubtractSP sp)
 {
-  applyBinary(sp);
+  liftBinary<CVar>(sp, symbol_name);
 }
 
 void CVarLifter::visit(MultiplySP mp)
 {
-  applyBinary(mp);
+  liftBinary<CVar>(mp, symbol_name);
 }
 
 void CVarLifter::visit(DivideSP dp)
 {
-  applyBinary(dp);
+  liftBinary<CVar>(dp, symbol_name);
 }
 
 void CVarLifter::visit(PowSP pp)
 {
-  applyBinary(pp);
+  liftBinary<CVar>(pp, symbol_name);
 }
 
 void CVarLifter::visit(SubExpressionSP sp)
 {
-  applyUnary(sp);  
+  liftUnary<CVar>(sp, symbol_name);  
 }
 
 void cypress::liftControlledVars(EquationSP eq, string symbol_name)
