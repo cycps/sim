@@ -37,6 +37,17 @@ void ControlSystem::liftInput(ControlNode &cn, std::string vname)
   }
 }
 
+void ControlSystem::liftOutput(ControlNode &cn, std::string vname)
+{
+  for(EquationSP eq: cn.eqtns)
+  {
+    VarLifter<IOVar> cvl(vname);
+    cvl.onlift = 
+      [](IOVarSP x){ x->iokind = IOVar::IOKind::Output; };
+    eq->accept(cvl);
+  }
+}
+
 ControlNode& ControlSystem::controlNodeByName(string name)
 {
   auto it =
@@ -92,6 +103,8 @@ void ControlSystem::mapOutputs()
         src.outputs.push_back(
             {sc->subname->value,
              {x->component->name->value, x->name}});
+
+        liftOutput(src, sc->subname->value);
       }
     }
   }
