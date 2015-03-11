@@ -41,7 +41,7 @@ void Sim::addObjectToSim(ComponentSP c)
 
 void Sim::liftControlledSimVars(SubComponentRefSP c)
 {
-  VarRefSP under_control = getControlled(c);
+  VarRefSP under_control = getDestination(c);
 
   for(auto eqtn_p: psys)
   {

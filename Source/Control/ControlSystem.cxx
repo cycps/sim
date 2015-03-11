@@ -4,6 +4,7 @@
 
 using namespace cypress;
 using namespace cypress::control;
+using std::string;
 
 void ControlSystem::emitSources()
 {
@@ -36,6 +37,22 @@ void ControlSystem::liftInput(ControlNode &cn, std::string vname)
   }
 }
 
+ControlNode& ControlSystem::controlNodeByName(string name)
+{
+  auto it =
+    find_if(controlNodes.begin(), controlNodes.end(),
+        [name](const ControlNode &cn)
+        {
+          return cn.name == name;
+        });
+
+  if(it == controlNodes.end())
+    throw std::runtime_error(
+        "Undefined controller target `"+name+"`");
+
+  return *it;
+}
+
 void ControlSystem::mapInputs()
 {
   for(ConnectionSP cx: exp->connections)
@@ -43,21 +60,11 @@ void ControlSystem::mapInputs()
     if(isa(cx->from, Connectable::Kind::SubComponent))
     {
       auto sc = std::static_pointer_cast<SubComponentRef>(cx->from);
-      VarRefSP x = getControlled(sc);
+      VarRefSP x = getDestination(sc);
       if(x->component->element->kind() == Decl::Kind::Controller)
       {
-        auto it =
-          find_if(controlNodes.begin(), controlNodes.end(),
-              [x](const ControlNode &cn)
-              {
-                return cn.name == x->component->name->value;
-              });
 
-        if(it == controlNodes.end())
-          throw std::runtime_error(
-              "Undefined controller target `"+x->component->name->value+"`");
-
-        ControlNode &tgt = *it;
+        ControlNode &tgt = controlNodeByName(x->component->name->value);
         tgt.inputs.push_back(
             {sc->subname->value, 
               {sc->name->value, sc->subname->value}});
@@ -69,8 +76,24 @@ void ControlSystem::mapInputs()
 
 }
 
+
 void ControlSystem::mapOutputs()
 {
+  for(ConnectionSP cx: exp->connections)
+  {
+    if(isa(cx->from, Connectable::Kind::SubComponent))
+    {
+      auto sc = std::static_pointer_cast<SubComponentRef>(cx->from);
+      if(isa(sc->component->element, Decl::Kind::Controller))
+      {
+        ControlNode &src = controlNodeByName(sc->name->value);
+        VarRefSP x = getDestination(sc);
 
+        src.outputs.push_back(
+            {sc->subname->value,
+             {x->component->name->value, x->name}});
+      }
+    }
+  }
 }
   

@@ -154,12 +154,7 @@ setEqtnsToZero(ElementSP);
 ElementSP
 qualifyEqtns(ElementSP);
 
-/*
-std::vector<SubComponentRefSP>
-findControlledSubComponents(ExperimentSP);
-*/
-
-VarRefSP getControlled(ConnectableSP c);
+VarRefSP getDestination(ConnectableSP c);
 
 //Element Visitors ------------------------------------------------------------
 struct EqtnQualifier : public Visitor

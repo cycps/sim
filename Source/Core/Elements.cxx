@@ -101,27 +101,11 @@ ElementSP cypress::qualifyEqtns(ElementSP e)
   return e;
 }
 
-/*
-vector<SubComponentRefSP>
-cypress::findControlledSubComponents(ExperimentSP)
-{
-  vector<SubComponentRefSP> result;
-
-  //TODO: When you get to links
-  
-  return result;
-}
-*/
 
 //TODO: This should be a semantic action?
-VarRefSP cypress::getControlled(ConnectableSP c)
+VarRefSP cypress::getDestination(ConnectableSP c)
 {
-  if(c->neighbor != nullptr) return getControlled(c->neighbor);
-
-  /*
-  if(c->kind() != Connectable::Kind::SubComponent)
-    throw runtime_error{"invalid variable flow"};
-    */
+  if(c->neighbor != nullptr) return getDestination(c->neighbor);
 
   if(c->kind() == Connectable::Kind::Component)
     throw runtime_error{"Control ends at component: `" +

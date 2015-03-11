@@ -28,5 +28,11 @@ ostream & cypress::control::operator << (ostream &o, const ControlNode &n)
       << "(" << iom.remote.who << "," << iom.remote.what << ")"
       << endl;
 
+  o << "[output]" << endl;
+  for(const IOMap &iom: n.outputs)
+    o << iom.local << " --> " 
+      << "(" << iom.remote.who << "," << iom.remote.what << ")"
+      << endl;
+
   return o;
 }

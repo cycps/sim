@@ -27,6 +27,7 @@ struct ControlSystem
   void mapOutputs();
   void emitSources();
   void liftInput(ControlNode &, std::string vname);
+  ControlNode& controlNodeByName(std::string name);
 };
 
 }}
