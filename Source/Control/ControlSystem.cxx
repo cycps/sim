@@ -58,6 +58,10 @@ void ControlSystem::mapInputs()
               "Undefined controller target `"+x->component->name->value+"`");
 
         ControlNode &tgt = *it;
+        tgt.inputs.push_back(
+            {sc->subname->value, 
+              {sc->name->value, sc->subname->value}});
+
         liftInput(tgt, sc->subname->value);
       }
     }

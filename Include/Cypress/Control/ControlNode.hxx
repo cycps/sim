@@ -9,10 +9,18 @@
 namespace cypress { namespace control {
 
 //fully qualified control variable
-struct FQCV { std::string who, what; };
+struct FQCV 
+{ 
+  FQCV(std::string who, std::string what) : who{who}, what{what} {}
+  std::string who, what; 
+};
 
 //map for RX/TX from controllers
-struct IOMap { std::string local; FQCV remote; };
+struct IOMap 
+{ 
+  IOMap(std::string local, FQCV remote) : local{local}, remote{remote} {}
+  std::string local; FQCV remote; 
+};
 
 struct ControlNode
 {

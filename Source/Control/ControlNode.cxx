@@ -22,5 +22,11 @@ ostream & cypress::control::operator << (ostream &o, const ControlNode &n)
   for(EquationSP eq: n.eqtns) eqp.run(eq);
   for(const string &s: eqp.strings) o << "  " << s << endl;
 
+  o << "[input]" << endl;
+  for(const IOMap &iom: n.inputs)
+    o << iom.local << " <-- " 
+      << "(" << iom.remote.who << "," << iom.remote.what << ")"
+      << endl;
+
   return o;
 }
