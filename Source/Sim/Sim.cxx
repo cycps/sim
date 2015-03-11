@@ -239,7 +239,6 @@ vector<ComputeNode> Sim::buildComputeTopology(size_t N)
     n.expInfo = exp->name->value;
     addRVars(n, vars);
     n.id = i++;
-    std::cout << n << std::endl;
   }
 
   return topo;

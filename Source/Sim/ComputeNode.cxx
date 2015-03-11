@@ -10,6 +10,7 @@ using std::string;
 using std::stringstream;
 
 using namespace cypress;
+using namespace cypress::sim;
 
 void localAccessor(string var, string from, size_t i, stringstream &ss)
 {
@@ -204,7 +205,7 @@ string ComputeNode::emitSource()
   return ss.str();
 }
 
-ostream & cypress::operator << (ostream &o, const ComputeNode &n)
+ostream & cypress::sim::operator << (ostream &o, const ComputeNode &n)
 {
   o << "id=" << n.id << endl;
 

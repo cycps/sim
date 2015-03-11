@@ -9,8 +9,7 @@
 #include "Cypress/Sim/Resolve.hxx"
 #include "Cypress/Core/Equation.hxx"
 
-namespace cypress
-{
+namespace cypress { namespace sim {
 
 struct ComputeNode
 {
@@ -26,6 +25,6 @@ struct ComputeNode
 
 std::ostream & operator << (std::ostream &, const ComputeNode &);
 
-}
+}} //::cypress::sim
 
 #endif
