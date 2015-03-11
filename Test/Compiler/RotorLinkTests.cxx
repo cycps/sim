@@ -52,9 +52,11 @@ TEST(RotorLink, Basic)
   cypress::BoundSP bd = ctrl->bounds[0];
   EXPECT_EQ(cypress::Expression::Kind::Differentiate, bd->lhs->kind());
 
+  /*
   cypress::EqtnPrinter eqp;
   eqp.run(ctrl);
   for(string s : eqp.strings)
     cout << s << endl;
+    */
   
 }

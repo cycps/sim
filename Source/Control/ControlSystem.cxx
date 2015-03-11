@@ -30,6 +30,8 @@ void ControlSystem::liftInput(ControlNode &cn, std::string vname)
   for(EquationSP eq: cn.eqtns)
   {
     VarLifter<IOVar> cvl(vname);
+    cvl.onlift = 
+      [](IOVarSP x){ x->iokind = IOVar::IOKind::Input; };
     eq->accept(cvl);
   }
 }
