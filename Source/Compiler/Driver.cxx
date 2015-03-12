@@ -178,6 +178,7 @@ void Driver::buildControlSystem()
   ctrlsys = make_shared<ControlSystem>(decls->controllers, 
                                        decls->experiments[0]);
   ctrlsys->buildControlNodes();
+  ctrlsys->emitSources();
 }
     
 void Driver::createCypk()
@@ -191,6 +192,14 @@ void Driver::createCypk()
   for(const string &s: sim_ex.computeNodeSources)
   {
     ofs.open(pkgdir.string() + "/" + "CNode" + to_string(ix++) + ".cxx");
+    ofs << s;
+    ofs.close();
+  }
+
+  ix = 0;
+  for(const string &s: ctrlsys->controlNodeSources)
+  {
+    ofs.open(pkgdir.string() + "/" + ctrlsys->controlNodes[ix].name + ".cxx");
     ofs << s;
     ofs.close();
   }

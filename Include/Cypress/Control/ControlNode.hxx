@@ -33,6 +33,13 @@ struct ControlNode
   std::string emitSource() const;
 };
 
+struct Controller
+{
+  std::string name;
+
+  Controller(std::string name) : name{name} {}
+};
+
 std::ostream & operator << (std::ostream &, const ControlNode &);
 
 }}

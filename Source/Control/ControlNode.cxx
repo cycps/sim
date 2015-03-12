@@ -1,16 +1,33 @@
 #include "Cypress/Control/ControlNode.hxx"
 #include "Cypress/Core/Elements.hxx"
 #include <iostream>
+#include <sstream>
 
 using std::string;
 using namespace cypress;
 using namespace cypress::control;
 using std::ostream;
 using std::endl;
+using std::stringstream;
 
 string ControlNode::emitSource() const
 {
-  return "";
+  stringstream ss;
+
+  ss << "#include \"Cypress/Control/ControlNode.hxx\"" << endl;
+
+  ss << "using namespace cypress;" << endl
+     << "using namespace cypress::control;" << endl
+     << endl;
+
+  ss << "struct " << name << " : Controller" << endl
+     << "{" << endl
+     << "  " << name << "() : Controller{\""<<name<<"\"} {}" << endl
+     << "};" << endl << endl;
+
+  ss << name << " *C = new " << name << ";" << endl;
+
+  return ss.str();
 }
 
 ostream & cypress::control::operator << (ostream &o, const ControlNode &n)

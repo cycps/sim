@@ -189,8 +189,10 @@ string ComputeNode::emitSource()
  
   ss << "  CNode()" << endl
      << "  {" << endl
-     << "    ry = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" << endl
-     << "    rdy = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" << endl
+     << "    ry = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
+     << endl
+     << "    rdy = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
+     << endl
      << "  }" << endl
      << endl;
  
