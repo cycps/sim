@@ -227,8 +227,27 @@ void Driver::createCypk()
       << "-o " << "rcomp" << i << endl;
   }
   ofs.close();
-    
   chmod(brs.c_str(), strtol("0755", 0, 8));
+
+  string build_ctrl_script_name{pkgdir.string() + "/build_control_system.sh"};
+  ofs.open(build_ctrl_script_name);
+  ofs << "#!/bin/sh" << endl;
+  for(size_t i=0; i<ctrlsys->controlNodes.size(); ++i)
+  {
+    ofs
+      << "clang++ -std=c++11 "
+      << ctrlsys->controlNodes[i].name + ".cxx "
+      << cyhome << "/Source/Control/ControlMain.cxx "
+      << "-I" << cyhome << "/Include "
+      << "-I" << "/usr/local/include "
+      << "-L" << "/usr/local/lib "
+      << "-lsundials_ida "
+      << "-lsundials_nvecserial "
+      << "-o " << ctrlsys->controlNodes[i].name << endl;
+  }
+  ofs.close();
+  chmod(build_ctrl_script_name.c_str(), strtol("0755", 0, 8));
+    
 }
 
 void Driver::compileSource(const string &src)

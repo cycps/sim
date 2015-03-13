@@ -3,3 +3,6 @@ target_link_libraries(CypressControl
   CypressCore
   /usr/local/lib/libsundials_ida.dylib 
   /usr/local/lib/libsundials_nvecserial.dylib)
+
+add_executable(DummyController DummyController.cxx ControlMain.cxx)
+target_link_libraries(DummyController CypressControl)
