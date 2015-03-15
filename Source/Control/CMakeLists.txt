@@ -1,4 +1,8 @@
-add_library(CypressControl SHARED ControlSystem.cxx ControlNode.cxx)
+add_library(CypressControl 
+  SHARED 
+  ControlSystem.cxx 
+  ControlNode.cxx ControlNodeEmit.cxx)
+
 target_link_libraries(CypressControl
   CypressCore
   /usr/local/lib/libsundials_ida.dylib 

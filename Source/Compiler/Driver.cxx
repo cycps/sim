@@ -241,6 +241,8 @@ void Driver::createCypk()
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "
       << "-L" << "/usr/local/lib "
+      << "-L" << cyhome << "/Build/Source/Control "
+      << "-l" << "CypressControl "
       << "-lsundials_ida "
       << "-lsundials_nvecserial "
       << "-o " << ctrlsys->controlNodes[i].name << endl;

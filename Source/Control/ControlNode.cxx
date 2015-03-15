@@ -1,55 +1,82 @@
 #include "Cypress/Control/ControlNode.hxx"
-#include "Cypress/Core/Elements.hxx"
-#include <iostream>
-#include <sstream>
+#include <thread>
+#include <chrono>
 
 using std::string;
 using namespace cypress;
 using namespace cypress::control;
-using std::ostream;
 using std::endl;
-using std::stringstream;
+using std::this_thread::sleep_for;
+using std::chrono::milliseconds;
+using std::lock_guard;
+using std::mutex;
+using std::thread;
 
-string ControlNode::emitSource() const
+void Controller::listen()
 {
-  stringstream ss;
-
-  ss << "#include \"Cypress/Control/ControlNode.hxx\"" << endl;
-
-  ss << "using namespace cypress;" << endl
-     << "using namespace cypress::control;" << endl
-     << endl;
-
-  ss << "struct " << name << " : Controller" << endl
-     << "{" << endl
-     << "  " << name << "() : Controller{\""<<name<<"\"} {}" << endl
-     << "};" << endl << endl;
-
-  ss << name << " *C = new " << name << ";" << endl;
-
-  return ss.str();
+  io_lg << log("Listening") << endl;
 }
 
-ostream & cypress::control::operator << (ostream &o, const ControlNode &n)
+void Controller::send(CPacket pkt)
 {
-  o << "name=" << n.name << endl;
-
-  EqtnPrinter eqp;
-  o << "[eqtn]" << endl;
-  for(EquationSP eq: n.eqtns) eqp.run(eq);
-  for(const string &s: eqp.strings) o << "  " << s << endl;
-
-  o << "[input]" << endl;
-  for(const IOMap &iom: n.inputs)
-    o << iom.local << " <-- " 
-      << "(" << iom.remote.who << "," << iom.remote.what << ")"
-      << endl;
-
-  o << "[output]" << endl;
-  for(const IOMap &iom: n.outputs)
-    o << iom.local << " --> " 
-      << "(" << iom.remote.who << "," << iom.remote.what << ")"
-      << endl;
-
-  return o;
+  //TODO
+  io_lg << log("Sending") << endl;
 }
+
+void Controller::swapBuffers()
+{
+  lock_guard<mutex> lk(io_mtx);
+}
+
+void Controller::computeFrame()
+{
+
+}
+
+void Controller::tx()
+{
+
+}
+
+void Controller::kernel()
+{
+  k_lg << log("Kernel started") << endl;
+  while(true)
+  {
+    sleep_for(milliseconds(period));
+    swapBuffers();
+    computeFrame();
+    tx();
+  }
+}
+
+void Controller::io()
+{
+  CPacket pkt;
+
+  //TODO: RecvFrom(...)
+  
+  lock_guard<mutex> lk(io_mtx);
+
+  b->add(pkt);
+}
+
+void Controller::run()
+{
+  k_lg << log("up") << endl;
+
+  thread t_io([this](){listen();});
+  thread t_k([this](){kernel();});
+
+  t_io.join();
+  t_k.join();
+
+  k_lg << log("down") << endl;
+
+}
+
+void ControlBuffer::add(CPacket pkt)
+{
+  buf[pkt.who+pkt.what].push_back({pkt.t, pkt.value});  
+}
+

@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <utility>
+#include <chrono>
+#include <string>
 
 //Forward declarations --------------------------------------------------------
 namespace cypress
@@ -37,6 +39,15 @@ bool isa(Thing a, Type ty)
   return a->kind() == ty;
 }
 
+inline
+std::string log(std::string msg)
+{
+  std::time_t t = std::time(nullptr);
+  char ts[128];
+  std::strftime(ts, sizeof(ts), "%F %T", std::localtime(&t));
+  
+  return std::string("[") + std::string(ts) + "] " + msg;
+}
 
 
 } //::cypress

@@ -3,8 +3,20 @@
 
 #include "Cypress/Core/Equation.hxx"
 
+#include <ida/ida.h>
+#include <ida/ida_dense.h>
+#include <nvector/nvector_serial.h>
+#include <sundials/sundials_math.h>
+#include <sundials/sundials_types.h>
+
 #include <string>
 #include <vector>
+#include <queue>
+#include <unordered_map>
+#include <sstream>
+#include <memory>
+#include <fstream>
+#include <mutex>
 
 namespace cypress { namespace control {
 
@@ -27,17 +39,82 @@ struct ControlNode
   std::string name;
   std::vector<IOMap> inputs, outputs;
   std::vector<EquationSP> eqtns;
+  
+  std::shared_ptr<std::stringstream> ss;
 
-  ControlNode() = default;
-  explicit ControlNode(std::string name) : name{name} {}
+  ControlNode() 
+    : ss{std::make_shared<std::stringstream>()} {}
+
+  explicit ControlNode(std::string name)
+    : name{name},
+      ss{std::make_shared<std::stringstream>()} {}
+
   std::string emitSource() const;
+  void emitCtor() const;
+};
+
+struct CPacket
+{
+  unsigned long who, what, t;
+  double value;
+
+  CPacket() = default;
+  CPacket(unsigned long who, unsigned long what, unsigned long t, double value)
+    : who{who}, what{what}, t{t}, value{value}
+  {}
+};
+
+struct CVal
+{
+  unsigned long t;
+  double v;
+
+  CVal() = default;
+  CVal(unsigned long t, double v) : t{t}, v{v} {};
+};
+
+struct ControlBuffer
+{
+  std::unordered_map<unsigned long, std::vector<CVal>> buf;
+  void add(CPacket);
 };
 
 struct Controller
 {
+  size_t period{100}; //100 millisecond default period
   std::string name;
+  std::unordered_map<unsigned long, size_t> imap;
+  std::vector<unsigned long> omap;
+  
+  ControlBuffer a_, b_;
+  ControlBuffer *a{&a_}, *b{&b_};
 
-  Controller(std::string name) : name{name} {}
+  std::mutex io_mtx;
+
+  void run();
+
+  void rx(), tx();
+  void listen();
+  void send(CPacket pkt);
+  void io();
+  void kernel();
+  void swapBuffers();
+  void computeFrame();
+
+  std::ofstream k_lg, io_lg;
+
+  //Compute stuff
+  N_Vector nv_y, nv_dy;
+  realtype *y, *dy, *c;
+
+  //Comms stuff
+  size_t port{4747};
+
+  Controller(std::string name) 
+    : name{name}, 
+      k_lg{name+"k.log", std::ios_base::out | std::ios_base::app},
+      io_lg{name+"io.log", std::ios_base::out | std::ios_base::app} 
+  {}
 };
 
 std::ostream & operator << (std::ostream &, const ControlNode &);
