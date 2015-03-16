@@ -58,22 +58,31 @@ struct ControlNode
 
 struct CPacket
 {
-  unsigned long who, what, t;
+  unsigned long who, what, sec, usec;
   double value;
 
   CPacket() = default;
-  CPacket(unsigned long who, unsigned long what, unsigned long t, double value)
-    : who{who}, what{what}, t{t}, value{value}
+  CPacket(
+      unsigned long who, unsigned long what, 
+      unsigned long sec, unsigned long usec,
+      double value)
+    : who{who}, what{what}, sec{sec}, usec{usec}, value{value}
   {}
+
+  static CPacket fromBytes(char *buf);
+  void toBytes(char *buf);
 };
+
+std::ostream& operator<<(std::ostream &o, const CPacket &c);
 
 struct CVal
 {
-  unsigned long t;
+  unsigned long sec, usec;
   double v;
 
   CVal() = default;
-  CVal(unsigned long t, double v) : t{t}, v{v} {};
+  CVal(unsigned long sec, unsigned long usec, double v) 
+    : sec{sec}, usec{usec}, v{v} {};
 };
 
 struct ControlBuffer

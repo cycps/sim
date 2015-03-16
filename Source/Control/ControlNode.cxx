@@ -16,6 +16,7 @@ using std::mutex;
 using std::thread;
 using std::runtime_error;
 using std::to_string;
+using std::ostream;
 
 void Controller::listen()
 {
@@ -69,11 +70,47 @@ void Controller::kernel()
   k_lg << log("Kernel started") << endl;
   while(true)
   {
-    sleep_for(milliseconds(period));
     swapBuffers();
     computeFrame();
     tx();
+    //k_lg << log(".") << endl;
+    sleep_for(milliseconds(period));
   }
+}
+
+CPacket CPacket::fromBytes(char *buf)
+{
+  unsigned long who, what, sec, usec;
+  double value;
+
+  size_t at = 0;
+  who = ntohl(*reinterpret_cast<unsigned long*>(buf));
+  at += sizeof(unsigned long);
+  what = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  at += sizeof(unsigned long);
+  sec = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  at += sizeof(unsigned long);
+  usec = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  at += sizeof(unsigned long);
+  value = *reinterpret_cast<double*>(buf+at);
+
+  return CPacket{who, what, sec, usec, value};
+}
+
+void CPacket::toBytes(char *bytes)
+{
+  size_t at = 0;
+
+  *reinterpret_cast<unsigned long*>(bytes) = htonl(who);
+  at += sizeof(unsigned long);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(what);
+  at += sizeof(unsigned long);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(sec);
+  at += sizeof(unsigned long);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(usec);
+  at += sizeof(unsigned long);
+  *reinterpret_cast<double*>(bytes+at) = value;
+
 }
 
 void Controller::io()
@@ -86,14 +123,14 @@ void Controller::io()
   io_lg << log("entering io loop") << endl;
   while(true)
   {
-    CPacket pkt;
-  
     //BLOCKING!!
     int err = recvfrom(sockfd, msg, sz, 0, addr, &len);
     if(err < 0)
       throw runtime_error{"recvfrom() failed: " + to_string(err)};
 
-    io_lg << log("msg: " + string(msg)) << endl;
+    CPacket pkt = CPacket::fromBytes(msg);
+    //io_lg << log("msg: " + string(msg)) << endl;
+    io_lg << ts() << pkt << endl;
     
     lock_guard<mutex> lk(io_mtx);
 
@@ -117,6 +154,17 @@ void Controller::run()
 
 void ControlBuffer::add(CPacket pkt)
 {
-  buf[pkt.who+pkt.what].push_back({pkt.t, pkt.value});  
+  buf[pkt.who+pkt.what].push_back({pkt.sec, pkt.usec, pkt.value});  
 }
 
+ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
+{
+  o << "{" 
+    << c.who << ", " 
+    << c.what << ", " 
+    << c.sec << ", " 
+    << c.usec << ", " 
+    << c.value 
+    << "}";
+  return o;
+}

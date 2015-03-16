@@ -49,6 +49,16 @@ std::string log(std::string msg)
   return std::string("[") + std::string(ts) + "] " + msg;
 }
 
+inline
+std::string ts()
+{
+  std::time_t t = std::time(nullptr);
+  char ts[128];
+  std::strftime(ts, sizeof(ts), "%F %T", std::localtime(&t));
+  
+  return std::string(ts);
+}
+
 
 } //::cypress
 

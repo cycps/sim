@@ -10,3 +10,6 @@ target_link_libraries(CypressControl
 
 add_executable(DummyController DummyController.cxx ControlMain.cxx)
 target_link_libraries(DummyController CypressControl)
+
+add_executable(CPacketLauncher CPacketLauncher.cxx)
+target_link_libraries(CPacketLauncher CypressControl)
