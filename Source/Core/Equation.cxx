@@ -253,6 +253,15 @@ EquationSP Equation::clone()
   return cln;
 }
 
+BoundSP Bound::clone()
+{
+  auto cln = make_shared<Bound>(line, column);
+  cln->lhs = std::dynamic_pointer_cast<VarType>(lhs->clone());
+  cln->rhs = std::dynamic_pointer_cast<Real>(rhs->clone());
+  cln->kind = kind;
+  return cln;
+}
+
 
 //Free functions over equations ===============================================
 EquationSP cypress::setToZero(EquationSP eq)

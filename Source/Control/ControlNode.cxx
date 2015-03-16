@@ -64,6 +64,11 @@ void ControlNode::addInputResiduals()
   }
 }
 
+void ControlNode::applyBounds()
+{
+  //TODO: You are here
+}
+
 void Controller::listen()
 {
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -295,6 +300,9 @@ void Controller::initIda()
   bool init_ok = checkInitialConds(atl);
   if(!init_ok)
     throw runtime_error{"Initial conditions check failed"};
+
+  //Initialize state-trajectory space
+  for(size_t i=0; i<N; ++i) y[i] = dy[i] = 0;
 
   k_lg << log("Ida ready") << endl;
 }

@@ -19,6 +19,7 @@ void ControlSystem::buildControlNodes()
     if(!(cp->element->kind() == Decl::Kind::Controller)) continue;
     ControlNode cn{cp};
     for(EquationSP eq: cp->element->eqtns) cn.eqtns.push_back(eq->clone());
+    for(BoundSP eq: cp->element->bounds) cn.bounds.push_back(eq->clone());
     controlNodes.push_back(cn);
   }
 
@@ -32,6 +33,7 @@ void ControlSystem::buildControlNodes()
     cn.extractComputeVars();
     cn.residualForm();
     cn.addInputResiduals();
+    cn.applyBounds();
   }
 
 }

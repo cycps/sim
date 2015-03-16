@@ -53,6 +53,7 @@ struct ControlNode
   std::string name;
   std::vector<IOMap> inputs, outputs;
   std::vector<EquationSP> eqtns;
+  std::vector<BoundSP> bounds;
   std::unordered_set<std::string> compute_vars;
   
   std::shared_ptr<std::stringstream> ss;
@@ -67,6 +68,7 @@ struct ControlNode
   void extractComputeVars();
   void residualForm();
   void addInputResiduals();
+  void applyBounds();
 
   std::string emitSource() const;
   void emit_ctor() const;

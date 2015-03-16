@@ -238,13 +238,16 @@ struct Equation : public ASTNode,
   using ASTNode::ASTNode;
 };
 
-struct Bound : public Lexeme
+struct Bound : public Lexeme,
+               public Clonable<Bound>,
+               public std::enable_shared_from_this<Bound>
 {
   enum class Kind { LT, AbsLT, GT, AbsGT };
   Kind kind;
   VarTypeSP lhs{nullptr};
   RealSP rhs{nullptr};
   using Lexeme::Lexeme;
+  BoundSP clone() override;
 };
 
 
