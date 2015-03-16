@@ -18,6 +18,9 @@
 #include <fstream>
 #include <mutex>
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 namespace cypress { namespace control {
 
 //fully qualified control variable
@@ -109,6 +112,8 @@ struct Controller
 
   //Comms stuff
   size_t port{4747};
+  int sockfd;
+  struct sockaddr_in servaddr, cliaddr;
 
   Controller(std::string name) 
     : name{name}, 
