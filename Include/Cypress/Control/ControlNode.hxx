@@ -177,7 +177,7 @@ struct Controller
   double rtl{1e-3}, atl{1e-6};
   //solution starting and ending times
   //TODO: no hardcode
-  double ida_start{0}, ida_stop{7};
+  double ida_start{0}, ida_stop{7}, ida_now{0};
   //Resudial function sypplied by main routine
   using IdaResid = int(*)(realtype, N_Vector, N_Vector, N_Vector, void*);
   IdaResid F;

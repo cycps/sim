@@ -207,6 +207,23 @@ void Controller::io()
 
 void Controller::stepIda()
 {
+  double tret{ida_now};
+  double secs = period/1.0e3;
+  int retval = IDASolve(ida_mem, ida_now+secs, &tret, nv_y, nv_dy, IDA_NORMAL);
+
+  if(retval != IDA_SUCCESS)
+  {
+    k_lg << ts() << "IDASolve failed: " << retval << endl;
+    throw runtime_error{"IDASolve failed"};
+  }
+
+  if(tret - (ida_now+secs) > atl)
+  {
+    k_lg << ts() << "IDASolve error target integration time not reached" 
+         << endl;
+    throw runtime_error{"IDASolve error target integration time not reached"};
+  }
+
 }
 
 bool Controller::checkInitialConds(double tol)
