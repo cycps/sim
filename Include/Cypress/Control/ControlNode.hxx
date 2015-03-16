@@ -108,8 +108,9 @@ struct CVal
 
 struct ControlBuffer
 {
-  std::unordered_map<unsigned long, std::vector<CVal>> buf;
-  void add(CPacket);
+  //std::unordered_map<unsigned long, std::vector<CVal>> buf;
+  std::vector<std::vector<CVal>> buf;
+  size_t size() { return buf.size(); }
 };
 
 //Control Coordinate
@@ -122,9 +123,9 @@ struct CCoord
   {}
 };
 
-using FrameVarResolver = std::function<double(const std::vector<double>&)>;
+using FrameVarResolver = std::function<double(const std::vector<CVal>&)>;
 
-double UseLatestArrival(const std::vector<double> &);
+double UseLatestArrival(const std::vector<CVal> &);
 
 struct Controller
 {

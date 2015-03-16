@@ -102,7 +102,10 @@ void Controller::swapBuffers()
 
 void Controller::computeFrame()
 {
-
+  for(size_t i=0; i<a->size(); ++i)
+  {
+    input_frame[i] = resolvers[i](a->buf[i]);
+  }
 }
 
 void Controller::tx()
@@ -129,12 +132,6 @@ CPacket CPacket::fromBytes(char *buf)
   double value;
 
   char head[5];
-  /*
-  head[0] = buf[0];
-  head[1] = buf[1];
-  head[2] = buf[2];
-  head[3] = buf[3];
-  */
   strncpy(head, buf, 4);
   head[4] = 0;
 
@@ -159,14 +156,6 @@ CPacket CPacket::fromBytes(char *buf)
 
 void CPacket::toBytes(char *bytes)
 {
-
-  /*
-  bytes[0] = 'c';
-  bytes[1] = 'y';
-  bytes[2] = 'p';
-  bytes[3] = 'r';
-  */
-
   strncpy(bytes, hdr.data(), 4);
 
   size_t at = 4;
@@ -211,7 +200,7 @@ void Controller::io()
     io_lg << ts() << pkt << endl;
     
     lock_guard<mutex> lk(io_mtx);
-    b->add(pkt);
+    a->buf[imap[pkt.who+pkt.what]].push_back({pkt.sec, pkt.usec, pkt.value});  
   }
 }
 
@@ -229,11 +218,6 @@ void Controller::run()
 
 }
 
-void ControlBuffer::add(CPacket pkt)
-{
-  buf[pkt.who+pkt.what].push_back({pkt.sec, pkt.usec, pkt.value});  
-}
-
 ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
 {
   o << "{" 
@@ -248,7 +232,7 @@ ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
 
 //Resolvers -------------------------------------------------------------------
 
-double cypress::control::UseLatestArrival(const std::vector<double> &v)
+double cypress::control::UseLatestArrival(const std::vector<CVal> &v)
 {
-  return v.back();
+  return v.back().v;
 }
