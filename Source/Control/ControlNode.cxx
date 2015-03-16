@@ -1,4 +1,5 @@
 #include "Cypress/Control/ControlNode.hxx"
+#include "Cypress/Core/Elements.hxx"
 #include <thread>
 #include <chrono>
 #include <csignal>
@@ -6,7 +7,6 @@
 #include <string>
 
 using std::string;
-using namespace cypress;
 using namespace cypress::control;
 using std::endl;
 using std::this_thread::sleep_for;
@@ -17,6 +17,21 @@ using std::thread;
 using std::runtime_error;
 using std::to_string;
 using std::ostream;
+
+void ControlNode::extractComputeVars()
+{
+  VarExtractor extractor(
+      [](SymbolSP, VarContext ctx)
+      {
+        return !ctx.input;
+      });
+
+  for(EquationSP eq: eqtns)
+    extractor.run(source, eq);
+
+  for(VarRefSP v : extractor.vars)
+    compute_vars.insert(v->name);
+}
 
 void Controller::listen()
 {
@@ -199,4 +214,11 @@ ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
     << c.value 
     << "}";
   return o;
+}
+
+//Resolvers -------------------------------------------------------------------
+
+double cypress::control::UseLatestArrival(const std::vector<double> &v)
+{
+  return v.back();
 }

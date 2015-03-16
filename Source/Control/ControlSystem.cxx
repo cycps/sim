@@ -17,13 +17,18 @@ void ControlSystem::buildControlNodes()
   for(ComponentSP cp: exp->components)
   {
     if(!(cp->element->kind() == Decl::Kind::Controller)) continue;
-    ControlNode cn{cp->name->value};
+    ControlNode cn{cp};
     for(EquationSP eq: cp->element->eqtns) cn.eqtns.push_back(eq->clone());
     controlNodes.push_back(cn);
   }
 
   mapInputs();
   mapOutputs();
+
+  //note that this _must_ take place after mapping inputs to that the
+  //inputs do not get included in the control compute space
+  for(ControlNode &cn : controlNodes)
+    cn.extractComputeVars();
 }
 
 void ControlSystem::liftInput(ControlNode &cn, std::string vname)

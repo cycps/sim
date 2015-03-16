@@ -2,6 +2,7 @@
 #define CYPRESS_CONTROL_CONTROLNODE
 
 #include "Cypress/Core/Equation.hxx"
+#include "Cypress/Core/Elements.hxx"
 
 #include <ida/ida.h>
 #include <ida/ida_dense.h>
@@ -48,21 +49,27 @@ struct IOMap
 
 struct ControlNode
 {
+  ComponentSP source;
   std::string name;
   std::vector<IOMap> inputs, outputs;
   std::vector<EquationSP> eqtns;
+  std::unordered_set<std::string> compute_vars;
   
   std::shared_ptr<std::stringstream> ss;
 
   ControlNode() 
     : ss{std::make_shared<std::stringstream>()} {}
 
-  explicit ControlNode(std::string name)
-    : name{name},
+  explicit ControlNode(ComponentSP source)
+    : source{source}, name{source->name->value},
       ss{std::make_shared<std::stringstream>()} {}
 
+  void extractComputeVars();
+
   std::string emitSource() const;
-  void emitCtor() const;
+  void emit_ctor() const;
+  void emit_imapInit() const;
+  void emit_resolveInit() const;
 };
 
 struct CPacket
@@ -101,12 +108,36 @@ struct ControlBuffer
   void add(CPacket);
 };
 
+//Control Coordinate
+struct CCoord
+{
+  unsigned long who{}, what{};
+  CCoord() = default;
+  CCoord(unsigned long who, unsigned long what)
+    : who{who}, what{what}
+  {}
+};
+
+using FrameVarResolver = std::function<double(const std::vector<double>&)>;
+
+double UseLatestArrival(const std::vector<double> &);
+
 struct Controller
 {
   size_t period{100}; //100 millisecond default period
   std::string name;
+
+  //maps hash(who+what) to a local input index
   std::unordered_map<unsigned long, size_t> imap;
-  std::vector<unsigned long> omap;
+
+  //maps local input index to local control index
+  std::vector<unsigned long> ic_map;
+
+  //maps a local variable index to a CCord
+  std::unordered_map<unsigned long, CCoord> omap;
+
+  //maps a local variable index to a resolver
+  std::vector<FrameVarResolver> resolvers;
   
   ControlBuffer a_, b_;
   ControlBuffer *a{&a_}, *b{&b_};
@@ -126,6 +157,7 @@ struct Controller
   std::ofstream k_lg, io_lg;
 
   //Compute stuff
+  size_t N;
   N_Vector nv_y, nv_dy;
   realtype *y, *dy, *c;
 

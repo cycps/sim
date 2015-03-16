@@ -3,8 +3,8 @@
 #include <string>
 #include <iostream>
 
-using namespace cypress;
 using namespace cypress::control;
+using cypress::log;
 using std::signal;
 using std::cout;
 using std::endl;

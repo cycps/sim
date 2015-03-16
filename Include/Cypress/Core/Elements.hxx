@@ -19,7 +19,8 @@ namespace cypress
   struct Component; using ComponentSP = std::shared_ptr<Component>;
   struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
   struct ComponentRef; using ComponentRefSP = std::shared_ptr<ComponentRef>;
-  struct SubComponentRef; using SubComponentRefSP = std::shared_ptr<SubComponentRef>;
+  struct SubComponentRef; using SubComponentRefSP = 
+    std::shared_ptr<SubComponentRef>;
   struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
   struct Connection; using ConnectionSP = std::shared_ptr<Connection>;
   struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
@@ -218,22 +219,29 @@ struct CxxResidualFuncBuilder : public Visitor
   //void leave(CCVarSP) override;
 };
 
-//Controlled variable extraction ----------------------------------------------
+//Variable extraction ----------------------------------------------
+
+struct VarContext 
+{
+  bool cvar{false}, deriv{false}, input{false}, output{false};
+};
+
 struct VarExtractor : Visitor
 {
   ComponentSP component;
 
   //filter(symbol, inCVar, inDeriv)
-  std::function<bool(SymbolSP,bool, bool)> filter;
+  std::function<bool(SymbolSP, VarContext)> filter;
 
-  bool inCVar{false}, inDeriv{false};
+  VarContext ctx;
+  //bool inCVar{false}, inDeriv{false}, inInput{false}, inOutput{false};
   std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp>
     vars;
 
   void run(ComponentSP, EquationSP);
   void run(ComponentSP);
 
-  VarExtractor(std::function<bool(SymbolSP, bool, bool)> f)
+  VarExtractor(std::function<bool(SymbolSP, VarContext)> f)
     : filter{f}
   {}
 
@@ -242,6 +250,8 @@ struct VarExtractor : Visitor
     void leave(DifferentiateSP) override;
     void visit(CVarSP) override;
     void leave(CVarSP) override;
+    void visit(IOVarSP) override;
+    void leave(IOVarSP) override;
     void in(SymbolSP) override;
 };
 
@@ -251,9 +261,9 @@ struct VarExtractorFactory
   {
     return 
       VarExtractor(
-        [](SymbolSP, bool inCVar, bool)
+        [](SymbolSP, VarContext ctx)
         {
-          return inCVar;
+          return ctx.cvar;
         });
   }
   
@@ -261,9 +271,9 @@ struct VarExtractorFactory
   {
     return 
       VarExtractor(
-        [](SymbolSP, bool inCVar, bool)
+        [](SymbolSP, VarContext ctx)
         {
-          return !inCVar;
+          return !ctx.cvar;
         });
   }
   
@@ -271,7 +281,7 @@ struct VarExtractorFactory
   {
     return 
       VarExtractor(
-        [](SymbolSP, bool, bool)
+        [](SymbolSP, VarContext)
         {
           return true;
         });
@@ -281,9 +291,9 @@ struct VarExtractorFactory
   {
     return
       VarExtractor(
-          [](SymbolSP, bool, bool inDeriv)
+          [](SymbolSP, VarContext ctx)
           {
-            return !inDeriv;
+            return !ctx.deriv;
           });
   }
   
@@ -291,9 +301,9 @@ struct VarExtractorFactory
   {
     return
       VarExtractor(
-          [](SymbolSP, bool, bool inDeriv)
+          [](SymbolSP, VarContext ctx)
           {
-            return inDeriv;
+            return ctx.deriv;
           });
   }
 };

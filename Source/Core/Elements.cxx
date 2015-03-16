@@ -367,29 +367,43 @@ void VarExtractor::run(ComponentSP c)
 
 void VarExtractor::visit(CVarSP)
 {
-  inCVar = true;
+  ctx.cvar = true;
 }
 
 void VarExtractor::leave(CVarSP)
 {
-  inCVar = false;
+  ctx.cvar = false;
 }
   
 void VarExtractor::visit(DifferentiateSP)
 {
-  inDeriv = true;
+  ctx.deriv = true;
 }
   
 void VarExtractor::leave(DifferentiateSP)
 {
-  inDeriv = false;
+  ctx.deriv = false;
+}
+
+void VarExtractor::visit(IOVarSP v)
+{
+  switch(v->iokind)
+  {
+    case IOVar::IOKind::Input: ctx.input = true; break;
+    case IOVar::IOKind::Output: ctx.output = true; break;
+  }
+}
+
+void VarExtractor::leave(IOVarSP)
+{
+  ctx.input = ctx.output = false; 
 }
 
 void VarExtractor::in(SymbolSP s)
 {
-  if(filter(s, inCVar, inDeriv))
+  if(filter(s, ctx))
   {
-    if(inDeriv) vars.insert(make_shared<DVarRef>(component, s->value, 1));
+    if(ctx.deriv) vars.insert(make_shared<DVarRef>(component, s->value, 1));
     else vars.insert(make_shared<VarRef>(component, s->value));
   }
 }
