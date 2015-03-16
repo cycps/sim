@@ -84,13 +84,13 @@ CPacket CPacket::fromBytes(char *buf)
   double value;
 
   size_t at = 0;
-  who = ntohl(*reinterpret_cast<unsigned long*>(buf));
+  who = be64toh(*reinterpret_cast<unsigned long*>(buf));
   at += sizeof(unsigned long);
-  what = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  what = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
   at += sizeof(unsigned long);
-  sec = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  sec = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
   at += sizeof(unsigned long);
-  usec = ntohl(*reinterpret_cast<unsigned long*>(buf+at));
+  usec = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
   at += sizeof(unsigned long);
   value = *reinterpret_cast<double*>(buf+at);
 
@@ -101,13 +101,13 @@ void CPacket::toBytes(char *bytes)
 {
   size_t at = 0;
 
-  *reinterpret_cast<unsigned long*>(bytes) = htonl(who);
+  *reinterpret_cast<unsigned long*>(bytes) = htobe64(who);
   at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(what);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(what);
   at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(sec);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(sec);
   at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htonl(usec);
+  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(usec);
   at += sizeof(unsigned long);
   *reinterpret_cast<double*>(bytes+at) = value;
 
