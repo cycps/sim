@@ -13,10 +13,12 @@ using std::stringstream;
 void ControlNode::emit_ctor() const
 {
   *ss << "  //ctor ------------------------------------------------------------"
-    << endl;
+      << endl;
      
-  *ss << "  " << name << "() : Controller{\""<<name<<"\"}" << endl 
+  *ss << "  " << name << "()" << endl
+      << "    : Controller{\""<<name<<"\"}" << endl 
       << "  {" << endl
+      << "    N = " << compute_vars.size() << ";" << endl
       << "    imapInit();" << endl
       << "  }" << endl
       << endl;
@@ -25,7 +27,7 @@ void ControlNode::emit_ctor() const
 void ControlNode::emit_imapInit() const
 {
   *ss << "  //imapInit --------------------------------------------------------"
-    << endl;
+      << endl;
      
   *ss << "  void imapInit()" << endl 
       << "  {" << endl;
@@ -49,7 +51,7 @@ void ControlNode::emit_imapInit() const
 void ControlNode::emit_resolveInit() const
 {
   *ss << "  //resolveInit -----------------------------------------------------"
-    << endl;
+      << endl;
      
   *ss << "  void resolveInit()" << endl 
       << "  {" << endl;
@@ -64,23 +66,78 @@ void ControlNode::emit_resolveInit() const
 
 }
 
+void ControlNode::emit_accessors() const
+{
+  *ss << "  //compute accessors -----------------------------------------------"
+      << endl;
+
+  size_t i{0};
+  for(const string &s: compute_vars)
+  {
+    *ss << "  realtype " << s << "()" << endl
+        << "  {" << endl
+        << "    return y[" << i << "];" << endl
+        << "  }" << endl
+        << endl;
+    
+    *ss << "  realtype d_" << s << "()" << endl
+        << "  {" << endl
+        << "    return dy[" << i << "];" << endl
+        << "  }" << endl
+        << endl;
+  }
+  
+  *ss << "  //compute accessors -----------------------------------------------"
+      << endl;
+
+  i=0;
+  for(const IOMap iom: inputs)
+  {
+    *ss << "  realtype in_" << iom.local << "()" << endl
+        << "  {" << endl
+        << "    return input_frame[" << i << "];" << endl
+        << "  }" << endl
+        << endl;
+  }
+
+}
+
+void ControlNode::emit_residualFunc() const
+{
+  *ss << "  //control action --------------------------------------------------"
+      << endl;
+
+  *ss << "  void compute(realtype *r, realtype t) override" << endl
+      << "  {" << endl;
+
+  CxxResidualFuncBuilder cxr;
+  cxr.qnames = false;
+  size_t i{0};
+  for(EquationSP eq: eqtns)
+    *ss << "    " << cxr.run(source, eq, i++) << endl;
+
+  *ss << "  }" << endl
+      << endl;
+}
+
 string ControlNode::emitSource() const
 {
   *ss << "#include \"Cypress/Control/ControlNode.hxx\"" << endl
       << "#include <vector>" << endl
       << endl;
 
-  *ss << "using namespace cypress;" << endl
-      << "using namespace cypress::control;" << endl
+  *ss << "using namespace cypress::control;" << endl
       << "using std::vector;" << endl
       << endl;
 
   *ss << "struct " << name << " : Controller" << endl
-     << "{" << endl;
+      << "{" << endl;
 
   emit_ctor();
   emit_imapInit();
   emit_resolveInit();
+  emit_accessors();
+  emit_residualFunc();
 
   *ss << "};" << endl << endl;
 

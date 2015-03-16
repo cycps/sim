@@ -17,13 +17,15 @@ using std::thread;
 using std::runtime_error;
 using std::to_string;
 using std::ostream;
+using std::make_shared;
 
 void ControlNode::extractComputeVars()
 {
   VarExtractor extractor(
-      [](SymbolSP, VarContext ctx)
+      [](SymbolSP, VarContext)
       {
-        return !ctx.input;
+        //return !ctx.input;
+        return true;
       });
 
   for(EquationSP eq: eqtns)
@@ -33,9 +35,37 @@ void ControlNode::extractComputeVars()
     compute_vars.insert(v->name);
 }
 
+void ControlNode::residualForm()
+{
+  for(EquationSP eq: eqtns)
+  {
+    setToZero(eq);
+  }
+}
+
+void ControlNode::addInputResiduals()
+{
+  static constexpr int nosrc{-1};
+  for(const IOMap &iom: inputs)
+  {
+    EquationSP eq = make_shared<Equation>(nosrc, nosrc);
+    eq->lhs = make_shared<Real>(0, nosrc, nosrc);
+    IOVarSP iov = 
+          make_shared<IOVar>(make_shared<Symbol>(iom.local, nosrc, nosrc));
+
+    iov->iokind = IOVar::IOKind::Input;
+
+    eq->rhs =
+      make_shared<Subtract>(
+          make_shared<Symbol>(iom.local, nosrc, nosrc), iov,
+          nosrc, nosrc);
+
+    eqtns.push_back(eq);
+  }
+}
+
 void Controller::listen()
 {
-
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if(sockfd < 0)
     throw runtime_error{"socket() failed: " + to_string(sockfd)};

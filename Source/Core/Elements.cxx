@@ -305,9 +305,10 @@ void CxxResidualFuncBuilder::in(DivideSP)
 
 void CxxResidualFuncBuilder::in(SymbolSP s) 
 { 
-  //string sname = s->value;
-  //boost::replace_all(sname, ".", "_");
-  ss << cp->name->value << "_" << s->value << "()"; 
+  string sname{""};
+  if(qnames) sname += cp->name->value + "_";
+  sname += s->value;
+  ss << sname << "()";
 }
 
 void CxxResidualFuncBuilder::visit(PowSP) 
@@ -348,6 +349,11 @@ void CxxResidualFuncBuilder::leave(SubExpressionSP)
 void CxxResidualFuncBuilder::visit(CCVarSP)
 {
   ss << "cx_";
+}
+
+void CxxResidualFuncBuilder::visit(IOVarSP v)
+{
+  if(v->iokind == IOVar::IOKind::Input) ss << "in_";
 }
 
 

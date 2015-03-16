@@ -202,8 +202,6 @@ string ComputeNode::emitSource()
   ss << "CNode *rc = new CNode;" << endl
      << endl;
 
-  //TODO: you are here-ish .... need to initialize DAE system
-
   return ss.str();
 }
 

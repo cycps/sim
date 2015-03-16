@@ -28,7 +28,12 @@ void ControlSystem::buildControlNodes()
   //note that this _must_ take place after mapping inputs to that the
   //inputs do not get included in the control compute space
   for(ControlNode &cn : controlNodes)
+  {
     cn.extractComputeVars();
+    cn.residualForm();
+    cn.addInputResiduals();
+  }
+
 }
 
 void ControlSystem::liftInput(ControlNode &cn, std::string vname)

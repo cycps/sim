@@ -199,6 +199,7 @@ struct EqtnPrinter : public Visitor
 struct CxxResidualFuncBuilder : public Visitor
 {
   std::stringstream ss;
+  bool qnames{true};
 
   std::string run(ComponentSP cp, EquationSP, size_t idx);
   ComponentSP cp;
@@ -217,6 +218,7 @@ struct CxxResidualFuncBuilder : public Visitor
   void leave(SubExpressionSP) override;
   void visit(CCVarSP) override;
   //void leave(CCVarSP) override;
+  void visit(IOVarSP) override;
 };
 
 //Variable extraction ----------------------------------------------

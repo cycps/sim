@@ -65,11 +65,15 @@ struct ControlNode
       ss{std::make_shared<std::stringstream>()} {}
 
   void extractComputeVars();
+  void residualForm();
+  void addInputResiduals();
 
   std::string emitSource() const;
   void emit_ctor() const;
   void emit_imapInit() const;
   void emit_resolveInit() const;
+  void emit_accessors() const;
+  void emit_residualFunc() const;
 };
 
 struct CPacket
@@ -130,6 +134,8 @@ struct Controller
   //maps hash(who+what) to a local input index
   std::unordered_map<unsigned long, size_t> imap;
 
+  std::vector<double> input_frame;
+
   //maps local input index to local control index
   std::vector<unsigned long> ic_map;
 
@@ -171,6 +177,8 @@ struct Controller
       k_lg{name+"k.log", std::ios_base::out | std::ios_base::app},
       io_lg{name+"io.log", std::ios_base::out | std::ios_base::app} 
   {}
+  
+  virtual void compute(realtype *r, realtype t) = 0;
 };
 
 std::ostream & operator << (std::ostream &, const ControlNode &);
