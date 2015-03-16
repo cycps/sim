@@ -56,7 +56,7 @@ std::string ts()
   char ts[128];
   std::strftime(ts, sizeof(ts), "%F %T", std::localtime(&t));
   
-  return std::string(ts);
+  return std::string("[") + std::string(ts) + std::string("] ");
 }
 
 

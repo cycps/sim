@@ -83,8 +83,23 @@ CPacket CPacket::fromBytes(char *buf)
   unsigned long who, what, sec, usec;
   double value;
 
-  size_t at = 0;
-  who = be64toh(*reinterpret_cast<unsigned long*>(buf));
+  char head[5];
+  /*
+  head[0] = buf[0];
+  head[1] = buf[1];
+  head[2] = buf[2];
+  head[3] = buf[3];
+  */
+  strncpy(head, buf, 4);
+  head[4] = 0;
+
+  if(strncmp("cypr", head, 4) != 0)
+  {
+    throw runtime_error("Bad packet header `" + string(head) + "`");
+  }
+
+  size_t at = 4;
+  who = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
   at += sizeof(unsigned long);
   what = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
   at += sizeof(unsigned long);
@@ -99,9 +114,18 @@ CPacket CPacket::fromBytes(char *buf)
 
 void CPacket::toBytes(char *bytes)
 {
-  size_t at = 0;
 
-  *reinterpret_cast<unsigned long*>(bytes) = htobe64(who);
+  /*
+  bytes[0] = 'c';
+  bytes[1] = 'y';
+  bytes[2] = 'p';
+  bytes[3] = 'r';
+  */
+
+  strncpy(bytes, hdr.data(), 4);
+
+  size_t at = 4;
+  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(who);
   at += sizeof(unsigned long);
   *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(what);
   at += sizeof(unsigned long);
@@ -128,12 +152,20 @@ void Controller::io()
     if(err < 0)
       throw runtime_error{"recvfrom() failed: " + to_string(err)};
 
-    CPacket pkt = CPacket::fromBytes(msg);
-    //io_lg << log("msg: " + string(msg)) << endl;
+    CPacket pkt;
+    try
+    {
+      pkt = CPacket::fromBytes(msg);
+    }
+    catch(runtime_error &ex)
+    {
+      io_lg << ts() << "packet read error: " << ex.what() << endl;
+      continue;
+    }
+
     io_lg << ts() << pkt << endl;
     
     lock_guard<mutex> lk(io_mtx);
-
     b->add(pkt);
   }
 }

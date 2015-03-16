@@ -68,8 +68,6 @@ int main(int argc, char **argv)
   if(sockfd < 0)
     throw runtime_error("unable to create socket");
 
-  //cpk.who = 47;
-  //cpk.what = 74;
   constexpr size_t sz = sizeof(CPacket);
   char buf[sz];
   cpk.toBytes(buf);

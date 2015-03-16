@@ -17,6 +17,7 @@
 #include <memory>
 #include <fstream>
 #include <mutex>
+#include <array>
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -66,6 +67,7 @@ struct ControlNode
 
 struct CPacket
 {
+  std::array<char,4> hdr{'c', 'y', 'p', 'r'};
   unsigned long who, what, sec, usec;
   double value;
 
