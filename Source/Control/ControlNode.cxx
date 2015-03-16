@@ -120,6 +120,7 @@ void Controller::kernel()
   {
     swapBuffers();
     computeFrame();
+    stepIda();
     tx();
     //k_lg << log(".") << endl;
     sleep_for(milliseconds(period));
@@ -204,9 +205,88 @@ void Controller::io()
   }
 }
 
+void Controller::stepIda()
+{
+}
+
+bool Controller::checkInitialConds(double tol)
+{
+  realtype *r = (realtype*)malloc(sizeof(realtype) * N);
+  compute(r, 0);
+  bool ok{true};
+
+  k_lg << ts() << "Checking initial conditions" << endl;
+  for(size_t i=0; i<N; ++i)
+  {
+    k_lg << ts() << "r["<<i<<"]: " << r[i] << endl;  
+    if(std::abs(r[i]) > tol) ok = false;
+  }
+  if(ok)
+    k_lg << ts() << "pass" << endl;
+  else
+    k_lg << ts() << "fail" << endl;
+  
+  return ok;
+
+}
+
+void Controller::initIda()
+{
+  k_lg << log("Initializing Ida") << endl;
+
+  nv_y = N_VNew_Serial(N);
+  nv_dy = N_VNew_Serial(N);
+
+  y = NV_DATA_S(nv_y);
+  dy = NV_DATA_S(nv_dy);
+
+  ida_mem = IDACreate();
+  if(ida_mem == nullptr)
+  {
+    k_lg << ts() << "IDACreate failed" << endl;
+    throw runtime_error{"IDACreate failed"};
+  }
+
+  int retval = IDAInit(ida_mem, F, ida_start, nv_y, nv_dy);
+  if(retval != IDA_SUCCESS)
+  {
+    k_lg << ts() << "IDAInit failed: " << retval << endl;
+    throw runtime_error{"IDAInit failed"};
+  }
+
+  retval = IDASetUserData(ida_mem, this);
+  if(retval != IDA_SUCCESS)
+  {
+    k_lg << ts() << "IDASetUserData failed: " << retval << endl;
+    throw runtime_error{"IDASetUserData failed"};
+  }
+
+  retval = IDASStolerances(ida_mem, rtl, atl);
+  if(retval != IDA_SUCCESS)
+  {
+    k_lg << ts() << "IDASStolerances failed: " << retval << endl;
+    throw runtime_error{"IDASStolerances failed"};
+  }
+
+  retval = IDADense(ida_mem, N);
+  if(retval != IDA_SUCCESS)
+  {
+    k_lg << ts() << "IDADense failed: " << retval << endl;
+    throw runtime_error{"IDADense failed"};
+  }
+
+  bool init_ok = checkInitialConds(atl);
+  if(!init_ok)
+    throw runtime_error{"Initial conditions check failed"};
+
+  k_lg << log("Ida ready") << endl;
+}
+
 void Controller::run()
 {
   k_lg << log("up") << endl;
+
+  initIda();
 
   thread t_io([this](){listen();});
   thread t_k([this](){kernel();});

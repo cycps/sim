@@ -20,8 +20,21 @@ void sigh(int sig)
   exit(1);
 }
 
+int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void*)
+{
+  C->y = NV_DATA_S(y);
+  C->dy = NV_DATA_S(dy);
+
+  realtype *rv = NV_DATA_S(r);
+
+  C->compute(rv, t);
+
+  return 0;
+}
+
 int main()
 {
   signal(SIGINT, sigh);
+  C->F = F;
   C->run();
 }

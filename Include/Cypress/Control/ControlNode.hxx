@@ -160,13 +160,29 @@ struct Controller
   void kernel();
   void swapBuffers();
   void computeFrame();
+  void stepIda();
+  void initIda();
 
   std::ofstream k_lg, io_lg;
 
-  //Compute stuff
+  //Compute stuff -------------------------------------------------
+  //size of DAE system
   size_t N;
+  //state-trajectory space memory & accessors
   N_Vector nv_y, nv_dy;
   realtype *y, *dy, *c;
+  //opaque ida memory object
+  void *ida_mem{nullptr};
+  //error tolerances
+  double rtl{1e-3}, atl{1e-6};
+  //solution starting and ending times
+  //TODO: no hardcode
+  double ida_start{0}, ida_stop{7};
+  //Resudial function sypplied by main routine
+  using IdaResid = int(*)(realtype, N_Vector, N_Vector, N_Vector, void*);
+  IdaResid F;
+
+  bool checkInitialConds(double tol);
 
   //Comms stuff
   size_t port{4747};
