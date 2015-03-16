@@ -1,2 +1,2 @@
 # Cypress
-Cypress : Cyber-Physical Experimental Extensions for DETERlab
+Cypress : Cyber-Physical Experimental Extensions for DeterLab
