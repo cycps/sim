@@ -171,8 +171,8 @@ void Controller::kernel()
   while(true)
   {
     swapBuffers();
+    computeFrame();
     //TODO
-    //computeFrame();
     //stepIda();
     //tx();
     //k_lg << log(".") << endl;
@@ -387,5 +387,7 @@ ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
 
 double cypress::control::UseLatestArrival(const std::vector<CVal> &v)
 {
+  if(v.empty()) return 0;
+
   return v.back().v;
 }

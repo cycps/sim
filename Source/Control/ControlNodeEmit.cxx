@@ -21,6 +21,7 @@ void ControlNode::emit_ctor() const
       << "    N = " << compute_vars.size() << ";" << endl
       << "    imapInit();" << endl
       << "    omapInit();" << endl
+      << "    resolveInit();" << endl
       << "  }" << endl
       << endl;
 }
@@ -44,6 +45,7 @@ void ControlNode::emit_imapInit() const
 
   *ss << "    a_.buf = vector<vector<CVal>>("<<inputs.size()<<", {});" << endl;
   *ss << "    b_.buf = vector<vector<CVal>>("<<inputs.size()<<", {});" << endl;
+  *ss << "    input_frame = vector<double>("<<inputs.size()<<", 0);" << endl;
 
   *ss << "  }" << endl
       << endl;
