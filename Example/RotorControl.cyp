@@ -12,7 +12,8 @@ Controller RotorSpeedController(wt)
 
 Experiment RotorControl
   Rotor rotor(H:2.5)
-  RotorSpeedController ctrl(wt:100)
+  //TODO: you are here, need to plumb initalization into controllers
+  RotorSpeedController ctrl(wt:100, a'|100) 
   Link lnk0(Latency:5, Bandwidth:100)
   Link lnk1(Latency:10, Bandwidth:250)
 

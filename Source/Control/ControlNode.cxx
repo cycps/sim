@@ -303,6 +303,7 @@ bool Controller::checkInitialConds(double tol)
 void Controller::initIda()
 {
   k_lg << log("Initializing Ida") << endl;
+  k_lg << ts() << "Ida N=" << N << endl;
 
   nv_y = N_VNew_Serial(N);
   nv_dy = N_VNew_Serial(N);
@@ -344,13 +345,14 @@ void Controller::initIda()
     k_lg << ts() << "IDADense failed: " << retval << endl;
     throw runtime_error{"IDADense failed"};
   }
+  
+  //Initialize state-trajectory space
+  for(size_t i=0; i<N; ++i) y[i] = dy[i] = 0;
 
   bool init_ok = checkInitialConds(atl);
   if(!init_ok)
     throw runtime_error{"Initial conditions check failed"};
 
-  //Initialize state-trajectory space
-  for(size_t i=0; i<N; ++i) y[i] = dy[i] = 0;
 
   k_lg << log("Ida ready") << endl;
 }
@@ -359,7 +361,7 @@ void Controller::run()
 {
   k_lg << log("up") << endl;
 
-  //initIda();
+  initIda();
 
   thread t_io([this](){listen();});
   thread t_k([this](){kernel();});

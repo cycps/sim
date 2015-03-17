@@ -15,6 +15,7 @@ double bound_u(double v, double b)
 static inline
 double bound_au(double v, double b)
 {
+  if(v==0) return 0;
   return (v/std::abs(v)) * std::max(std::abs(v), std::abs(b));
 }
 
@@ -27,6 +28,7 @@ double bound_l(double v, double b)
 static inline
 double bound_al(double v, double b)
 {
+  if(v==0) return 0;
   return (v/std::abs(v)) * std::min(std::abs(v), std::abs(b));
 }
 
