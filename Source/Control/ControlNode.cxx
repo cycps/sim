@@ -64,11 +64,6 @@ void ControlNode::addInputResiduals()
   }
 }
 
-void ControlNode::applyBounds()
-{
-  //TODO: You are here
-}
-
 void Controller::listen()
 {
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);

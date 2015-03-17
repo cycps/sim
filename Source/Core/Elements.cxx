@@ -356,6 +356,51 @@ void CxxResidualFuncBuilder::visit(IOVarSP v)
   if(v->iokind == IOVar::IOKind::Input) ss << "in_";
 }
 
+void CxxResidualFuncBuilder::visit(BoundVarSP v)
+{
+  switch(v->bound->kind)
+  {
+    case Bound::Kind::LT:
+      ss << "cypress::bound_u(";
+      break;
+
+    case Bound::Kind::AbsLT:
+      ss << "cypress::bound_au(";
+      break;
+
+    case Bound::Kind::GT:
+      ss << "std::bound_l(";
+      break;
+
+    case Bound::Kind::AbsGT:
+      ss << "std::bound_al(";
+      break;
+  }
+}
+
+void CxxResidualFuncBuilder::leave(BoundVarSP v)
+{
+  switch(v->bound->kind)
+  {
+    case Bound::Kind::LT:
+      ss << "," << v->bound->rhs->value << ")";
+      break;
+
+    case Bound::Kind::AbsLT:
+      ss << "," << v->bound->rhs->value << ")";
+      break;
+
+    case Bound::Kind::GT:
+      ss << "," << v->bound->rhs->value << ")";
+      break;
+
+    case Bound::Kind::AbsGT:
+      ss << "," << v->bound->rhs->value << ")";
+      break;
+  }
+
+}
+
 
 //Controlled variable extraction ----------------------------------------------
 

@@ -123,6 +123,7 @@ void ControlNode::emit_residualFunc() const
 string ControlNode::emitSource() const
 {
   *ss << "#include \"Cypress/Control/ControlNode.hxx\"" << endl
+      << "#include \"Cypress/Core/Utility.hxx\"" << endl
       << "#include <vector>" << endl
       << endl;
 

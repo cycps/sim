@@ -219,6 +219,8 @@ struct CxxResidualFuncBuilder : public Visitor
   void visit(CCVarSP) override;
   //void leave(CCVarSP) override;
   void visit(IOVarSP) override;
+  void visit(BoundVarSP) override;
+  void leave(BoundVarSP) override;
 };
 
 //Variable extraction ----------------------------------------------

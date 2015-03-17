@@ -68,7 +68,6 @@ struct ControlNode
   void extractComputeVars();
   void residualForm();
   void addInputResiduals();
-  void applyBounds();
 
   std::string emitSource() const;
   void emit_ctor() const;

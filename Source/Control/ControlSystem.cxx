@@ -33,7 +33,6 @@ void ControlSystem::buildControlNodes()
     cn.extractComputeVars();
     cn.residualForm();
     cn.addInputResiduals();
-    cn.applyBounds();
   }
 
 }
