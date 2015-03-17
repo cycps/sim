@@ -36,11 +36,14 @@ void ControlNode::emit_imapInit() const
   for(IOMap iom : inputs)
   {
     *ss << "    std::hash<std::string> hsh{};" << endl;
-    *ss << "    imap[hsh(" 
-        << "\"" << iom.remote.who + "." << iom.remote.what << "\"" 
-        << ")] = " << inputIndex(iom.local) << ";"
+    *ss << "    imap[hsh(\""<<iom.remote.who<<"\")+"
+        <<          "hsh(\""<<iom.remote.what<<"\")]" 
+        << " = " << inputIndex(iom.local) << ";"
         << endl;
   }
+
+  *ss << "    a_.buf = vector<vector<CVal>>("<<inputs.size()<<", {});" << endl;
+  *ss << "    b_.buf = vector<vector<CVal>>("<<inputs.size()<<", {});" << endl;
 
   *ss << "  }" << endl
       << endl;
@@ -58,7 +61,7 @@ void ControlNode::emit_omapInit() const
   for(IOMap iom : outputs)
   {
     *ss << "    omap[" << computeIndex(iom.local) << "] = " 
-        << "{hsh(\""<<iom.remote.who<<"\", \""<<iom.remote.what<<"\")};"
+        << "{hsh(\""<<iom.remote.who<<"\"), hsh(\""<<iom.remote.what<<"\")};"
         << endl;
   }
 

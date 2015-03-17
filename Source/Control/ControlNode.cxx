@@ -5,6 +5,7 @@
 #include <csignal>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 using std::string;
 using namespace cypress::control;
@@ -170,9 +171,10 @@ void Controller::kernel()
   while(true)
   {
     swapBuffers();
-    computeFrame();
-    stepIda();
-    tx();
+    //TODO
+    //computeFrame();
+    //stepIda();
+    //tx();
     //k_lg << log(".") << endl;
     sleep_for(milliseconds(period));
   }
@@ -357,7 +359,7 @@ void Controller::run()
 {
   k_lg << log("up") << endl;
 
-  initIda();
+  //initIda();
 
   thread t_io([this](){listen();});
   thread t_k([this](){kernel();});

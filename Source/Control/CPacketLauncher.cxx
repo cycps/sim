@@ -21,16 +21,16 @@ using namespace std::chrono;
 
 int main(int argc, char **argv)
 {
-  if(argc != 4)
+  if(argc != 5)
   {
-    cerr << "usage: CPacketLauncher <who> <what> <value>" << endl;
+    cerr << "usage: CPacketLauncher <addr> <who> <what> <value>" << endl;
     exit(1);
   }
 
   std::hash<string> hsh;
-  string s_who{argv[1]}, 
-         s_what{argv[2]}, 
-         s_value{argv[3]};
+  string s_who{argv[2]}, 
+         s_what{argv[3]}, 
+         s_value{argv[4]};
 
   unsigned long 
     who{hsh(s_who)}, 
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   bzero(&servaddr, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(4747);
-  int err = inet_pton(AF_INET, "localhost", &servaddr.sin_addr);
+  int err = inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
 
   if(err < 0)
     throw runtime_error("bad server address");
