@@ -142,7 +142,7 @@ void Controller::computeFrame()
 
 void Controller::tx()
 {
-  auto *addr = reinterpret_cast<struct sockaddr*>(&cliaddr);
+  auto *addr = reinterpret_cast<struct sockaddr*>(&mwaddr);
   CPacket cpk;
   
   auto tp = high_resolution_clock::now();
@@ -160,9 +160,8 @@ void Controller::tx()
     cpk.usec = usec;
     cpk.value = y[p.first];
   
-    sendto(sockfd, &cpk, sizeof(cpk), 0, addr, sizeof(cliaddr));
+    sendto(sockfd, &cpk, sizeof(cpk), 0, addr, sizeof(mwaddr));
   }
-
 }
 
 void Controller::kernel()

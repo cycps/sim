@@ -194,7 +194,7 @@ struct Controller
   //Comms stuff ---------------------------------------------------------------
   size_t port{4747};
   int sockfd;
-  struct sockaddr_in servaddr, cliaddr;
+  struct sockaddr_in servaddr, cliaddr, mwaddr;
 
   Controller(std::string name) 
     : name{name}, 
