@@ -20,6 +20,7 @@ void ControlNode::emit_ctor() const
       << "  {" << endl
       << "    N = " << compute_vars.size() << ";" << endl
       << "    imapInit();" << endl
+      << "    omapInit();" << endl
       << "  }" << endl
       << endl;
 }
@@ -32,20 +33,37 @@ void ControlNode::emit_imapInit() const
   *ss << "  void imapInit()" << endl 
       << "  {" << endl;
 
-      int idx{0};
-      for(IOMap iom : inputs)
-      {
-        *ss << "    std::hash<std::string> hsh{};" << endl;
-        *ss << "    imap[hsh(" 
-            << "\"" << iom.remote.who + "." << iom.remote.what << "\"" 
-            << ")] = " << idx << ";"
-            << endl;
-      }
-
+  for(IOMap iom : inputs)
+  {
+    *ss << "    std::hash<std::string> hsh{};" << endl;
+    *ss << "    imap[hsh(" 
+        << "\"" << iom.remote.who + "." << iom.remote.what << "\"" 
+        << ")] = " << inputIndex(iom.local) << ";"
+        << endl;
+  }
 
   *ss << "  }" << endl
       << endl;
+}
 
+void ControlNode::emit_omapInit() const
+{
+  *ss << "  //omapInit -------------------------------------------------------"
+      << endl;
+
+  *ss << "  void omapInit()" << endl
+      << "  {" << endl
+      << "    std::hash<std::string> hsh{};" << endl;
+
+  for(IOMap iom : outputs)
+  {
+    *ss << "    omap[" << computeIndex(iom.local) << "] = " 
+        << "{hsh(\""<<iom.remote.who<<"\", \""<<iom.remote.what<<"\")};"
+        << endl;
+  }
+
+  *ss << " }" << endl
+      << endl;
 }
 
 void ControlNode::emit_resolveInit() const
@@ -71,18 +89,17 @@ void ControlNode::emit_accessors() const
   *ss << "  //compute accessors -----------------------------------------------"
       << endl;
 
-  size_t i{0};
   for(const string &s: compute_vars)
   {
     *ss << "  realtype " << s << "()" << endl
         << "  {" << endl
-        << "    return y[" << i << "];" << endl
+        << "    return y[" << computeIndex(s) << "];" << endl
         << "  }" << endl
         << endl;
     
     *ss << "  realtype d_" << s << "()" << endl
         << "  {" << endl
-        << "    return dy[" << i << "];" << endl
+        << "    return dy[" << computeIndex(s) << "];" << endl
         << "  }" << endl
         << endl;
   }
@@ -90,12 +107,11 @@ void ControlNode::emit_accessors() const
   *ss << "  //compute accessors -----------------------------------------------"
       << endl;
 
-  i=0;
   for(const IOMap iom: inputs)
   {
     *ss << "  realtype in_" << iom.local << "()" << endl
         << "  {" << endl
-        << "    return input_frame[" << i << "];" << endl
+        << "    return input_frame[" << inputIndex(iom.local) << "];" << endl
         << "  }" << endl
         << endl;
   }
@@ -136,6 +152,7 @@ string ControlNode::emitSource() const
 
   emit_ctor();
   emit_imapInit();
+  emit_omapInit();
   emit_resolveInit();
   emit_accessors();
   emit_residualFunc();

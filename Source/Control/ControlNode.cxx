@@ -18,6 +18,7 @@ using std::runtime_error;
 using std::to_string;
 using std::ostream;
 using std::make_shared;
+using namespace std::chrono;
 
 void ControlNode::extractComputeVars()
 {
@@ -62,6 +63,37 @@ void ControlNode::addInputResiduals()
 
     eqtns.push_back(eq);
   }
+}
+  
+size_t ControlNode::computeIndex(std::string s) const
+{
+  auto it = compute_vars.find(s);
+  if(it == compute_vars.end())
+    throw runtime_error{"bad compute index key"};
+
+  return std::distance(compute_vars.begin(), it);
+}
+
+size_t ControlNode::inputIndex(std::string s) const
+{
+  auto it = std::find_if(inputs.begin(), inputs.end(),
+      [s](const IOMap &iom){ return iom.local == s; });
+  
+  if(it == inputs.end())
+    throw runtime_error{"bad local index key"};
+
+  return std::distance(inputs.begin(), it);
+}
+
+size_t ControlNode::outputIndex(std::string s) const
+{
+  auto it = std::find_if(outputs.begin(), outputs.end(),
+      [s](const IOMap &iom){ return iom.local == s; });
+  
+  if(it == outputs.end())
+    throw runtime_error{"bad local index key"};
+
+  return std::distance(outputs.begin(), it);
 }
 
 void Controller::listen()
@@ -110,6 +142,26 @@ void Controller::computeFrame()
 
 void Controller::tx()
 {
+  auto *addr = reinterpret_cast<struct sockaddr*>(&cliaddr);
+  CPacket cpk;
+  
+  auto tp = high_resolution_clock::now();
+  auto dur = tp.time_since_epoch();
+  
+  size_t sec = duration_cast<seconds>(dur).count();
+  dur -= seconds(sec);
+  size_t usec = duration_cast<microseconds>(dur).count();
+
+  for(const auto &p: omap)
+  {
+    cpk.who = p.second.who;
+    cpk.what = p.second.what;
+    cpk.sec = sec;
+    cpk.usec = usec;
+    cpk.value = y[p.first];
+  
+    sendto(sockfd, &cpk, sizeof(cpk), 0, addr, sizeof(cliaddr));
+  }
 
 }
 

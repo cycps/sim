@@ -14,6 +14,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <set>
 #include <sstream>
 #include <memory>
 #include <fstream>
@@ -54,7 +55,11 @@ struct ControlNode
   std::vector<IOMap> inputs, outputs;
   std::vector<EquationSP> eqtns;
   std::vector<BoundSP> bounds;
-  std::unordered_set<std::string> compute_vars;
+  std::set<std::string> compute_vars;
+
+  size_t computeIndex(std::string) const;
+  size_t inputIndex(std::string) const;
+  size_t outputIndex(std::string) const;
   
   std::shared_ptr<std::stringstream> ss;
 
@@ -72,6 +77,7 @@ struct ControlNode
   std::string emitSource() const;
   void emit_ctor() const;
   void emit_imapInit() const;
+  void emit_omapInit() const;
   void emit_resolveInit() const;
   void emit_accessors() const;
   void emit_residualFunc() const;
@@ -185,7 +191,7 @@ struct Controller
 
   bool checkInitialConds(double tol);
 
-  //Comms stuff
+  //Comms stuff ---------------------------------------------------------------
   size_t port{4747};
   int sockfd;
   struct sockaddr_in servaddr, cliaddr;
