@@ -209,7 +209,8 @@ string ComputeNode::emitSource()
        << "+hsh(\""<<v->name<<"\")];" << endl;
   }
 
-  ss << "  }" << endl
+  ss << "    startControlListener();" << endl
+     << "  }" << endl
      <<    endl;
  
   ss << "};" << endl
