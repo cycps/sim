@@ -38,6 +38,17 @@ void Sim::addObjectToSim(ComponentSP c)
   }
 }
 
+void Sim::addActuatorToSim(ComponentSP c)
+{
+  for(auto eqtn: c->element->eqtns)
+  {
+    auto cpy = eqtn->clone();
+    cpy->rhs = make_shared<Symbol>("u_cx", -1, -1);
+    setToZero(cpy);
+    controlResiduals.insert({c, cpy});
+  }
+}
+
 
 void Sim::liftControlledSimVars(SubComponentRefSP c)
 {
@@ -50,14 +61,46 @@ void Sim::liftControlledSimVars(SubComponentRefSP c)
   }
 }
 
+VarTypeSP materialize(VarRefSP v)
+{
+  if(v->kind() == VarRef::Kind::Derivative)
+    return 
+      make_shared<Differentiate>(
+        make_shared<Symbol>(v->qname(), -1, -1),
+        -1, -1);
+
+  return make_shared<Symbol>(v->qname(), -1, -1);
+}
+
+void Sim::addBindingResidual(VarRefSP a, VarRefSP b)
+{
+  auto eq = make_shared<Equation>(-1, -1);
+  eq->lhs = materialize(a);
+  eq->rhs = materialize(b);
+  setToZero(eq);
+  bindingResiduals.push_back(eq);
+}
+
 void Sim::buildSystemEquations()
 {
   for(auto c: exp->components)
   {
     if(c->element->kind() == Decl::Kind::Object) addObjectToSim(c);
+    if(c->element->kind() == Decl::Kind::Actuator) addActuatorToSim(c);
   }
 
+  for(ConnectionSP cx: exp->connections)
+  {
+    if(isa(cx->from, Connectable::Kind::SubComponent))
+    {
+      auto sc = static_pointer_cast<SubComponentRef>(cx->from);
+      VarRefSP a = make_shared<VarRef>(sc->component, sc->subname->value);
+      VarRefSP b = getDestination(sc);
+      addBindingResidual(a, b);
+    }
+  }
 
+  /*
   for(ConnectionSP cx : exp->connections)
   {
     if(isa(cx->from, Connectable::Kind::SubComponent))
@@ -69,8 +112,9 @@ void Sim::buildSystemEquations()
       }
     }
   }
+  */
 
-  addCVarResiduals();
+  //addCVarResiduals();
 }
 
 void Sim::buildPhysics()
@@ -98,7 +142,9 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
   EqtnVarCollector evc;
   for(ComponentSP cp: exp->components) 
   {
-    if(cp->element->kind() != Decl::Kind::Object) continue;
+    if(cp->element->kind() != Decl::Kind::Object &&
+       cp->element->kind() != Decl::Kind::Actuator) continue;
+
     evc.run(cp);
   }
 
@@ -132,12 +178,32 @@ vector<REqtn> Sim::mapEquations(vector<ComputeNode> &topo)
   vector<REqtn> m;
   size_t N = topo.size();
 
-  size_t L = ceil(static_cast<double>(psys.size()) / N);
+  //size_t L = ceil(static_cast<double>(psys.size()) / N);
+  size_t n = psys.size() + bindingResiduals.size() + controlResiduals.size();
+  size_t L = ceil(static_cast<double>(n) / static_cast<double>(N));
 
   size_t i{0};
   for(auto eqtn_p: psys)
   {
-    m.push_back( REqtn{eqtn_p.second->clone(), eqtn_p.first, DCoordinate{i/L, i, i%L}} );
+    m.push_back( 
+        REqtn{eqtn_p.second->clone(), eqtn_p.first, DCoordinate{i/L, i, i%L}} 
+    );
+    ++i;
+  }
+
+  for(auto eq: bindingResiduals)
+  {
+    m.push_back(
+        REqtn{eq->clone(), nullptr, DCoordinate{i/L, i, i%L}}
+    );
+    ++i;
+  }
+
+  for(auto p: controlResiduals)
+  {
+    m.push_back(
+        REqtn{p.second->clone(), p.first, DCoordinate{i/L, i, i%L}}
+    );
     ++i;
   }
   
@@ -154,7 +220,10 @@ vector<REqtn> Sim::mapEquations(vector<ComputeNode> &topo)
 void addRVars(ComputeNode &n, vector<RVar> &rvars)
 {
   EqtnVarCollector evc;
-  for(auto p: n.eqtns) evc.run(p.first);
+  for(auto p: n.eqtns) 
+  {
+    if(p.first != nullptr) evc.run(p.first);
+  }
 
   for(VarRefSP v: evc.vars)
   {

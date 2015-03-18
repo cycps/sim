@@ -223,7 +223,7 @@ struct SubExpression : public Atom,
 
 struct Decl : public Lexeme
 {
-  enum class Kind { Object, Controller, Link, Experiment };
+  enum class Kind { Object, Controller, Link, Actuator, Experiment };
   virtual Kind kind() const = 0;
   using Lexeme::Lexeme;
 };
@@ -343,6 +343,7 @@ struct VarLifter : public Visitor
 {
   bool lifts_derivs{false}, lifts_vars{true};
   std::string symbol_name;
+  size_t lift_count{0};
 
   std::function<void(std::shared_ptr<Lifter>)> onlift = 
     [](std::shared_ptr<Lifter>){};

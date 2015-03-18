@@ -135,10 +135,28 @@ void EqtnQualifier::run(EquationSP eqtn)
 }
 
 //Link ------------------------------------------------------------------------
-Link::Link(SymbolSP name, size_t line, size_t column) : Element(name, line, column)
+Link::Link(SymbolSP name, size_t line, size_t column) 
+  : Element(name, line, column)
 {
   params.push_back(make_shared<Symbol>("Latency", name->line, name->column));
   params.push_back(make_shared<Symbol>("Bandwidth", name->line, name->column));
+}
+
+//Actuator --------------------------------------------------------------------
+Actuator::Actuator(SymbolSP name, size_t line, size_t column)
+  : Element(name, line, column)
+{
+  size_t l = name->line, c = name->column;
+  params.push_back(make_shared<Symbol>("Min", l, c));
+  params.push_back(make_shared<Symbol>("Max", l, c));
+  params.push_back(make_shared<Symbol>("DMin", l, c));
+  params.push_back(make_shared<Symbol>("DMax", l, c));
+
+  auto eq = make_shared<Equation>(-1, -1);
+  eq->lhs = make_shared<Symbol>("u", -1, -1);
+  //eq->rhs = make_shared<Symbol>("u", -1, -1);
+  
+  eqtns.push_back(eq);
 }
 
 // Eqtn Printer ---------------------------------------------------------------
@@ -306,7 +324,7 @@ void CxxResidualFuncBuilder::in(DivideSP)
 void CxxResidualFuncBuilder::in(SymbolSP s) 
 { 
   string sname{""};
-  if(qnames) sname += cp->name->value + "_";
+  if(qnames && cp != nullptr) sname += cp->name->value + "_";
   sname += s->value;
   ss << sname << "()";
 }

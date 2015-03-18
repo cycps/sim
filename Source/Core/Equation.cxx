@@ -238,18 +238,26 @@ void Equation::accept(Visitor &v)
 
   v.in(shared_from_this());
 
+  /*
   if(rhs == nullptr) 
     throw std::runtime_error("rhs lost"); 
+    */
 
-  rhs->accept(v);
-  v.leave(shared_from_this());
+  if(rhs != nullptr)
+  {
+    rhs->accept(v);
+    v.leave(shared_from_this());
+  }
 }
 
 EquationSP Equation::clone()
 {
   auto cln = make_shared<Equation>(line, column);
   cln->lhs = lhs->clone();
-  cln->rhs = rhs->clone();
+  if(rhs != nullptr)
+    cln->rhs = rhs->clone();
+  else
+    cln->rhs = nullptr;
   return cln;
 }
 

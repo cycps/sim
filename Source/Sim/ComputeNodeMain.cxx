@@ -1,5 +1,5 @@
 #include <Cypress/Sim/ComputeNode.hxx>
-#include <Cypress/Sim/ResidualClosure.hxx>
+#include <Cypress/Sim/Simutron.hxx>
 #include <RyMPI/runtime.hxx>
 
 #include <ida/ida.h>
@@ -20,8 +20,9 @@ using std::ofstream;
 using std::to_string;
 using std::runtime_error;
 using namespace cypress;
+using namespace cypress::sim;
 
-extern ResidualClosure *rc;
+extern Simutron *rc;
 
 int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
 int FL(long int L, realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
@@ -149,7 +150,7 @@ bool checkInitialConds()
 
 int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
 {
-  ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
+  Simutron *rc = static_cast<Simutron*>(udata);
   rc->resolve();
   FL(rc->L(), t, y, dy, r, udata);
 
@@ -159,7 +160,7 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata)
 int FL(long int /*L*/, realtype t, N_Vector y, N_Vector dy, 
     N_Vector r, void *udata)
 {
-  ResidualClosure *rc = static_cast<ResidualClosure*>(udata);
+  Simutron *rc = static_cast<Simutron*>(udata);
 
   realtype *rv = NV_DATA_P(r);
   rc->y = NV_DATA_P(y);

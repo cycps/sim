@@ -49,6 +49,28 @@ checkConnection(ConnectionSP, std::vector<ComponentSP>&, DiagnosticReport&);
 DiagnosticReport&
 checkComponentRef(ComponentRefSP, std::vector<ComponentSP>&, DiagnosticReport&);
 
+struct Sema
+{
+  SimulationSP sim;
+  DiagnosticReportSP dr;
+  std::vector<ObjectSP> objects;
+
+  Sema(ExperimentSP, DiagnosticReportSP, std::vector<ObjectSP> objects);
+
+  void check(); 
+
+  void check(ObjectSP);
+  //void inputCheck(ObjectSP);
+
+  void check(ComponentSP);
+  void typeCheck(ComponentSP);
+  void paramsCheck(ComponentSP);
+
+  void check(ConnectionSP);
+  void check(ComponentRefSP);
+
+};
+
 }}
 
 #endif

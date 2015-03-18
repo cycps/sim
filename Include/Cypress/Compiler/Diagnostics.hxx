@@ -24,6 +24,7 @@ struct DiagnosticReport
   Diagnostic::Level level{Diagnostic::Level::Info};
   bool catastrophic();
 };
+using DiagnosticReportSP = std::shared_ptr<DiagnosticReport>;
  
 std::ostream& operator<<(std::ostream &, const Diagnostic &);
 std::ostream& operator<<(std::ostream &, const DiagnosticReport &);

@@ -115,13 +115,13 @@ LineType Parser::classifyLine(const string &s, DeclType &dt)
 }
 
 void extractParams(const string &s, vector<string> &params, 
-    vector<size_t> &param_pos, size_t &sp)
+    vector<size_t> &param_pos, size_t &sp, string delim)
 {
   //remove parens
   ++sp;
   string pstr = string(s.begin()+1, s.end()-1);
 
-  regex rx{"\\s*([^\\)]*)"};
+  regex rx{"\\s*([^"+delim+"]*)"};
 
   params = split(pstr, ',');
   for(string &s : params)
@@ -138,11 +138,10 @@ void extractParams(const string &s, vector<string> &params,
 
 void extractParams(ElementSP e, size_t at, const string &s, size_t &sp)
 {
-
   vector<size_t> param_pos;
   vector<string> params;
   
-  extractParams(s, params, param_pos, sp);
+  extractParams(s, params, param_pos, sp, "\\)");
   
   for(size_t i=0; i<params.size(); ++i)
   {
@@ -150,6 +149,20 @@ void extractParams(ElementSP e, size_t at, const string &s, size_t &sp)
         make_shared<Symbol>(params[i], at, param_pos[i]));
   }
 }
+
+/*
+void extractInputs(ObjectSP e, size_t at, const string &s, size_t &sp)
+{
+  vector<size_t> input_pos;
+  vector<string> inputs;
+  extractParams(s, inputs, input_pos, sp, "\\]");
+  for(size_t i=0; i<inputs.size(); ++i)
+  {
+    e->inputs.push_back(
+        make_shared<Symbol>(inputs[i], at, input_pos[i]));
+  }
+}
+*/
 
 ObjectSP Parser::parseObject(size_t at, size_t &lc)
 {
@@ -164,6 +177,7 @@ ObjectSP Parser::parseObject(size_t at, size_t &lc)
   string _pstr = sm[2];
 
   extractParams(object, at, sm[2], sp);
+  //extractInputs(object, at, sm[3], sp);
   parseElementContent(object, at, lc);
   return object;
 }
@@ -273,7 +287,8 @@ ExperimentSP Parser::parseExperiment(size_t at, size_t &lc)
 
 vector<ConnectionSP> Parser::parseConnectionStmt(const string &s)
 {
-  auto links = split(s, '>');
+  //auto links = split(s, '>');
+  auto links = split(s, '~');
   for(string &l : links)
     l.erase(remove_if(l.begin(), l.end(), isspace), l.end());
 
@@ -784,7 +799,7 @@ ComponentSP Parser::parseComponent(const string &s)
   vector<string> params;
   vector<size_t> param_pos;
   size_t sp = sm.position(3);
-  extractParams(sm[3], params, param_pos, sp);
+  extractParams(sm[3], params, param_pos, sp, "\\)");
   for(size_t i=0; i<params.size(); ++i)
   {
     string &p = params[i];

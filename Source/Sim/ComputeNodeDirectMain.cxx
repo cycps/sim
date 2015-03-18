@@ -1,5 +1,5 @@
 #include <Cypress/Sim/ComputeNode.hxx>
-#include <Cypress/Sim/ResidualClosure.hxx>
+#include <Cypress/Sim/Simutron.hxx>
 
 #include <ida/ida.h>
 #include <ida/ida_dense.h>
@@ -19,6 +19,7 @@ using std::ofstream;
 using std::to_string;
 using std::runtime_error;
 using namespace cypress;
+using namespace cypress::sim;
 
 #define IJth(A,i,j) DENSE_ELEM(A,i,j)
 
@@ -36,7 +37,7 @@ int J(long int Neq,
 
 bool checkInitialConds(double tol);
 
-extern ResidualClosure *rc;
+extern Simutron *rc;
 
 
 int main()

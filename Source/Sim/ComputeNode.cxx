@@ -38,14 +38,13 @@ void remoteResolver(RVar v, size_t i, string from, stringstream &ss)
                 << from << "win);" << endl;
 }
 
-void controlAccessor(string var, stringstream &ss)
+void controlAccessor(string var, stringstream &ss, size_t i)
 {
   string fname = var;
   boost::replace_all(fname, ".", "_");
-  ss << "  inline realtype cx_" + fname + "()" << endl
+  ss << "  inline realtype " + fname + "_cx()" << endl
      << "  {" << endl
-     << "    //return cxresolve(hash<string>{}(\""<<var<<"\"));" << endl
-     << "    return 2.1;" << endl
+     << "    return c["<<i<<"];" << endl
      << "  }" << endl
      << endl;
 }
@@ -54,7 +53,7 @@ string ComputeNode::emitSource()
 {
   stringstream ss;
 
-  ss << "#include <Cypress/Sim/ResidualClosure.hxx>" << endl
+  ss << "#include <Cypress/Sim/Simutron.hxx>" << endl
      << "#include <cmath>" << endl
      << "#include <string>" << endl
      << "#include <array>" << endl
@@ -62,13 +61,14 @@ string ComputeNode::emitSource()
      << endl;
 
   ss << "using namespace cypress;" << endl
+     << "using namespace cypress::sim;" << endl
      << "using std::string;" << endl
      << "using std::hash;" << endl
      << "using std::array;" << endl
      << "using RyMPI::pointerWindow;" << endl
      << endl;
 
-  ss << "struct CNode : public ResidualClosure" << endl;
+  ss << "struct CNode : public Simutron" << endl;
   ss << "{" << endl;
 
   ss << "  // Experiment Info -------------------------------------------------"
@@ -82,12 +82,16 @@ string ComputeNode::emitSource()
   ss << "  // Local Access Variables ------------------------------------------"
      << endl;
 
-  size_t i{0};
+  size_t i{0}, ci{0};
   for(const VarRefSP v: vars)
   {
     string name = v->component->name->value + "_" + v->name;
-    localAccessor(name, "y", i, ss),
+    localAccessor(name, "y", i, ss);
     localAccessor("d_"+name, "dy", i++, ss);
+    if(v->component->element->kind() == Element::Kind::Actuator)
+    {
+      controlAccessor(name, ss, ci++);
+    }
   }
 
   ss << "  // Remote Access Variables -----------------------------------------"
@@ -116,12 +120,14 @@ string ComputeNode::emitSource()
   ss << "  }" << endl
      << endl;
 
+  /*
   ss << "  // Controll Access Variables ---------------------------------------"
      << endl;
   auto cvx = VarExtractorFactory::CVarExtractor();
   for(auto p: eqtns) cvx.run(p.first, p.second);
   for(auto v: cvx.vars)
     controlAccessor(v->component->name->value + "_" + v->name, ss);
+    */
 
   ss << "  // Residual Computation --------------------------------------------"
      << endl;
@@ -190,11 +196,21 @@ string ComputeNode::emitSource()
   ss << "  CNode()" << endl
      << "  {" << endl
      << "    ry = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
-     << endl
+     <<      endl
      << "    rdy = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
-     << endl
-     << "  }" << endl
-     << endl;
+     <<      endl
+     << "    hash<string> hsh{};" << endl;
+
+  for(VarRefSP v: vars)
+  {
+    if(v->component->element->kind() != Element::Kind::Actuator) continue;
+
+    ss << "    cmap[hsh(\""<<v->component->name->value<<"\")"
+       << "+hsh(\""<<v->name<<"\")];" << endl;
+  }
+
+  ss << "  }" << endl
+     <<    endl;
  
   ss << "};" << endl
      << endl;

@@ -14,10 +14,9 @@
 #include <string>
 #include <iostream>
 
-namespace cypress
-{
+namespace cypress { namespace sim {
 
-struct ResidualClosure
+struct Simutron
 {
   N_Vector nv_y, nv_dy, nv_r;
   realtype *y, *dy, *c, *r;
@@ -26,7 +25,11 @@ struct ResidualClosure
   MPI_Comm ycomm, dycomm;
   std::ostream *lg;
 
+  //maps hash(who+what) to a local input index
+  std::unordered_map<unsigned long, size_t> cmap;
+
   std::vector<DCoordinate> varmap;
+  void clisten();
   virtual void compute(realtype *r, realtype t) = 0;
   virtual void resolve() = 0;
   virtual void init() = 0;
@@ -36,6 +39,6 @@ struct ResidualClosure
   virtual size_t N() = 0;
 };
 
-}
+}} //::cypress::sim
 
 #endif

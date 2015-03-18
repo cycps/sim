@@ -1,4 +1,4 @@
-add_library(CypressSim SHARED Sim.cxx SimEx.cxx ComputeNode.cxx)
+add_library(CypressSim SHARED Sim.cxx SimEx.cxx ComputeNode.cxx Simutron.cxx)
 target_link_libraries(CypressSim 
   CypressCore
   /usr/local/lib/libsundials_ida.dylib 

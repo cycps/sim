@@ -15,3 +15,12 @@ target_link_libraries(RotorLinkTests
   CypressC
   CypressCore
 )
+
+add_executable(RotorSimTest RotorSim.cxx)
+
+target_link_libraries(RotorSimTest
+  gtest 
+  gtest_main
+  CypressC
+  CypressCore
+)

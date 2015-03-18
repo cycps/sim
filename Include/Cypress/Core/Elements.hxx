@@ -16,6 +16,7 @@ namespace cypress
   struct Object; using ObjectSP = std::shared_ptr<Object>;
   struct Controller; using ControllerSP = std::shared_ptr<Controller>;
   struct Link; using LinkSP = std::shared_ptr<Link>;
+  struct Actuator; using ActuatorSP = std::shared_ptr<Actuator>;
   struct Component; using ComponentSP = std::shared_ptr<Component>;
   struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
   struct ComponentRef; using ComponentRefSP = std::shared_ptr<ComponentRef>;
@@ -24,6 +25,8 @@ namespace cypress
   struct AtoD; using AtoDSP = std::shared_ptr<AtoD>;
   struct Connection; using ConnectionSP = std::shared_ptr<Connection>;
   struct Experiment; using ExperimentSP = std::shared_ptr<Experiment>;
+  using Simulation = Experiment;
+  using SimulationSP = ExperimentSP;
   
   struct VarRef; using VarRefSP = std::shared_ptr<VarRef>;
   struct VarRefSPHash;
@@ -46,6 +49,12 @@ struct Element : public Decl
 
 struct Object : public Element
 {
+  /*
+  std::vector<SymbolSP> inputs;
+  std::unordered_map<VarRefSP, ActuatorSP, VarRefSPHash, VarRefSPCmp> 
+    actuators;
+    */
+
   Kind kind() const override { return Kind::Object; }
   using Element::Element;
 };
@@ -60,6 +69,12 @@ struct Link : public Element
 {
   Kind kind() const override { return Kind::Link; }
   Link(SymbolSP name, size_t line, size_t column);
+};
+
+struct Actuator : public Element
+{
+  Kind kind() const override { return Kind::Actuator; }
+  Actuator(SymbolSP name, size_t line, size_t colunn);
 };
 
 struct Component : public Lexeme

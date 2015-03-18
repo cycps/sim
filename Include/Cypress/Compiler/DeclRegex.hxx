@@ -14,7 +14,7 @@ namespace cypress { namespace compile {
 static inline std::regex& objrx()
 {
   static std::regex *rx = 
-    new std::regex{"Object\\s+([a-zA-Z_][a-zA-Z0-9_]*)(\\(.*\\))"};
+    new std::regex{"Object\\s+([a-zA-Z_][\\w]*)(\\(.*\\))(\\[.*\\])?"};
   return *rx;
 }
 
@@ -35,7 +35,7 @@ static inline std::regex& linkdeclrx()
 static inline std::regex& exprx()
 {
   static std::regex *rx = 
-    new std::regex{"Experiment\\s+([a-zA-Z_][a-zA-Z0-9_]*)"};
+    new std::regex{"(?:Experiment|Simulation)\\s+([a-zA-Z_][a-zA-Z0-9_]*)"};
   return *rx;
 }
 
@@ -53,7 +53,8 @@ static inline std::regex& comprx()
 static inline std::regex& lnkrx()
 {
   static std::regex *rx = 
-    new std::regex{"\\s\\s+[a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_\\.]*\\s+>\\s+.*"};
+    //new std::regex{"\\s\\s+[a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_\\.]*\\s+>\\s+.*"};
+    new std::regex{"\\s\\s+[a-zα-ωΑ-ΩA-Z_][a-zα-ωΑ-ΩA-Z0-9_\\.]*\\s+~\\s+.*"};
   return *rx;
 }
 

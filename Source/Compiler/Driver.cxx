@@ -107,6 +107,7 @@ void Driver::parseInput()
 
 void Driver::checkSemantics()
 {
+  /*
   vector<ElementSP> elems;
 
   elems.insert(elems.end(), 
@@ -116,15 +117,20 @@ void Driver::checkSemantics()
   elems.insert(elems.end(), 
       decls->controllers.begin(), 
       decls->controllers.end());
+      */
 
   for(auto exp : decls->experiments)
   {
-    DiagnosticReport dr = check(exp, elems);
+    //DiagnosticReport dr = check(exp, elems);
+    auto dr = make_shared<DiagnosticReport>();
+    Sema sema(exp, dr, decls->objects);
+    sema.check();
+
+   
+    if(!dr->diagnostics.empty())
+      cout << *dr << endl;
     
-    if(!dr.diagnostics.empty())
-      cout << dr << endl;
-    
-    if(dr.catastrophic()) throw CompilationError(dr);
+    if(dr->catastrophic()) throw CompilationError(*dr);
   }
 }
 
@@ -196,6 +202,7 @@ void Driver::createCypk()
     ofs.close();
   }
 
+  /*
   ix = 0;
   for(const string &s: ctrlsys->controlNodeSources)
   {
@@ -203,6 +210,7 @@ void Driver::createCypk()
     ofs << s;
     ofs.close();
   }
+  */
 
   string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
   ofs.open(brs);
@@ -229,6 +237,7 @@ void Driver::createCypk()
   ofs.close();
   chmod(brs.c_str(), strtol("0755", 0, 8));
 
+  /*
   string build_ctrl_script_name{pkgdir.string() + "/build_control_system.sh"};
   ofs.open(build_ctrl_script_name);
   ofs << "#!/bin/sh" << endl;
@@ -249,6 +258,7 @@ void Driver::createCypk()
   }
   ofs.close();
   chmod(build_ctrl_script_name.c_str(), strtol("0755", 0, 8));
+  */
     
 }
 
@@ -265,14 +275,18 @@ void Driver::compileSource(const string &src)
   elems.insert(elems.end(), 
       decls->controllers.begin(), 
       decls->controllers.end());
- 
+
   for(auto exp : decls->experiments)
   {
-    DiagnosticReport dr = check(exp, elems);
-    if(!dr.diagnostics.empty())
+    DiagnosticReportSP dr = make_shared<DiagnosticReport>();
+    Sema sema(exp, dr, decls->objects);
+    sema.check();
+    //DiagnosticReport dr = check(exp, elems);
+
+    if(!dr->diagnostics.empty())
       cout << dr << endl;
 
-    if(dr.catastrophic()) exit(1);
+    if(dr->catastrophic()) exit(1);
 
     Sim sim(decls->objects, exp); 
     sim.buildPhysics();

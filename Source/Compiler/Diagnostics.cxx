@@ -37,8 +37,8 @@ ostream& cypress::compile::operator<<(ostream &o, const Diagnostic &d)
     case Diagnostic::Level::Warning: sev = "Warning"; break;
     case Diagnostic::Level::Info: sev = "Info"; break;
   }
-  o << "[" << sev << "]:" 
-    << d.line+1 << ":" << d.column+1 << " " 
+  o << "[" << sev << "]" 
+    << "(" << d.line+1 << ":" << d.column+1 << ") " 
     << d.message << endl;
   
   return o;

@@ -1,9 +1,10 @@
-#include <Cypress/Sim/ResidualClosure.hxx>
+#include <Cypress/Sim/Simutron.hxx>
 
 using std::string;
 using namespace cypress;
+using namespace cypress::sim;
 
-struct DummyResid : public ResidualClosure
+struct DummyResid : public Simutron
 {
   void compute(realtype*, realtype) override {}
   void resolve() override {}

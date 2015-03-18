@@ -52,6 +52,7 @@ void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x,
     {
       lifted = std::make_shared<Lifter>(symb);
       *x = lifted;
+      ++lift_count;
       onlift(lifted);
     }
   }
@@ -62,6 +63,7 @@ void VarLifter<Lifter>::lift(std::shared_ptr<Kinded> *x,
     {
       lifted = std::make_shared<Lifter>(dif);
       *x = lifted;
+      ++lift_count;
       onlift(lifted);
     }
   }
