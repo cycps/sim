@@ -159,6 +159,10 @@ string ComputeNode::emitSource()
     ss << "    y[" << p.first << "] = " << p.second.v << ";" << endl;
     ss << "    dy[" << p.first << "] = " << p.second.d << ";" << endl;
   }
+  for(size_t i=0; i<cN; ++i)
+  {
+    ss << "    c["<<i<<"] = 0;" << endl;
+  }
 
   ss << "  }" << endl
      << endl;
@@ -189,11 +193,17 @@ string ComputeNode::emitSource()
      << "    return " << N << ";" << endl
      << "  }" << endl
      << endl;
+  
+  ss << "  size_t cN() override" << endl
+     << "  {" << endl
+     << "    return " << cN << ";" << endl
+     << "  }" << endl
+     << endl;
 
   ss << "  // ctor -----------------------------------------------------------"
      << endl;
  
-  ss << "  CNode()" << endl
+  ss << "  CNode(string name) : Simutron(name)" << endl
      << "  {" << endl
      << "    ry = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
      <<      endl
@@ -205,8 +215,7 @@ string ComputeNode::emitSource()
   {
     if(v->component->element->kind() != Element::Kind::Actuator) continue;
 
-    ss << "    cmap[hsh(\""<<v->component->name->value<<"\")"
-       << "+hsh(\""<<v->name<<"\")];" << endl;
+    ss << "    cmap[hsh(\""<<v->component->name->value<<"\")];" << endl;
   }
 
   ss << "    startControlListener();" << endl
@@ -216,7 +225,7 @@ string ComputeNode::emitSource()
   ss << "};" << endl
      << endl;
   
-  ss << "CNode *rc = new CNode;" << endl
+  ss << "CNode *rc = new CNode(\"cnode"<<id<<"\");" << endl
      << endl;
 
   return ss.str();

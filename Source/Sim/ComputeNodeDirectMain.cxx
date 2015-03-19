@@ -47,7 +47,6 @@ int main()
   };
   ofs << "Cypress Direct Compute Node ... Engage" << endl;
   ofs << "N=" << rc->N() << endl;
-  rc->lg = &ofs;
 
   rc->nv_y = N_VNew_Serial(rc->N());
   rc->nv_dy = N_VNew_Serial(rc->N());
@@ -57,31 +56,49 @@ int main()
   rc->dy = NV_DATA_S(rc->nv_dy);
   rc->r = NV_DATA_S(rc->nv_r);
 
+  rc->c = (realtype*)malloc(sizeof(realtype) * rc->cN());
+
   rc->init();
 
   double rtl = 1e-3,
          atl = 1e-6;
 
-  double ts = 0, te = 7;
+  double tstart = 0, tend = 7;
 
   void *mem = IDACreate();
-  if(mem == nullptr) throw runtime_error{"IDACreate failed"};
+  if(mem == nullptr) 
+  {
+    rc->c_lg << ts() << "IDACreate failed" << endl;
+    throw runtime_error("compute failure");
+  }
 
-  int retval = IDAInit(mem, F, ts, rc->nv_y, rc->nv_dy);
+  int retval = IDAInit(mem, F, tstart, rc->nv_y, rc->nv_dy);
   if(retval != IDA_SUCCESS)
-    throw runtime_error("IDAInit failed: " + to_string(retval));
+  {
+    rc->c_lg << ts() << "IDAInit failed: "  << retval << endl;
+    throw runtime_error("compute failure");
+  }
 
   retval = IDASetUserData(mem, rc);
   if(retval != IDA_SUCCESS)
-    throw runtime_error{"IDASetUserData failed: " + to_string(retval)};
+  {
+    rc->c_lg << ts() << "IDASetUserData failed: " << retval << endl;
+    throw runtime_error("compute failure");
+  }
   
   retval = IDASStolerances(mem, rtl, atl);
   if(retval != IDA_SUCCESS) 
-    throw runtime_error{"IDASVtolerances failed: " + to_string(retval)};
+  {
+    rc->c_lg << ts() << "IDASVtolerances failed: " << retval << endl;
+    throw runtime_error("compute failure");
+  }
   
   retval = IDADense(mem, rc->N());
   if(retval != IDA_SUCCESS)
-    throw runtime_error{"IDADense failed: " + to_string(retval)};
+  {
+    rc->c_lg << ts() << "IDADense failed: " << retval << endl;
+    throw runtime_error("compute failure");
+  }
   
   //retval = IDADlsSetDenseJacFn(mem, J);
   //if(retval != IDA_SUCCESS)
@@ -90,20 +107,20 @@ int main()
   bool init_ok = checkInitialConds(atl);
   if(!init_ok)
   {
-    *rc->lg << "Bad Initial Conditions" << endl;
-    throw runtime_error("Bad Initial Conditions");
+    rc->c_lg << ts() << "Bad Initial Conditions" << endl;
+    throw runtime_error("compute failure");
   }
   
   double tret{0};
-  for(double tout=0.01; tout<te; tout += 0.01)
+  for(double tout=0.01; tout<tend; tout += 0.01)
   {
     retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
 
-    cout << std::setprecision(6) << std::fixed;
-    for(size_t i=0; i<rc->N(); ++i) cout << rc->y[i] << ","; 
-    for(size_t i=0; i<rc->N()-1; ++i) cout << rc->dy[i] << ","; 
-    cout << rc->dy[rc->N()-1];
-    cout << endl;
+    rc->results << std::setprecision(6) << std::fixed;
+    for(size_t i=0; i<rc->N(); ++i) rc->results << rc->y[i] << ","; 
+    for(size_t i=0; i<rc->N()-1; ++i) rc->results << rc->dy[i] << ","; 
+    rc->results << rc->dy[rc->N()-1];
+    rc->results << endl;
 
     /*
       << rc->y[0] << "\t"
@@ -114,9 +131,12 @@ int main()
       */
     
     if(retval != IDA_SUCCESS)
-      throw runtime_error{"IDASolve failed: " + to_string(retval)};
+    {
+      rc->c_lg << ts() << "IDASolve failed: " << retval << endl;
+      throw runtime_error("compute failure");
+    }
   }
-  cout << endl;
+  //cout << endl;
 
 }
 
@@ -126,10 +146,10 @@ bool checkInitialConds(double tol)
   rc->compute(r, 0);
   bool ok{true};
 
-  *rc->lg << "Initial Check" << endl;
+  rc->c_lg << ts() << "Initial Check" << endl;
   for(size_t i=0; i<rc->L(); ++i)
   {
-    *rc->lg << "r[0]: " << r[i] << endl;  
+    rc->c_lg << ts() << "r[0]: " << r[i] << endl;  
     if(std::abs(r[i]) > tol) ok = false;
   }
   

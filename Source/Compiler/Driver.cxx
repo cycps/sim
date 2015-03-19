@@ -15,7 +15,7 @@
 
 using namespace cypress::compile;
 using namespace cypress::sim;
-using namespace cypress::control;
+//using namespace cypress::control;
 namespace po = boost::program_options;
 using std::cout;
 using std::endl;
@@ -181,10 +181,12 @@ void Driver::buildSim(size_t N)
 
 void Driver::buildControlSystem()
 {
+  /*
   ctrlsys = make_shared<ControlSystem>(decls->controllers, 
                                        decls->experiments[0]);
   ctrlsys->buildControlNodes();
   ctrlsys->emitSources();
+  */
 }
     
 void Driver::createCypk()

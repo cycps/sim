@@ -23,21 +23,17 @@ int main(int argc, char **argv)
 {
   if(argc != 5)
   {
-    cerr << "usage: CPacketLauncher <addr> <who> <what> <value>" << endl;
+    cerr << "usage: CPacketLauncher <addr> <dest> <value>" << endl;
     exit(1);
   }
 
   std::hash<string> hsh;
-  string s_who{argv[2]}, 
-         s_what{argv[3]}, 
+  string s_dst{argv[2]}, 
          s_value{argv[4]};
 
-  unsigned long 
-    who{hsh(s_who)}, 
-    what{hsh(s_what)};
+  unsigned long dst{hsh(s_dst)};
 
-  double 
-    value{stod(s_value)};
+  double value{stod(s_value)};
 
 
   auto tp = high_resolution_clock::now();
@@ -47,7 +43,7 @@ int main(int argc, char **argv)
   dur -= seconds(sec);
   size_t usec = duration_cast<microseconds>(dur).count();
 
-  CPacket cpk{who, what, sec, usec, value};
+  CPacket cpk{dst, sec, usec, value};
 
   string nil;
   cout << "launching: " << cpk << endl;

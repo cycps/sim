@@ -126,7 +126,8 @@ void Sema::paramsCheck(ComponentSP c)
       + extra_params + "} they will be ignored";
     
     dr->diagnostics.push_back({
-        Diagnostic::Level::Warning, diag_string, c->name->line, c->name->column});
+        Diagnostic::Level::Warning, diag_string, 
+        c->name->line, c->name->column});
   }
 }
 
@@ -176,13 +177,15 @@ void Sema::check(ComponentRefSP c)
   auto &cs = sim->components;
   auto ref = find_if(cs.begin(), cs.end(),
       [c](ComponentSP x){ return x->name->value == c->name->value; });
- 
+
   if(ref == cs.end())
   {
     dr->diagnostics.push_back({
         Diagnostic::Level::Error,
         "Undefined component reference `" + c->name->value + "`",
         c->name->line, c->name->column});
+  
+    return;
   }
 
   c->component = *ref;

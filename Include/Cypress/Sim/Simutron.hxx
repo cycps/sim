@@ -1,8 +1,6 @@
 #ifndef CYPRESS_SIM_RESIDUALCLOSURE
 #define CYPRESS_SIM_RESIDUALCLOSURE
 
-#include <Cypress/Sim/Resolve.hxx>
-
 #include <ida/ida.h>
 #include <ida/ida_dense.h>
 #include <nvector/nvector_serial.h>
@@ -16,6 +14,7 @@
 #include <thread>
 #include <array>
 #include <mutex>
+#include <fstream>
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -29,8 +28,12 @@
 #define be64toh(x) OSSwapBigToHostInt64(x)
 #endif
 
+#include <Cypress/Sim/Resolve.hxx>
+#include <Cypress/Control/Packet.hxx>
+
 namespace cypress { namespace sim {
 
+/*
 struct CPacket
 {
   std::array<char,4> hdr{'c', 'y', 'p', 'r'};
@@ -49,6 +52,7 @@ struct CPacket
   void toBytes(char *buf);
 };
 std::ostream& operator<<(std::ostream &o, const CPacket &c);
+*/
 
 struct Simutron
 {
@@ -57,7 +61,7 @@ struct Simutron
   realtype *ry, *rdy;
   MPI_Win ywin, dywin;
   MPI_Comm ycomm, dycomm;
-  std::ostream *lg;
+  std::ofstream c_lg, io_lg, results;
 
   //Comms stuff ---------------------------------------------------------------
   unsigned short port{4747};
@@ -68,6 +72,8 @@ struct Simutron
 
   //maps hash(who+what) to a local input index
   std::unordered_map<unsigned long, size_t> cmap;
+
+  Simutron(std::string name);
 
   std::vector<DCoordinate> varmap;
   void startControlListener();
@@ -80,6 +86,7 @@ struct Simutron
   virtual size_t id() = 0;
   virtual size_t L() = 0;
   virtual size_t N() = 0;
+  virtual size_t cN() = 0;
 
 };
 

@@ -5,6 +5,7 @@
 #include "Cypress/Sim/Simutron.hxx"
 
 using namespace cypress::sim;
+using cypress::control::CPacket;
 using std::runtime_error;
 using std::thread;
 using std::to_string;
@@ -15,15 +16,26 @@ using std::endl;
 using std::mutex;
 using std::lock_guard;
 using std::string;
+using std::ofstream;
 
 
-//TODO: Proper logging
+Simutron::Simutron(string name)
+  : c_lg{name+".compute.log", std::ios_base::out | std::ios_base::app},
+    io_lg{name+".io.log", std::ios_base::out | std::ios_base::app},
+    results{name+".results"}
+{
+}
 
 void Simutron::clistenSetup()
 {
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if(sockfd < 0)
-    throw runtime_error{"socket() failed: " + to_string(sockfd)};
+  {
+    io_lg << ts() << "socket() failed: " << sockfd << endl;
+    throw runtime_error{"io failure"};
+  }
+  
+  io_lg << ts() << "got socket " << sockfd << endl;
 
   bzero(&servaddr, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
@@ -33,7 +45,13 @@ void Simutron::clistenSetup()
   auto *addr = reinterpret_cast<const struct sockaddr*>(&servaddr);
   int err = bind(sockfd, addr, sizeof(servaddr));
   if(err < 0)
-    throw runtime_error{"bind() failed: " + to_string(err)};
+  {
+    io_lg << ts() << "bind() failed: " << err << endl;
+    throw runtime_error{"io failure"};
+  }
+  
+  io_lg << ts() << "bound to port " << port << endl;
+
 }
 
 void Simutron::clisten()
@@ -43,12 +61,17 @@ void Simutron::clisten()
   char msg[sz];
   auto *addr = reinterpret_cast<struct sockaddr*>(&cliaddr);
 
+  io_lg << log("Listening") << endl;
+
   while(true)
   {
     //BLOCKING!!!
     int err = recvfrom(sockfd, msg, sz, 0, addr, &len);
     if(err < 0)
-      throw runtime_error{"recvfrom() failed: " + to_string(err)};
+    {
+      io_lg << ts() << "recvfrom() failed: " << err << endl;
+      throw runtime_error{"io failure"};
+    }
 
     CPacket pkt;
     try
@@ -57,22 +80,25 @@ void Simutron::clisten()
     }
     catch(runtime_error &ex)
     {
-      cerr << "packet read error: " << ex.what() << endl;
+      io_lg << ts() << "packet read error: " << ex.what() << endl;
       continue;
     }
 
-    cout << pkt << endl;
+    io_lg << ts() << "rx: " << pkt << endl;
 
     lock_guard<mutex> lk(io_mtx);
-    c[cmap[pkt.who+pkt.what]] = pkt.value; //last monkey wins!
+    c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
   }
 }
 
 void Simutron::startControlListener()
 {
+  clistenSetup();
   comm_thd = new thread([this](){ clisten(); });
   comm_thd->detach();
 }
+
+/*
 
 ostream& cypress::sim::operator<<(ostream &o, const CPacket &c)
 {
@@ -130,3 +156,4 @@ void CPacket::toBytes(char *bytes)
   *reinterpret_cast<double*>(bytes+at) = value;
 
 }
+*/

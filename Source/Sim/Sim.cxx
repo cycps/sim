@@ -168,6 +168,9 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
     topo[v.coord.px].vars.push_back(v.var);
     topo[v.coord.px].initials[v.coord.lx].v = initial_state[v.var];
     topo[v.coord.px].initials[v.coord.lx].d = initial_trajectory[v.var];
+
+    if(v.var->component->element->kind() == Element::Kind::Actuator) 
+      ++topo[v.coord.px].cN;
   }
 
   return m;
@@ -241,6 +244,7 @@ void addRVars(ComputeNode &n, vector<RVar> &rvars)
     if(rit == rvars.end()) throw runtime_error("Hocus Pocus! " + v->qname());
 
     n.rvars.push_back(*rit);
+
   }
 }
 
@@ -275,6 +279,7 @@ void Sim::buildSymbolSet()
       ext.run(c);  
   }
   vars.insert(ext.vars.begin(), ext.vars.end());
+ 
 }
 
 void Sim::buildInitials()

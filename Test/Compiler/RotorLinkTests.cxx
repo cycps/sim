@@ -30,7 +30,7 @@ TEST(RotorLink, Basic)
   d.checkSemantics(); 
   d.applyBounds();
   d.buildSim(1);
-  d.buildControlSystem();
+  //d.buildControlSystem();
   
   cout << "Compute Nodes-----------------------------------------------"
     << endl << endl;
@@ -44,8 +44,10 @@ TEST(RotorLink, Basic)
   cout << "Controllers ------------------------------------------------"
     << endl << endl;
 
+  /*
   for(const cypress::control::ControlNode &n: d.ctrlsys->controlNodes)
     cout << n << endl;
+    */
   
   cout << "------------------------------------------------------------"
     << endl;

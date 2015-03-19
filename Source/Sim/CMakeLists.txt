@@ -1,6 +1,7 @@
 add_library(CypressSim SHARED Sim.cxx SimEx.cxx ComputeNode.cxx Simutron.cxx)
 target_link_libraries(CypressSim 
   CypressCore
+  CypressControl
   /usr/local/lib/libsundials_ida.dylib 
   /usr/local/lib/libsundials_nvecparallel.dylib
   /usr/local/lib/libsundials_nvecserial.dylib

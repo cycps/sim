@@ -41,8 +41,6 @@ int main(int argc, char **argv)
   MPI_Comm_dup(ci.comm, &rc->ycomm);
   MPI_Comm_dup(ci.comm, &rc->dycomm);
 
-  rc->lg = &ofs;
-
   //init residual closure nvectors
   rc->nv_y = N_VNew_Parallel(rc->ycomm, rc->L(), rc->N());
   rc->nv_dy = N_VNew_Parallel(rc->dycomm, rc->L(), rc->N());
@@ -109,7 +107,7 @@ int main(int argc, char **argv)
   bool init_ok = checkInitialConds();
   if(!init_ok)
   {
-    *rc->lg << "Bad Initial Conditions" << endl;
+    rc->c_lg << "Bad Initial Conditions" << endl;
     throw runtime_error("Bad Initial Conditions");
   }
 
@@ -138,10 +136,10 @@ bool checkInitialConds()
   rc->compute(r, 0);
   bool ok{true};
 
-  *rc->lg << "Initial Check" << endl;
+  rc->c_lg << "Initial Check" << endl;
   for(size_t i=0; i<rc->L(); ++i)
   {
-    *rc->lg << "r[0]: " << r[i] << endl;  
+    rc->c_lg << "r[0]: " << r[i] << endl;  
     if(std::abs(r[i]) > 1e-6) ok = false;
   }
   

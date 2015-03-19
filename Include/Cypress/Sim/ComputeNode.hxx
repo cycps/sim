@@ -13,10 +13,9 @@ namespace cypress { namespace sim {
 
 struct ComputeNode
 {
-  size_t id, N;
+  size_t id{0}, N{0}, cN{0};
   std::string expInfo;
   std::vector<VarRefSP> vars;
-  std::vector<VarRefSP> controls;
   std::vector<RVar> rvars;  
   std::unordered_multimap<ComponentSP, EquationSP> eqtns;
   std::unordered_map<size_t, Initials> initials;

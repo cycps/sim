@@ -6,6 +6,7 @@ using namespace cypress::sim;
 
 struct DummyResid : public Simutron
 {
+  using Simutron::Simutron;
   void compute(realtype*, realtype) override {}
   void resolve() override {}
   string experimentInfo() override { return "DummyExperiment"; }
@@ -13,6 +14,7 @@ struct DummyResid : public Simutron
   size_t id() override { return 47; }
   size_t L() override { return 74; }
   size_t N() override { return 666; }
+  size_t cN() override { return 666; }
 };
 
-DummyResid *rc = new DummyResid;
+DummyResid *rc = new DummyResid("dummy");

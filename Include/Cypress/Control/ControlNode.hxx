@@ -1,15 +1,6 @@
 #ifndef CYPRESS_CONTROL_CONTROLNODE
 #define CYPRESS_CONTROL_CONTROLNODE
 
-#include "Cypress/Core/Equation.hxx"
-#include "Cypress/Core/Elements.hxx"
-
-#include <ida/ida.h>
-#include <ida/ida_dense.h>
-#include <nvector/nvector_serial.h>
-#include <sundials/sundials_math.h>
-#include <sundials/sundials_types.h>
-
 #include <string>
 #include <vector>
 #include <queue>
@@ -24,6 +15,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "Cypress/Control/Packet.hxx"
+#include "Cypress/Core/Common.hxx"
+
 #if defined(__linux__)
 #include <endian.h>
 #elif defined(__APPLE__)
@@ -33,75 +27,6 @@
 #endif
 
 namespace cypress { namespace control {
-
-//fully qualified control variable
-struct FQCV 
-{ 
-  FQCV(std::string who, std::string what) : who{who}, what{what} {}
-  std::string who, what; 
-};
-
-//map for RX/TX from controllers
-struct IOMap 
-{ 
-  IOMap(std::string local, FQCV remote) : local{local}, remote{remote} {}
-  std::string local; FQCV remote; 
-};
-
-struct ControlNode
-{
-  ComponentSP source;
-  std::string name;
-  std::vector<IOMap> inputs, outputs;
-  std::vector<EquationSP> eqtns;
-  std::vector<BoundSP> bounds;
-  std::set<std::string> compute_vars;
-
-  size_t computeIndex(std::string) const;
-  size_t inputIndex(std::string) const;
-  size_t outputIndex(std::string) const;
-  
-  std::shared_ptr<std::stringstream> ss;
-
-  ControlNode() 
-    : ss{std::make_shared<std::stringstream>()} {}
-
-  explicit ControlNode(ComponentSP source)
-    : source{source}, name{source->name->value},
-      ss{std::make_shared<std::stringstream>()} {}
-
-  void extractComputeVars();
-  void residualForm();
-  void addInputResiduals();
-
-  std::string emitSource() const;
-  void emit_ctor() const;
-  void emit_imapInit() const;
-  void emit_omapInit() const;
-  void emit_resolveInit() const;
-  void emit_accessors() const;
-  void emit_residualFunc() const;
-};
-
-struct CPacket
-{
-  std::array<char,4> hdr{'c', 'y', 'p', 'r'};
-  unsigned long who, what, sec, usec;
-  double value;
-
-  CPacket() = default;
-  CPacket(
-      unsigned long who, unsigned long what, 
-      unsigned long sec, unsigned long usec,
-      double value)
-    : who{who}, what{what}, sec{sec}, usec{usec}, value{value}
-  {}
-
-  static CPacket fromBytes(char *buf);
-  void toBytes(char *buf);
-};
-
-std::ostream& operator<<(std::ostream &o, const CPacket &c);
 
 struct CVal
 {
@@ -115,7 +40,6 @@ struct CVal
 
 struct ControlBuffer
 {
-  //std::unordered_map<unsigned long, std::vector<CVal>> buf;
   std::vector<std::vector<CVal>> buf;
   size_t size() { return buf.size(); }
 };
@@ -148,7 +72,7 @@ struct Controller
   std::vector<unsigned long> ic_map;
 
   //maps a local variable index to a CCord
-  std::unordered_map<unsigned long, CCoord> omap;
+  //std::unordered_map<unsigned long, CCoord> omap;
 
   //maps a local variable index to a resolver
   std::vector<FrameVarResolver> resolvers;
@@ -160,7 +84,11 @@ struct Controller
 
   void run();
 
-  void rx(), tx();
+  CPacket cpk;
+  std::hash<std::string> hsh{};
+  void setTarget(std::string what);
+
+  void rx(), tx(double v);
   void listen();
   void send(CPacket pkt);
   void io();
@@ -172,29 +100,10 @@ struct Controller
 
   std::ofstream k_lg, io_lg;
 
-  //Compute stuff -------------------------------------------------
-  //size of DAE system
-  size_t N;
-  //state-trajectory space memory & accessors
-  N_Vector nv_y, nv_dy;
-  realtype *y, *dy, *c;
-  //opaque ida memory object
-  void *ida_mem{nullptr};
-  //error tolerances
-  double rtl{1e-3}, atl{1e-6};
-  //solution starting and ending times
-  //TODO: no hardcode
-  double ida_start{0}, ida_stop{7}, ida_now{0};
-  //Resudial function sypplied by main routine
-  using IdaResid = int(*)(realtype, N_Vector, N_Vector, N_Vector, void*);
-  IdaResid F;
-
-  bool checkInitialConds(double tol);
-
   //Comms stuff ---------------------------------------------------------------
   size_t port{4747};
   int sockfd;
-  struct sockaddr_in servaddr, cliaddr, mwaddr;
+  struct sockaddr_in servaddr, cliaddr, tgtaddr;
 
   Controller(std::string name) 
     : name{name}, 
@@ -202,10 +111,8 @@ struct Controller
       io_lg{name+"io.log", std::ios_base::out | std::ios_base::app} 
   {}
   
-  virtual void compute(realtype *r, realtype t) = 0;
+  virtual void compute() = 0;
 };
-
-std::ostream & operator << (std::ostream &, const ControlNode &);
 
 }}
 

@@ -4,7 +4,7 @@
 //#include "Grammar.hxx"
 #include "Parser.hxx"
 #include "Cypress/Sim/Sim.hxx"
-#include "Cypress/Control/ControlSystem.hxx"
+//#include "Cypress/Control/ControlSystem.hxx"
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>
@@ -40,7 +40,7 @@ class Driver
     sim::SimSP sim{nullptr};
     sim::SimEx sim_ex;
 
-    control::ControlSystemSP ctrlsys{nullptr};
+    //control::ControlSystemSP ctrlsys{nullptr};
 
   private:
     void buildInvocationOptionDescriptions();
