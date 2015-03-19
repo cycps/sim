@@ -6,6 +6,10 @@
 #include <string>
 #include <iostream>
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 using std::string;
 using namespace cypress::control;
 using std::endl;
@@ -45,15 +49,10 @@ void Controller::listen()
   io();
 }
 
-void Controller::send(CPacket)
-{
-  //TODO
-  io_lg << log("Sending") << endl;
-}
-
 void Controller::swapBuffers()
 {
   lock_guard<mutex> lk(io_mtx);
+  std::swap(a,b);
 }
 
 void Controller::computeFrame()
@@ -61,6 +60,9 @@ void Controller::computeFrame()
   for(size_t i=0; i<a->size(); ++i)
   {
     input_frame[i] = resolvers[i](a->buf[i]);
+    //TODO should be able to specify what is done when after a frame is
+    //computed
+    a->buf[i].clear();
   }
 }
 
@@ -82,9 +84,32 @@ void Controller::tx(double v)
   sendto(sockfd, &cpk, sizeof(cpk), 0, addr, sizeof(tgtaddr));
 }
 
+void Controller::setDestination(string addr)
+{
+  bzero(&tgtaddr, sizeof(tgtaddr));
+  tgtaddr.sin_family = AF_INET;
+  tgtaddr.sin_port = htons(4747);
+  int err = inet_pton(AF_INET, addr.c_str(), &tgtaddr.sin_addr);
+  if(err < 0)
+  {
+    io_lg << ts() << "Bad destination address: " << addr << endl;
+    throw runtime_error{"io failure"};
+  }
+}
+
 void Controller::setTarget(string dst)
 {
   cpk.dst = hsh(dst);
+}
+
+size_t Controller::setInput(string what)
+{
+  imap[hsh(what)] = input_size;
+  input_frame.push_back(0);
+  resolvers.push_back(UseLatestArrival);
+  a_.buf.push_back({});
+  b_.buf.push_back({});
+  return input_size++;
 }
 
 
@@ -126,7 +151,15 @@ void Controller::io()
       continue;
     }
 
-    io_lg << ts() << pkt << endl;
+    if(imap.find(pkt.dst) == imap.end())
+    {
+    
+      io_lg << ts() << "dropped: " << pkt << endl;
+      return;
+    }
+
+    io_lg << ts() << "accepted: " << pkt << endl;
+
     
     lock_guard<mutex> lk(io_mtx);
     a->buf[imap[pkt.dst]].push_back({pkt.sec, pkt.usec, pkt.value});  
@@ -146,20 +179,6 @@ void Controller::run()
   k_lg << log("down") << endl;
 
 }
-
-/*
-ostream& cypress::control::operator<<(ostream &o, const CPacket &c)
-{
-  o << "{" 
-    << c.who << ", " 
-    << c.what << ", " 
-    << c.sec << ", " 
-    << c.usec << ", " 
-    << c.value 
-    << "}";
-  return o;
-}
-*/
 
 //Resolvers -------------------------------------------------------------------
 

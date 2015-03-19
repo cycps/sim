@@ -21,7 +21,7 @@ using namespace std::chrono;
 
 int main(int argc, char **argv)
 {
-  if(argc != 5)
+  if(argc != 4)
   {
     cerr << "usage: CPacketLauncher <addr> <dest> <value>" << endl;
     exit(1);
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
   std::hash<string> hsh;
   string s_dst{argv[2]}, 
-         s_value{argv[4]};
+         s_value{argv[3]};
 
   unsigned long dst{hsh(s_dst)};
 

@@ -109,21 +109,9 @@ sockaddr_in cypress::sim::sensorSA(std::string s)
   addr.sin_port = htons(4747); //TODO kill hardcode
   int err = inet_pton(AF_INET, s.c_str(), &addr.sin_addr);
 
+  if(err < 0)
+    throw runtime_error{"Invalid sensor target address"};
+
   return addr;
 }
 
-/*
-void Simutron::pushSensorSignals()
-{
-  unsigned long sec=4, usec=7;
-  for(auto p: outputs)
-  {
-    transmit({p.second, sec, usec, y[p.second]});
-  }
-}
-
-void Simutron::transmit(CPacket cpk)
-{
-  //TODO You are here
-}
-*/

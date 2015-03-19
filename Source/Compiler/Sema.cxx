@@ -142,7 +142,7 @@ void Sema::paramsCheck(ComponentSP c)
   }
 }
 
-void Sema::check(ObjectSP o)
+void Sema::check(ObjectSP)
 {
   //inputCheck(o);
 }

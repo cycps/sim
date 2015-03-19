@@ -63,13 +63,15 @@ struct Controller
   size_t period{100}; //100 millisecond default period
   std::string name;
 
+  size_t input_size{0};
+
   //maps hash(who+what) to a local input index
   std::unordered_map<unsigned long, size_t> imap;
 
   std::vector<double> input_frame;
 
   //maps local input index to local control index
-  std::vector<unsigned long> ic_map;
+  //std::vector<unsigned long> ic_map;
 
   //maps a local variable index to a CCord
   //std::unordered_map<unsigned long, CCoord> omap;
@@ -87,6 +89,8 @@ struct Controller
   CPacket cpk;
   std::hash<std::string> hsh{};
   void setTarget(std::string what);
+  size_t setInput(std::string what);
+  void setDestination(std::string addr);
 
   void rx(), tx(double v);
   void listen();
@@ -95,8 +99,6 @@ struct Controller
   void kernel();
   void swapBuffers();
   void computeFrame();
-  void stepIda();
-  void initIda();
 
   std::ofstream k_lg, io_lg;
 
