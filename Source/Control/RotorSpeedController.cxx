@@ -10,6 +10,8 @@ struct RotorSpeedController : public Controller
 {
   size_t rw_idx;
 
+  size_t wt{6};
+
   RotorSpeedController() : Controller("RotorSpeedController")
   {
     setDestination("localhost");
