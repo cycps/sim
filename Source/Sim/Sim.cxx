@@ -91,18 +91,17 @@ void Sim::buildSystemEquations()
 
   for(ConnectionSP cx: exp->connections)
   {
-    if(isa(cx->from, Connectable::Kind::SubComponent))
-    {
-      auto scf = static_pointer_cast<SubComponentRef>(cx->from);
-      auto sct = static_pointer_cast<SubComponentRef>(cx->to);
-      if(scf->component->element->kind() == Element::Kind::Controller ||
-         sct->component->element->kind() == Element::Kind::Controller)
-      {
+    auto from = static_pointer_cast<SubComponentRef>(cx->from);
+    auto to = static_pointer_cast<SubComponentRef>(cx->to);
 
-        VarRefSP a = make_shared<VarRef>(scf->component, scf->subname->value);
-        VarRefSP b = getDestination(scf);
-        addBindingResidual(a, b);
-      }
+    //Actuator connections
+    if(from->component->element->kind() == Element::Kind::Actuator ||
+       to->component->element->kind() == Element::Kind::Actuator)
+    {
+
+      VarRefSP a = make_shared<VarRef>(from->component, from->subname->value);
+      VarRefSP b = getDestination(from);
+      addBindingResidual(a, b);
     }
   }
 
@@ -134,10 +133,23 @@ void Sim::buildPhysics()
 SimEx Sim::buildSimEx(size_t N)
 {
   SimEx sx{}; 
+  addSensors();
   sx.computeNodes = buildComputeTopology(N);
   sx.emitSources();
 
   return sx;
+}
+
+void Sim::addSensors()
+{
+  for(ComponentSP c: exp->components)
+  {
+    if(c->element->kind() == Element::Kind::Sensor)
+    {
+      sensors.push_back(
+          static_pointer_cast<SensorAttributes>(c->attributes));
+    }
+  }
 }
 
 vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)

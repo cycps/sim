@@ -19,6 +19,12 @@ namespace cypress
   struct Actuator; using ActuatorSP = std::shared_ptr<Actuator>;
   struct Sensor; using SensorSP = std::shared_ptr<Sensor>;
   struct Component; using ComponentSP = std::shared_ptr<Component>;
+  struct ComponentAttributes; 
+  using ComponentAttributesSP = std::shared_ptr<ComponentAttributes>;
+  struct SensorAttributes;
+  using SensorAttributesSP = std::shared_ptr<SensorAttributes>;
+  struct ActuatorAttributes;
+  using ActuatorAttributesSP = std::shared_ptr<ActuatorAttributes>;
   struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
   struct ComponentRef; using ComponentRefSP = std::shared_ptr<ComponentRef>;
   struct SubComponentRef; using SubComponentRefSP = 
@@ -84,6 +90,20 @@ struct Sensor : public Element
   Sensor(SymbolSP name, size_t line, size_t column);
 };
 
+struct ComponentAttributes {};
+
+struct SensorAttributes : public ComponentAttributes
+{
+  VarRefSP target;
+  size_t rate{0};
+  std::string destination;
+};
+
+struct ActuatorAttributes : public ComponentAttributes
+{
+
+};
+
 struct Component : public Lexeme
 {
   SymbolSP kind, name;
@@ -95,26 +115,32 @@ struct Component : public Lexeme
     : Lexeme{line, column}, kind{kind}, name{name} {}
 
   std::string parameterValue(std::string);
+  SymbolSP parameter(std::string);
   RealSP initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
+
+  ComponentAttributesSP attributes;
   
   void applyParameters();
 };
+
 
 struct Connectable 
 {
   enum class Kind { Component, SubComponent, AtoD };
   //only 1 neighbor for now
   //std::vector<ConnectableSP> neighbors;
+  Connectable(SymbolSP name) : name{name} {}
+  SymbolSP name;
   ConnectableSP neighbor{nullptr};
   virtual Kind kind() const = 0;
 };
 
 struct ComponentRef : public Connectable
 {
-  SymbolSP name;
   ComponentSP component{nullptr};
   Kind kind() const override { return Kind::Component; }
-  ComponentRef(SymbolSP name) : name{name} {}
+  //ComponentRef(SymbolSP name) : name{name} {}
+  using Connectable::Connectable;
 };
 
 struct SubComponentRef : public ComponentRef
@@ -129,7 +155,11 @@ struct AtoD : public Connectable
 {
   RealSP rate;
   Kind kind() const override { return Kind::AtoD; }
-  AtoD(RealSP rate) : rate{rate} {}
+  AtoD(RealSP rate) 
+    : Connectable{std::make_shared<Symbol>(
+        "balderdash", rate->line, rate->column)},
+      rate{rate} 
+  {}
 };
 
 struct Connection

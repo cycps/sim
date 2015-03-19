@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <set>
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 using namespace cypress;
 using namespace cypress::compile;
 using std::find_if;
@@ -54,11 +58,13 @@ void Sema::typeCheck(ComponentSP c)
   if(c->kind->value == "Actuator")
   {
     c->element = make_shared<Actuator>(c->name, c->kind->line, c->kind->column);
+    c->attributes = make_shared<ActuatorAttributes>();
     return;
   }
   else if(c->kind->value == "Sensor")
   {
     c->element = make_shared<Sensor>(c->name, c->kind->line, c->kind->column);
+    c->attributes = make_shared<SensorAttributes>();
     return;
   }
 
@@ -165,6 +171,132 @@ void Sema::inputCheck(ObjectSP o)
 
 void Sema::check(ConnectionSP c)
 {
+  //TODO since all connections are between subcomponents now we can
+  //get rid of this nonsense entirely at some point
+  if(!isa(c->from, Connectable::Kind::SubComponent) ||
+     !isa(c->to, Connectable::Kind::SubComponent))
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Illegal connection, connections must be between subcomponents",
+        c->from->name->line, c->from->name->column});
+    throw CompilationError{*dr};
+  }
+
+  SubComponentRefSP from = static_pointer_cast<SubComponentRef>(c->from),
+                    to = static_pointer_cast<SubComponentRef>(c->to);
+  
+  check(from);
+  check(to);
+  //The above checks establish the components so we cannot continue if
+  //this part of the data structure is not there
+  if(dr->catastrophic()) throw CompilationError{*dr};
+ 
+  //Checking the nature of the connections themselves
+  //Sensor Checks
+  if(from->component->element->kind() == Element::Kind::Sensor)
+  {
+    if(to->component->element->kind() != Element::Kind::Object)
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Illegal sensor connection, sensors can only sense physical objects",
+          c->to->name->line, c->to->name->column});
+
+    static_pointer_cast<SensorAttributes>(from->component->attributes)->target = 
+      make_shared<VarRef>(to->component, to->subname->value);
+  }
+    
+  if(to->component->element->kind() == Element::Kind::Sensor)
+  {
+    if(from->component->element->kind() != Element::Kind::Object)
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Illegal sensor connection, sensors can only sense physical objects",
+          c->from->name->line, c->from->name->column});
+
+    auto attrs = 
+      static_pointer_cast<SensorAttributes>(to->component->attributes);
+
+    attrs->target = make_shared<VarRef>(from->component, from->subname->value);
+
+    try
+    {
+      attrs->rate = stoul(to->component->parameterValue("Rate"));
+    }
+    catch(std::invalid_argument &)
+    {
+      SymbolSP sym = to->component->parameter("Rate");
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Invalid sensor rate, positive integral number is required",
+          sym->line, sym->column});
+    }
+    catch(std::out_of_range &)
+    {
+      SymbolSP sym = to->component->parameter("Rate");
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Invalid sensor rate, argument out of range",
+          sym->line, sym->column});
+    }
+    catch(ParameterNotFound &)
+    {
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Sensor instantiate requires a Rate argument",
+          to->component->name->line, to->component->name->column});
+    }
+    try
+    {
+      attrs->destination = to->component->parameterValue("Destination");
+
+      struct sockaddr_in servaddr;
+      bzero(&servaddr, sizeof(servaddr));
+      servaddr.sin_family = AF_INET;
+      servaddr.sin_port = htons(4747);
+      int err = 
+        inet_pton(AF_INET, attrs->destination.c_str(), &servaddr.sin_addr);
+
+      if(err < 0)
+      {
+        SymbolSP sym = to->component->parameter("Destination");
+        dr->diagnostics.push_back({
+            Diagnostic::Level::Error,
+            "Invalid destination, must be a valid IP address or dns name",
+            sym->line, sym->column});
+      }
+
+    }
+    catch(ParameterNotFound &)
+    {
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Sensor instantiate requires a Destination argument",
+          to->component->name->line, to->component->name->column});
+    }
+  }
+  
+  //Actuator Checks
+  if(from->component->element->kind() == Element::Kind::Actuator)
+  {
+    if(to->component->element->kind() != Element::Kind::Object)
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Illegal actuator connection, sensors can only sense physical objects",
+          c->to->name->line, c->to->name->column});
+  }
+    
+  if(to->component->element->kind() == Element::Kind::Actuator)
+  {
+    if(from->component->element->kind() != Element::Kind::Object)
+      dr->diagnostics.push_back({
+          Diagnostic::Level::Error,
+          "Illegal actuator connection, sensors can only sense physical objects",
+          c->from->name->line, c->from->name->column});
+  }
+
+    
+  /*
   if(c->from->kind() == Connectable::Kind::Component || 
      c->from->kind() == Connectable::Kind::SubComponent)
   {
@@ -175,10 +307,12 @@ void Sema::check(ConnectionSP c)
   {
     check(static_pointer_cast<ComponentRef>(c->to));
   }
+  */
 }
 
-void Sema::check(ComponentRefSP c)
+void Sema::check(SubComponentRefSP c)
 {
+  
   auto &cs = sim->components;
   auto ref = find_if(cs.begin(), cs.end(),
       [c](ComponentSP x){ return x->name->value == c->name->value; });
@@ -195,23 +329,20 @@ void Sema::check(ComponentRefSP c)
 
   c->component = *ref;
 
-  if(c->kind() == Connectable::Kind::SubComponent)
+  string sr = static_pointer_cast<SubComponentRef>(c)->subname->value;
+  VarCollector vc;
+  vc.run(c->component->element);
+  auto vars = vc.vars[c->component->element];
+
+  auto subref = find_if(vars.begin(), vars.end(),
+      [sr](SymbolSP x){ return x->value == sr; });
+
+  if(subref == vars.end())
   {
-    string sr = static_pointer_cast<SubComponentRef>(c)->subname->value;
-    VarCollector vc;
-    vc.run(c->component->element);
-    auto vars = vc.vars[c->component->element];
-
-    auto subref = find_if(vars.begin(), vars.end(),
-        [sr](SymbolSP x){ return x->value == sr; });
-
-    if(subref == vars.end())
-    {
-      dr->diagnostics.push_back({
-          Diagnostic::Level::Error,
-          "Undefined component subreference `" + c->name->value +"."+ sr + "`",
-          c->name->line, c->name->column});
-    }
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Undefined component subreference `" + c->name->value +"."+ sr + "`",
+        c->name->line, c->name->column});
   }
 }
 

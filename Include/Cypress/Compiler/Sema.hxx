@@ -67,7 +67,7 @@ struct Sema
   void paramsCheck(ComponentSP);
 
   void check(ConnectionSP);
-  void check(ComponentRefSP);
+  void check(SubComponentRefSP);
 
 };
 

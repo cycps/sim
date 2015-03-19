@@ -35,7 +35,6 @@ int main(int argc, char **argv)
 
   double value{stod(s_value)};
 
-
   auto tp = high_resolution_clock::now();
   auto dur = tp.time_since_epoch();
   

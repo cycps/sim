@@ -55,7 +55,19 @@ string Component::parameterValue(string s)
   if(it != params.end())
     return it->second;
 
-  throw runtime_error{"Component: Undefined parameter value requested: " + s};
+  throw ParameterNotFound{"Component: Undefined parameter value requested: " + s};
+}
+
+SymbolSP Component::parameter(string s)
+{
+  auto it = 
+    find_if(params.begin(), params.end(),
+        [s](const pair<SymbolSP, string> &p){ return p.first->value == s; });
+
+  if(it != params.end())
+    return it->first;
+
+  throw ParameterNotFound{"Component: Undefined parameter value requested: " + s};
 }
 
 RealSP Component::initialValue(string s, VarRef::Kind k)

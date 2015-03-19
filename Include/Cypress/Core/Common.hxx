@@ -5,6 +5,7 @@
 #include <utility>
 #include <chrono>
 #include <string>
+#include <stdexcept>
 
 //Forward declarations --------------------------------------------------------
 namespace cypress
@@ -58,6 +59,11 @@ std::string ts()
   
   return std::string("[") + std::string(ts) + std::string("] ");
 }
+
+struct ParameterNotFound : std::runtime_error
+{
+  ParameterNotFound(std::string msg) : std::runtime_error(msg) {}
+};
 
 
 } //::cypress
