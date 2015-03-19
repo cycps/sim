@@ -1,4 +1,9 @@
-add_library(CypressSim SHARED Sim.cxx SimEx.cxx ComputeNode.cxx Simutron.cxx)
+add_library(CypressSim 
+  SHARED 
+  Sim.cxx SimEx.cxx 
+  ComputeNode.cxx Simutron.cxx
+  Sensor.cxx)
+
 target_link_libraries(CypressSim 
   CypressCore
   CypressControl

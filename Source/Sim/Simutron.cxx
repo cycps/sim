@@ -50,7 +50,6 @@ void Simutron::clistenSetup()
   }
   
   io_lg << ts() << "bound to port " << port << endl;
-
 }
 
 void Simutron::clisten()
@@ -85,7 +84,7 @@ void Simutron::clisten()
 
     io_lg << ts() << "rx: " << pkt << endl;
 
-    lock_guard<mutex> lk(io_mtx);
+    lock_guard<mutex> lk(rx_mtx);
     c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
   }
 }
@@ -97,6 +96,7 @@ void Simutron::startControlListener()
   comm_thd->detach();
 }
 
+/*
 void Simutron::pushSensorSignals()
 {
   unsigned long sec=4, usec=7;
@@ -110,3 +110,4 @@ void Simutron::transmit(CPacket cpk)
 {
   //TODO You are here
 }
+*/

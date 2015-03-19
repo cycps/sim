@@ -115,12 +115,20 @@ int main()
   for(double tout=0.01; tout<tend; tout += 0.01)
   {
     retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
+    
+    if(retval != IDA_SUCCESS)
+    {
+      rc->c_lg << ts() << "IDASolve failed: " << retval << endl;
+      throw runtime_error("compute failure");
+    }
 
     rc->results << std::setprecision(6) << std::fixed;
     for(size_t i=0; i<rc->N(); ++i) rc->results << rc->y[i] << ","; 
     for(size_t i=0; i<rc->N()-1; ++i) rc->results << rc->dy[i] << ","; 
     rc->results << rc->dy[rc->N()-1];
     rc->results << endl;
+
+    rc->sensorManager.step(tret);
 
     /*
       << rc->y[0] << "\t"
@@ -130,11 +138,6 @@ int main()
       << endl;
       */
     
-    if(retval != IDA_SUCCESS)
-    {
-      rc->c_lg << ts() << "IDASolve failed: " << retval << endl;
-      throw runtime_error("compute failure");
-    }
   }
   //cout << endl;
 
