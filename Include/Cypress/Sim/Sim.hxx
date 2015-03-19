@@ -34,6 +34,7 @@ struct Sim
 
   void buildPhysics();
   void addSensors();
+  SensorAttributesSP getSensor(VarRefSP);
   void buildSystemEquations();
   void buildSymbolSet();
   void buildInitials();

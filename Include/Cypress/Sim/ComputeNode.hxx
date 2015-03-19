@@ -8,6 +8,7 @@
 #include "Cypress/Core/Var.hxx"
 #include "Cypress/Sim/Resolve.hxx"
 #include "Cypress/Core/Equation.hxx"
+#include "Cypress/Core/Elements.hxx"
 
 namespace cypress { namespace sim {
 
@@ -19,6 +20,8 @@ struct ComputeNode
   std::vector<RVar> rvars;  
   std::unordered_multimap<ComponentSP, EquationSP> eqtns;
   std::unordered_map<size_t, Initials> initials;
+  std::vector<SensorAttributesSP> sensors;
+  size_t varidx(VarRefSP);
 
   std::string emitSource();
 };

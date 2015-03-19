@@ -2,12 +2,14 @@
 #include "Cypress/Core/Elements.hxx"
 #include <boost/algorithm/string/replace.hpp>
 #include <sstream>
+#include <stdexcept>
 
 using std::endl;
 using std::string;
 using std::ostream;
 using std::string;
 using std::stringstream;
+using std::runtime_error;
 
 using namespace cypress;
 using namespace cypress::sim;
@@ -209,13 +211,26 @@ string ComputeNode::emitSource()
      <<      endl
      << "    rdy = (realtype*)malloc(sizeof(realtype)*" << vars.size() << ");" 
      <<      endl
-     << "    hash<string> hsh{};" << endl;
+     << "    hash<string> hsh{};" << endl
+     << endl;
 
   for(VarRefSP v: vars)
   {
     if(v->component->element->kind() != Element::Kind::Actuator) continue;
 
-    ss << "    cmap[hsh(\""<<v->component->name->value<<"\")];" << endl;
+    ss << "    cmap[hsh(\""<<v->component->name->value<<"\")];" << endl
+       << endl;
+  }
+
+  for(SensorAttributesSP sens: sensors)
+  {
+    ss << "    "
+       << "sensorManager.add({"
+       << "hsh(\"" << sens->target->qname() << "\"), "
+       << varidx(sens->target) << ", "
+       << sens->rate << ", "
+       << "sensorSA(\"" << sens->destination << "\")});" << endl
+       << endl;
   }
 
   ss << "    startControlListener();" << endl
@@ -229,6 +244,20 @@ string ComputeNode::emitSource()
      << endl;
 
   return ss.str();
+}
+
+size_t ComputeNode::varidx(VarRefSP v)
+{
+  auto it =
+    find_if(vars.begin(), vars.end(),
+        [v](VarRefSP x)
+        {
+          return v->qname() == x->qname();
+        });
+
+  if(it != vars.end()) return std::distance(vars.begin(), it);
+
+  throw runtime_error{"Unkown var " + v->qname()};
 }
 
 ostream & cypress::sim::operator << (ostream &o, const ComputeNode &n)

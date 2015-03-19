@@ -2,6 +2,10 @@
 #include <string>
 #include <iostream>
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 #include "Cypress/Sim/Simutron.hxx"
 
 using namespace cypress::sim;
@@ -94,6 +98,18 @@ void Simutron::startControlListener()
   clistenSetup();
   comm_thd = new thread([this](){ clisten(); });
   comm_thd->detach();
+}
+
+sockaddr_in cypress::sim::sensorSA(std::string s)
+{
+  sockaddr_in addr;
+
+  bzero(&addr, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(4747); //TODO kill hardcode
+  int err = inet_pton(AF_INET, s.c_str(), &addr.sin_addr);
+
+  return addr;
 }
 
 /*

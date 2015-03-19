@@ -189,9 +189,29 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
 
     if(v.var->component->element->kind() == Element::Kind::Actuator) 
       ++topo[v.coord.px].cN;
+
+    SensorAttributesSP sens = getSensor(v.var);
+    if(sens != nullptr)
+      topo[v.coord.px].sensors.push_back(sens);
   }
 
   return m;
+}
+
+SensorAttributesSP Sim::getSensor(VarRefSP v)
+{
+  auto it = 
+    find_if(sensors.begin(), sensors.end(),
+        [v](SensorAttributesSP s)
+        { 
+          return 
+            s->target->component->name->value == v->component->name->value &&
+            s->target->name == v->name;
+        });
+
+  if(it != sensors.end()) return *it;
+
+  return nullptr;
 }
 
 vector<REqtn> Sim::mapEquations(vector<ComputeNode> &topo)

@@ -34,6 +34,8 @@
 
 namespace cypress { namespace sim {
 
+sockaddr_in sensorSA(std::string);
+
 struct Simutron
 {
   N_Vector nv_y, nv_dy, nv_r;
