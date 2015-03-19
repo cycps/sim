@@ -49,8 +49,10 @@ struct Simutron
   std::thread *comm_thd{nullptr};
   std::mutex io_mtx;
 
-  //maps hash(who+what) to a local input index
+  //maps hash(dst) to a local input index
   std::unordered_map<unsigned long, size_t> cmap;
+  //maps local coord to hash(dst)
+  std::unordered_map<size_t, size_t> outputs;
 
   Simutron(std::string name);
 
@@ -58,6 +60,8 @@ struct Simutron
   void startControlListener();
   void clistenSetup();
   void clisten();
+  void pushSensorSignals();
+  void transmit(control::CPacket);
   virtual void compute(realtype *r, realtype t) = 0;
   virtual void resolve() = 0;
   virtual void init() = 0;

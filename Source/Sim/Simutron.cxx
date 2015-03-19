@@ -23,8 +23,7 @@ Simutron::Simutron(string name)
   : c_lg{name+".compute.log", std::ios_base::out | std::ios_base::app},
     io_lg{name+".io.log", std::ios_base::out | std::ios_base::app},
     results{name+".results"}
-{
-}
+{}
 
 void Simutron::clistenSetup()
 {
@@ -98,62 +97,16 @@ void Simutron::startControlListener()
   comm_thd->detach();
 }
 
-/*
-
-ostream& cypress::sim::operator<<(ostream &o, const CPacket &c)
+void Simutron::pushSensorSignals()
 {
-  o << "{" 
-    << c.who << ", " 
-    << c.what << ", " 
-    << c.sec << ", " 
-    << c.usec << ", " 
-    << c.value 
-    << "}";
-  return o;
-}
-
-CPacket CPacket::fromBytes(char *buf)
-{
-  unsigned long who, what, sec, usec;
-  double value;
-
-  char head[5];
-  strncpy(head, buf, 4);
-  head[4] = 0;
-
-  if(strncmp("cypr", head, 4) != 0)
+  unsigned long sec=4, usec=7;
+  for(auto p: outputs)
   {
-    throw runtime_error("Bad packet header `" + string(head) + "`");
+    transmit({p.second, sec, usec, y[p.second]});
   }
-
-  size_t at = 4;
-  who = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
-  at += sizeof(unsigned long);
-  what = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
-  at += sizeof(unsigned long);
-  sec = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
-  at += sizeof(unsigned long);
-  usec = be64toh(*reinterpret_cast<unsigned long*>(buf+at));
-  at += sizeof(unsigned long);
-  value = *reinterpret_cast<double*>(buf+at);
-
-  return CPacket{who, what, sec, usec, value};
 }
 
-void CPacket::toBytes(char *bytes)
+void Simutron::transmit(CPacket cpk)
 {
-  strncpy(bytes, hdr.data(), 4);
-
-  size_t at = 4;
-  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(who);
-  at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(what);
-  at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(sec);
-  at += sizeof(unsigned long);
-  *reinterpret_cast<unsigned long*>(bytes+at) = htobe64(usec);
-  at += sizeof(unsigned long);
-  *reinterpret_cast<double*>(bytes+at) = value;
-
+  //TODO You are here
 }
-*/
