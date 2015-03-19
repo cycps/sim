@@ -807,7 +807,8 @@ ComponentSP Parser::parseComponent(const string &s)
     {
       auto ps = split(p, ':');
       cp->params[make_shared<Symbol>(ps[0], currline, param_pos[i])] = 
-        make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
+        ps[1];
+        //make_shared<Real>(stod(ps[1]), currline, param_pos[i]);
     }
     else if(p.find("|") != string::npos)
     {

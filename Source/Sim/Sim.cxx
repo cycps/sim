@@ -93,10 +93,16 @@ void Sim::buildSystemEquations()
   {
     if(isa(cx->from, Connectable::Kind::SubComponent))
     {
-      auto sc = static_pointer_cast<SubComponentRef>(cx->from);
-      VarRefSP a = make_shared<VarRef>(sc->component, sc->subname->value);
-      VarRefSP b = getDestination(sc);
-      addBindingResidual(a, b);
+      auto scf = static_pointer_cast<SubComponentRef>(cx->from);
+      auto sct = static_pointer_cast<SubComponentRef>(cx->to);
+      if(scf->component->element->kind() == Element::Kind::Controller ||
+         sct->component->element->kind() == Element::Kind::Controller)
+      {
+
+        VarRefSP a = make_shared<VarRef>(scf->component, scf->subname->value);
+        VarRefSP b = getDestination(scf);
+        addBindingResidual(a, b);
+      }
     }
   }
 

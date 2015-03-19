@@ -46,11 +46,11 @@ Decls & Decls::operator += (const Decls &b)
 
 // Component ------------------------------------------------------------------
 
-RealSP Component::parameterValue(string s)
+string Component::parameterValue(string s)
 {
   auto it = 
     find_if(params.begin(), params.end(),
-        [s](const pair<SymbolSP, RealSP> &p){ return p.first->value == s; });
+        [s](const pair<SymbolSP, string> &p){ return p.first->value == s; });
 
   if(it != params.end())
     return it->second;
@@ -84,7 +84,13 @@ void Component::applyParameters()
   {
     for(EquationSP eq: element->eqtns)
     {
-      applyParameter(eq, p.first->value, p.second->value);
+      //applyParameter(eq, p.first->value, p.second->value);
+      try
+      {
+        double v = stod(p.second);
+        applyParameter(eq, p.first->value, v);
+      }
+      catch(...){}
     }
   }
 }
@@ -154,8 +160,21 @@ Actuator::Actuator(SymbolSP name, size_t line, size_t column)
 
   auto eq = make_shared<Equation>(-1, -1);
   eq->lhs = make_shared<Symbol>("u", -1, -1);
-  //eq->rhs = make_shared<Symbol>("u", -1, -1);
   
+  eqtns.push_back(eq);
+}
+
+//Sensor ----------------------------------------------------------------------
+Sensor::Sensor(SymbolSP name, size_t line, size_t column)
+  : Element(name, line, column)
+{
+  size_t l = name->line, c = name->column;
+  params.push_back(make_shared<Symbol>("Rate", l, c));
+  params.push_back(make_shared<Symbol>("Destination", l, c));
+
+  auto eq = make_shared<Equation>(-1, -1);
+  eq->lhs = make_shared<Symbol>("y", -1, -1);
+
   eqtns.push_back(eq);
 }
 

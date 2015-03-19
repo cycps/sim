@@ -56,6 +56,11 @@ void Sema::typeCheck(ComponentSP c)
     c->element = make_shared<Actuator>(c->name, c->kind->line, c->kind->column);
     return;
   }
+  else if(c->kind->value == "Sensor")
+  {
+    c->element = make_shared<Sensor>(c->name, c->kind->line, c->kind->column);
+    return;
+  }
 
   for(auto obj : objects)
   {
@@ -78,7 +83,7 @@ void Sema::paramsCheck(ComponentSP c)
   set<string> supplied;
   transform(c->params.begin(), c->params.end(), 
       inserter(supplied, supplied.begin()),
-      [](pair<SymbolSP, RealSP> x){ return x.first->value; });
+      [](pair<SymbolSP, string> x){ return x.first->value; });
 
   set<string> required;
   transform(c->element->params.begin(), c->element->params.end(), 
@@ -340,7 +345,7 @@ cypress::compile::checkComponentParams(ComponentSP c, DiagnosticReport &dr)
   set<string> supplied;
   transform(c->params.begin(), c->params.end(), 
       inserter(supplied, supplied.begin()),
-      [](pair<SymbolSP, RealSP> x){ return x.first->value; });
+      [](pair<SymbolSP, string> x){ return x.first->value; });
 
   set<string> required;
   transform(c->element->params.begin(), c->element->params.end(), 

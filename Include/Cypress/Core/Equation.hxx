@@ -223,7 +223,7 @@ struct SubExpression : public Atom,
 
 struct Decl : public Lexeme
 {
-  enum class Kind { Object, Controller, Link, Actuator, Experiment };
+  enum class Kind { Object, Controller, Link, Actuator, Sensor, Experiment };
   virtual Kind kind() const = 0;
   using Lexeme::Lexeme;
 };

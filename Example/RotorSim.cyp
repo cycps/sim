@@ -11,5 +11,5 @@ Simulation RotorSim
   Sensor sr_rw(Rate:10, Destination:localhost)
 
   atr_rt.u ~ rotor.tau
-  rotor.w ~ sr_rw
+  rotor.w ~ sr_rw.y
 

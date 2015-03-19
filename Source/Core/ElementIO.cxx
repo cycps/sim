@@ -71,13 +71,18 @@ ostream& cypress::operator << (ostream &o, const Component &cp)
   o << "        "
     << "kind=" << cp.kind->value << " name=" << cp.name->value << " prams={";
 
-  vector<pair<SymbolSP, RealSP>> vparams;
+  //vector<pair<SymbolSP, RealSP>> vparams;
+  vector<pair<SymbolSP, string>> vparams;
   vparams.reserve(cp.params.size());
 
   for(auto pr : cp.params) vparams.push_back(pr);
   for(auto it = vparams.begin(); it != vparams.end()-1; ++it)
-    o << it->first->value << ":" << it->second->value << ", ";
-  o << vparams.back().first->value << ":" << vparams.back().second->value;
+    //o << it->first->value << ":" << it->second->value << ", ";
+    o << it->first->value << ":" << it->second << ", ";
+    
+  //o << vparams.back().first->value << ":" << vparams.back().second->value;
+  o << vparams.back().first->value << ":" << vparams.back().second;
+
 
   o << "}" << endl;
 

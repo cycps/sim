@@ -17,6 +17,7 @@ namespace cypress
   struct Controller; using ControllerSP = std::shared_ptr<Controller>;
   struct Link; using LinkSP = std::shared_ptr<Link>;
   struct Actuator; using ActuatorSP = std::shared_ptr<Actuator>;
+  struct Sensor; using SensorSP = std::shared_ptr<Sensor>;
   struct Component; using ComponentSP = std::shared_ptr<Component>;
   struct Connectable; using ConnectableSP = std::shared_ptr<Connectable>;
   struct ComponentRef; using ComponentRefSP = std::shared_ptr<ComponentRef>;
@@ -77,16 +78,23 @@ struct Actuator : public Element
   Actuator(SymbolSP name, size_t line, size_t colunn);
 };
 
+struct Sensor : public Element
+{
+  Kind kind() const override { return Kind::Sensor; }
+  Sensor(SymbolSP name, size_t line, size_t column);
+};
+
 struct Component : public Lexeme
 {
   SymbolSP kind, name;
-  std::unordered_map<SymbolSP, RealSP> params;
+  //std::unordered_map<SymbolSP, RealSP> params;
+  std::unordered_map<SymbolSP, std::string> params;
   std::unordered_map<VarRefSP, RealSP, VarRefSPHash, VarRefSPCmp> initials;
   ElementSP element;
   Component(SymbolSP kind, SymbolSP name, size_t line, size_t column) 
     : Lexeme{line, column}, kind{kind}, name{name} {}
 
-  RealSP parameterValue(std::string);
+  std::string parameterValue(std::string);
   RealSP initialValue(std::string, VarRef::Kind k = VarRef::Kind::Normal);
   
   void applyParameters();

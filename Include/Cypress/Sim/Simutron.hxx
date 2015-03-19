@@ -33,27 +33,6 @@
 
 namespace cypress { namespace sim {
 
-/*
-struct CPacket
-{
-  std::array<char,4> hdr{'c', 'y', 'p', 'r'};
-  unsigned long who, what, sec, usec;
-  double value;
-
-  CPacket() = default;
-  CPacket(
-      unsigned long who, unsigned long what, 
-      unsigned long sec, unsigned long usec,
-      double value)
-    : who{who}, what{what}, sec{sec}, usec{usec}, value{value}
-  {}
-
-  static CPacket fromBytes(char *buf);
-  void toBytes(char *buf);
-};
-std::ostream& operator<<(std::ostream &o, const CPacket &c);
-*/
-
 struct Simutron
 {
   N_Vector nv_y, nv_dy, nv_r;
