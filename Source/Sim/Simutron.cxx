@@ -86,7 +86,8 @@ void Simutron::clisten()
       continue;
     }
 
-    io_lg << ts() << "rx: " << pkt << endl;
+    //todo: need to actually check destination
+    io_lg << ts() << "c[" << cmap[pkt.dst] << "] = " << pkt << endl;
 
     lock_guard<mutex> lk(rx_mtx);
     c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
