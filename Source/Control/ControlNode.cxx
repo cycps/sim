@@ -107,7 +107,10 @@ void Controller::tx(double v)
   cpk.usec = usec;
   cpk.value = v;
 
-  sendto(sockfd, &cpk, sizeof(cpk), 0, addr, sizeof(tgtaddr));
+  char buf[sizeof(cpk)];
+  cpk.toBytes(buf);
+
+  sendto(sockfd, buf, sizeof(cpk), 0, addr, sizeof(tgtaddr));
 }
 
 void Controller::setDestination(string addr)

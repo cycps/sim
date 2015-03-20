@@ -167,6 +167,7 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void*)
   realtype *rv = NV_DATA_S(r);
 
   rc->compute(rv, t);
+  rc->sensorManager.step(t);
 
   /*
   cout << "~~ "

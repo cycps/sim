@@ -46,7 +46,7 @@ struct Simutron
   std::ofstream c_lg, io_lg, results;
 
   //Comms stuff ---------------------------------------------------------------
-  unsigned short port{4747};
+  unsigned short port{7474};
   int sockfd;
   struct sockaddr_in servaddr, cliaddr, mwaddr;
   std::thread *comm_thd{nullptr};
