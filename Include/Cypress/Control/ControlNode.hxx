@@ -11,9 +11,13 @@
 #include <fstream>
 #include <mutex>
 #include <array>
+#include <atomic>
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <unistd.h>
 
 #include "Cypress/Control/Packet.hxx"
 #include "Cypress/Core/Common.hxx"
@@ -42,6 +46,7 @@ struct ControlBuffer
 {
   std::vector<std::vector<CVal>> buf;
   size_t size() { return buf.size(); }
+  void clear() { for(auto &b: buf) b.clear(); }
 };
 
 //Control Coordinate
@@ -54,9 +59,9 @@ struct CCoord
   {}
 };
 
-using FrameVarResolver = std::function<double(const std::vector<CVal>&)>;
+using FrameVarResolver = std::function<double(const std::vector<CVal>&, double last)>;
 
-double UseLatestArrival(const std::vector<CVal> &);
+double UseLatestArrival(const std::vector<CVal> &, double last);
 
 struct Controller
 {
@@ -103,9 +108,10 @@ struct Controller
   std::ofstream k_lg, io_lg;
 
   //Comms stuff ---------------------------------------------------------------
-  size_t port{4747};
+  unsigned short port{4747};
   int sockfd;
   struct sockaddr_in servaddr, cliaddr, tgtaddr;
+  std::atomic<bool> listener_bound{false};
 
   Controller(std::string name) 
     : name{name}, 

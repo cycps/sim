@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <unistd.h>
 
 using std::string;
 using namespace cypress::control;
@@ -27,6 +29,10 @@ using namespace std::chrono;
 void Controller::listen()
 {
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  int opt=1;
+  int err = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+  err = setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));
+
   if(sockfd < 0)
     throw runtime_error{"socket() failed: " + to_string(sockfd)};
 
@@ -37,14 +43,21 @@ void Controller::listen()
   servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
   servaddr.sin_port = htons(port);
 
-  auto *addr = reinterpret_cast<const struct sockaddr*>(&servaddr);
-  int err = bind(sockfd, addr, sizeof(servaddr));
+  const struct sockaddr *addr = reinterpret_cast<const struct sockaddr*>(&servaddr);
+  err = bind(sockfd, addr, sizeof(servaddr));
   if(err < 0)
+  {
+    io_lg << ts() << "bind error: " << errno << endl;
+    close(sockfd);
+    //shutdown(sockfd, SHUT_RDWR);
     throw runtime_error{"bind() failed: " + to_string(err)};
+  }
 
   io_lg << log("bound to port " + to_string(port)) << endl;
 
   io_lg << log("Listening") << endl;
+
+  listener_bound = true;
 
   io();
 }
@@ -52,17 +65,30 @@ void Controller::listen()
 void Controller::swapBuffers()
 {
   lock_guard<mutex> lk(io_mtx);
+
   std::swap(a,b);
+  a->buf = b->buf;
+  b->clear();
 }
 
 void Controller::computeFrame()
 {
   for(size_t i=0; i<a->size(); ++i)
   {
-    input_frame[i] = resolvers[i](a->buf[i]);
+    auto cv = resolvers[i](a->buf[i], input_frame[i]);
+    input_frame[i] = cv;
     //TODO should be able to specify what is done when after a frame is
     //computed
-    a->buf[i].clear();
+    /*
+    if(!a->buf[i].empty())
+    {
+      CVal last = a->buf[i].back();
+      a->buf[i].clear();
+      last.v = cv;
+      a->buf[i].push_back(last);
+
+    }
+    */
   }
 }
 
@@ -153,9 +179,8 @@ void Controller::io()
 
     if(imap.find(pkt.dst) == imap.end())
     {
-    
       io_lg << ts() << "dropped: " << pkt << endl;
-      return;
+      continue;
     }
 
     io_lg << ts() << "accepted: " << pkt << endl;
@@ -171,6 +196,7 @@ void Controller::run()
   k_lg << log("up") << endl;
 
   thread t_io([this](){listen();});
+  while(!listener_bound){ usleep(10); }
   thread t_k([this](){kernel();});
 
   t_io.join();
@@ -182,9 +208,9 @@ void Controller::run()
 
 //Resolvers -------------------------------------------------------------------
 
-double cypress::control::UseLatestArrival(const std::vector<CVal> &v)
+double cypress::control::UseLatestArrival(const std::vector<CVal> &v, double last)
 {
-  if(v.empty()) return 0;
+  if(v.empty()) return last;
 
   return v.back().v;
 }
