@@ -12,12 +12,18 @@
 #include <string>
 #include <stdexcept>
 #include <iomanip>
+#include <chrono>
+
+#include <unistd.h>
 
 using std::cout;
 using std::endl;
 using std::ofstream;
 using std::to_string;
 using std::runtime_error;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::microseconds;
 using namespace cypress;
 using namespace cypress::sim;
 
@@ -112,8 +118,11 @@ void initIda()
 void compute()
 {
   double tret{0};
-  for(double tout=0.01; tout<tend; tout += 0.01)
+  double sdt{0.01};
+  size_t period = sdt / 1.0e-6;
+  for(double tout=0.01; tout<tend; tout += sdt)
   {
+    auto t0 = high_resolution_clock::now();
     int retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
     
     if(retval != IDA_SUCCESS)
@@ -130,7 +139,13 @@ void compute()
 
     rc->sensorManager.step(tret);
 
-    rc->io_lg << ts() << "t = " << tret << endl;
+    rc->c_lg << ts() << "t = " << tret << endl;
+    auto t1 = high_resolution_clock::now();
+
+    size_t elapsed = duration_cast<microseconds>(t1 - t0).count();
+
+    if(elapsed < period)
+      usleep(period - elapsed);
   }
 }
 
