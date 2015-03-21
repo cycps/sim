@@ -23,31 +23,30 @@ using namespace cypress::sim;
 
 #define IJth(A,i,j) DENSE_ELEM(A,i,j)
 
-int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
-
-int J(long int Neq, 
-      realtype t, 
-      realtype cj,
-      N_Vector y,
-      N_Vector dy,
-      N_Vector r,
-      DlsMat J,
-      void *udata,
-      N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-
-bool checkInitialConds(double tol);
-
 extern Simutron *rc;
 
+double rtl = 1e-3,
+       atl = 1e-6, 
+       tstart = 0, 
+       tend = 7;
+
+void *mem{nullptr};
+
+int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void *udata);
+bool checkInitialConds(double tol);
+void initState();
+void initIda();
+void compute();
 
 int main()
 {
-  ofstream ofs{
-    rc->experimentInfo() + to_string(rc->id()) + ".log"
-  };
-  ofs << "Cypress Direct Compute Node ... Engage" << endl;
-  ofs << "N=" << rc->N() << endl;
+  initState();
+  initIda();
+  compute();  
+}
 
+void initState()
+{
   rc->nv_y = N_VNew_Serial(rc->N());
   rc->nv_dy = N_VNew_Serial(rc->N());
   rc->nv_r = N_VNew_Serial(rc->N());
@@ -59,13 +58,13 @@ int main()
   rc->c = (realtype*)malloc(sizeof(realtype) * rc->cN());
 
   rc->init();
+  
+  rc->c_lg << ts() << "init state ok" << endl;
+}
 
-  double rtl = 1e-3,
-         atl = 1e-6;
-
-  double tstart = 0, tend = 7;
-
-  void *mem = IDACreate();
+void initIda()
+{
+  mem = IDACreate();
   if(mem == nullptr) 
   {
     rc->c_lg << ts() << "IDACreate failed" << endl;
@@ -100,21 +99,22 @@ int main()
     throw runtime_error("compute failure");
   }
   
-  //retval = IDADlsSetDenseJacFn(mem, J);
-  //if(retval != IDA_SUCCESS)
-  //  throw runtime_error{"IDADlsSetDenseJacFn failed: " + to_string(retval)};
-  
   bool init_ok = checkInitialConds(atl);
   if(!init_ok)
   {
     rc->c_lg << ts() << "Bad Initial Conditions" << endl;
     throw runtime_error("compute failure");
   }
-  
+
+  rc->c_lg << ts() << "Ida init ok" << endl;
+}
+
+void compute()
+{
   double tret{0};
   for(double tout=0.01; tout<tend; tout += 0.01)
   {
-    retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
+    int retval = IDASolve(mem, tout, &tret, rc->nv_y, rc->nv_dy, IDA_NORMAL);
     
     if(retval != IDA_SUCCESS)
     {
@@ -130,17 +130,8 @@ int main()
 
     rc->sensorManager.step(tret);
 
-    /*
-      << rc->y[0] << "\t"
-      << rc->y[1] << "\t"
-      << rc->y[2] << "\t"
-      << rc->y[3] << "\t"
-      << endl;
-      */
-    
+    rc->io_lg << ts() << "t = " << tret << endl;
   }
-  //cout << endl;
-
 }
 
 bool checkInitialConds(double tol)
@@ -167,16 +158,7 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void*)
   realtype *rv = NV_DATA_S(r);
 
   rc->compute(rv, t);
-  rc->sensorManager.step(t);
-
-  /*
-  cout << "~~ "
-    << std::setprecision(6) << std::fixed;
-
-  for(int i=0; i<rc->N(); ++i) cout << rc->y[i] << "\t";
-
-  cout << endl;
-  */
+  //rc->sensorManager.step(t);
 
   return 0;
 }

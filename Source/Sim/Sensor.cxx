@@ -30,7 +30,7 @@ void SensorManager::step(double t)
 {
   this->t = t; 
   
-  while(Q.top().nxt >= (t-thresh))
+  while(Q.top().nxt <= (t-thresh))
   {
     Sensor s = Q.top();
     tx(s);

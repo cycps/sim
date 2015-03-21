@@ -36,7 +36,7 @@ struct SensorCmp
 struct SensorManager
 {
   Simutron *sim;
-  double t{0}, thresh{0.74e-3};
+  double t{0}, thresh{0.74e-6};
 
   explicit SensorManager(Simutron *s);
 
