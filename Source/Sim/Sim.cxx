@@ -43,6 +43,13 @@ void Sim::addActuatorToSim(ComponentSP c)
   for(auto eqtn: c->element->eqtns)
   {
     auto cpy = eqtn->clone();
+
+    if(cpy->lhs->kind() != Expression::Kind::Symbol)
+      throw runtime_error{"malformed actuator"};
+
+    auto sym = static_pointer_cast<Symbol>(cpy->lhs);
+    
+    cpy->lhs = make_shared<Differentiate>(sym, sym->line, sym->column);
     cpy->rhs = make_shared<Symbol>("u_cx", -1, -1);
     setToZero(cpy);
     controlResiduals.insert({c, cpy});

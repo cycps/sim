@@ -5,7 +5,7 @@ Object Rotor(H)
   w' = tau - H*w^2
 
 Simulation RotorSim
-  Rotor rotor(H:2.5)
+  Rotor rotor(H:1.5)
   Actuator atr_rt(Min:-2, Max:2, DMin:-0.5, DMax:0.5)
   Sensor sr_rw(Rate:10, Destination:localhost)
 

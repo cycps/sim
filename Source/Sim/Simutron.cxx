@@ -86,11 +86,22 @@ void Simutron::clisten()
       continue;
     }
 
-    //todo: need to actually check destination
-    io_lg << ts() << "c[" << cmap[pkt.dst] << "] = " << pkt << endl;
 
     lock_guard<mutex> lk(rx_mtx);
-    c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
+
+    //TODO: need to run this through the actuator!!!!!
+    double old = c[cmap[pkt.dst]];
+    double v = pkt.value;
+    if((old + v) > 13.4) v = 13.4;
+    if(v > 20) v = 20;
+    
+    //TODO: need to actually check destination
+    io_lg << ts() << "c[" << cmap[pkt.dst] << "] = " << v << endl;
+      
+    //c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
+    c[cmap[pkt.dst]] = v; //last monkey wins!
+    //y = NV_DATA_S(nv_y);
+    //y[0] = v;
   }
 }
 

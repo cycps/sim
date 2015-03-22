@@ -24,7 +24,8 @@ struct RotorSpeedController : public Controller
   void compute() override
   {
     double v = input_frame[rw_idx];
-    double u = wt - v;
+    k_lg << ts() << "rx: v = " << v << endl;
+    double u = 5*(wt - v);
     tx(u);
     k_lg << ts() << "tx: u = " << u << endl;
   }

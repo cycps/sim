@@ -22,19 +22,23 @@ SensorManager::SensorManager(Simutron *sim)
 
 void SensorManager::add(Sensor s)
 {
-  s.nxt = t + s.rate;
+  s.nxt = t + (1.0/s.rate);
   Q.push(s);
 }
 
 void SensorManager::step(double t)
 {
   this->t = t; 
+
+  sim->io_lg << ts() << "[sm] t=" << t << endl;
+  sim->io_lg << ts() << "[sm] q=" << Q.top().nxt << endl;
+
   
   while(Q.top().nxt <= (t-thresh))
   {
     Sensor s = Q.top();
     tx(s);
-    s.nxt = t + s.rate;
+    s.nxt = t + (1.0/s.rate);
     Q.pop();
     Q.push(s);
   }
@@ -53,4 +57,11 @@ void SensorManager::tx(Sensor s)
   cpk.toBytes(buf);
   auto *addr = reinterpret_cast<sockaddr*>(&s.out_addr);
   sendto(sockfd, buf, sz, 0, addr, sizeof(s.out_addr));
+
+  char sadr[128];
+  inet_ntop(AF_INET, &(s.out_addr.sin_port), sadr, 128);
+
+  sim->io_lg << ts() 
+    << sadr << ":" << s.out_addr.sin_port << "  " <<  v
+    << endl;
 }

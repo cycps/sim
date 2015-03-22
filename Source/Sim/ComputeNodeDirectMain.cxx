@@ -147,6 +147,8 @@ void compute()
     if(elapsed < period)
       usleep(period - elapsed);
   }
+
+  std::cout << endl;
 }
 
 bool checkInitialConds(double tol)
@@ -169,6 +171,7 @@ int F(realtype t, N_Vector y, N_Vector dy, N_Vector r, void*)
 {
   rc->y = NV_DATA_S(y);
   rc->dy = NV_DATA_S(dy);
+
 
   realtype *rv = NV_DATA_S(r);
 
