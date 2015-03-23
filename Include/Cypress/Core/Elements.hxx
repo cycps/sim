@@ -101,7 +101,7 @@ struct SensorAttributes : public ComponentAttributes
 
 struct ActuatorAttributes : public ComponentAttributes
 {
-  VarRefSP target{nullptr};
+  VarRefSP source{nullptr}, target{nullptr};
   double min, max, dmin, dmax;
 };
 

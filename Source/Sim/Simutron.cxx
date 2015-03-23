@@ -89,21 +89,24 @@ void Simutron::clisten()
 
     lock_guard<mutex> lk(rx_mtx);
 
-    //TODO: need to run this through the actuator!!!!!
-    double old = c[cmap[pkt.dst]];
-    Actuator &atr = amap[pkt.dst];
-    double v = pkt.value;
-    if((old + v) > 13.4) v = 13.4;
-    if(v > 20) v = 20;
-    
-    //TODO: need to actually check destination
-    io_lg << ts() << "c[" << cmap[pkt.dst] << "] = " << v << endl;
-      
-    //c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
-    //c[cmap[pkt.dst]] = v; //last monkey wins!
-    c[cmap[pkt.dst]] = atr.clamp(v, old);
+    Actuator atr;
+    try{ atr = amap.at(pkt.dst); }
+    catch(std::out_of_range &)
+    { 
+      io_lg << ts() << "Unkown packet destination: " << pkt.dst << endl;
+      continue; 
+    }
 
-    //TODO you area here test and clean up this shit
+    double old = c[cmap[pkt.dst]];
+    double v = pkt.value;
+    
+    double clamped = atr.clamp(v, old);
+    io_lg << ts() 
+      << "c[" << cmap[pkt.dst] << "] = " 
+      << v << " |" << clamped << "|" 
+      << endl;
+      
+    c[cmap[pkt.dst]] = clamped;
   }
 }
 

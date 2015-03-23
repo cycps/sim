@@ -17,7 +17,7 @@ struct RotorSpeedController : public Controller
   RotorSpeedController() : Controller("rsc")
   {
     setDestination("localhost");
-    setTarget("rt_act");
+    setTarget("atr_rt_u");
     rw_idx = setInput("rotor_w");
   }
     

@@ -319,13 +319,14 @@ void Sema::check(ConnectionSP c)
   {
     if(to->component->element->kind() != Element::Kind::Object)
       dr->diagnostics.push_back({
-          Diagnostic::Level::Error,
-          "Illegal actuator connection, sensors can only sense physical objects",
-          c->to->name->line, c->to->name->column});
+        Diagnostic::Level::Error,
+        "Illegal actuator connection, sensors can only sense physical objects",
+        c->to->name->line, c->to->name->column});
 
     auto attrs = 
       static_pointer_cast<ActuatorAttributes>(from->component->attributes);
 
+    attrs->source = make_shared<VarRef>(from->component, from->subname->value);
     attrs->target = make_shared<VarRef>(to->component, to->subname->value);
   }
     
@@ -333,13 +334,14 @@ void Sema::check(ConnectionSP c)
   {
     if(from->component->element->kind() != Element::Kind::Object)
       dr->diagnostics.push_back({
-          Diagnostic::Level::Error,
-          "Illegal actuator connection, sensors can only sense physical objects",
-          c->from->name->line, c->from->name->column});
+        Diagnostic::Level::Error,
+        "Illegal actuator connection, sensors can only sense physical objects",
+        c->from->name->line, c->from->name->column});
     
     auto attrs = 
       static_pointer_cast<ActuatorAttributes>(to->component->attributes);
     
+    attrs->source = make_shared<VarRef>(to->component, to->subname->value);
     attrs->target = make_shared<VarRef>(from->component, from->subname->value);
   }
 
