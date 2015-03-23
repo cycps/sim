@@ -57,6 +57,8 @@ struct Sema
 
   Sema(ExperimentSP, DiagnosticReportSP, std::vector<ObjectSP> objects);
 
+  double tryGetFloatingParam(ComponentSP, std::string);
+
   void check(); 
 
   void check(ObjectSP);

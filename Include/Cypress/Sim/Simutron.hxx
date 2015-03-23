@@ -31,6 +31,7 @@
 #include <Cypress/Sim/Resolve.hxx>
 #include <Cypress/Control/Packet.hxx>
 #include <Cypress/Sim/Sensor.hxx>
+#include <Cypress/Sim/Actuator.hxx>
 
 namespace cypress { namespace sim {
 
@@ -55,6 +56,8 @@ struct Simutron
 
   //maps hash(dst) to a local input index
   std::unordered_map<unsigned long, size_t> cmap;
+  std::unordered_map<unsigned long, Actuator> amap;  
+
   //maps local coord to hash(dst)
   std::unordered_map<size_t, size_t> outputs;
 

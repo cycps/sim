@@ -233,6 +233,18 @@ string ComputeNode::emitSource()
        << endl;
   }
 
+  for(ActuatorAttributesSP act: actuators)
+  {
+    ss << "    "
+       << "amap[hsh(\""<<act->target->qname()<<"\")] = "
+       << "Actuator{"
+          << act->min << ", "
+          << act->max << ", "
+          << act->dmin << ", "
+          << act->dmax << "};"
+      << endl;
+  }
+
   ss << "    startControlListener();" << endl
      << "  }" << endl
      <<    endl;

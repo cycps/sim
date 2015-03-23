@@ -94,14 +94,15 @@ struct ComponentAttributes {};
 
 struct SensorAttributes : public ComponentAttributes
 {
-  VarRefSP target;
+  VarRefSP target{nullptr};
   size_t rate{0};
   std::string destination;
 };
 
 struct ActuatorAttributes : public ComponentAttributes
 {
-
+  VarRefSP target{nullptr};
+  double min, max, dmin, dmax;
 };
 
 struct Component : public Lexeme

@@ -21,6 +21,7 @@ struct ComputeNode
   std::unordered_multimap<ComponentSP, EquationSP> eqtns;
   std::unordered_map<size_t, Initials> initials;
   std::vector<SensorAttributesSP> sensors;
+  std::vector<ActuatorAttributesSP> actuators;
   size_t varidx(VarRefSP);
 
   std::string emitSource();

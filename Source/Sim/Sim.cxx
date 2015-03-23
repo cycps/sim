@@ -40,6 +40,7 @@ void Sim::addObjectToSim(ComponentSP c)
 
 void Sim::addActuatorToSim(ComponentSP c)
 {
+  actuators.push_back(static_pointer_cast<ActuatorAttributes>(c->attributes));
   for(auto eqtn: c->element->eqtns)
   {
     auto cpy = eqtn->clone();
@@ -200,6 +201,10 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
     SensorAttributesSP sens = getSensor(v.var);
     if(sens != nullptr)
       topo[v.coord.px].sensors.push_back(sens);
+
+    ActuatorAttributesSP act = getActuator(v.var);
+    if(act != nullptr)
+      topo[v.coord.px].actuators.push_back(act);
   }
 
   return m;
@@ -217,6 +222,22 @@ SensorAttributesSP Sim::getSensor(VarRefSP v)
         });
 
   if(it != sensors.end()) return *it;
+
+  return nullptr;
+}
+
+ActuatorAttributesSP Sim::getActuator(VarRefSP v)
+{
+  auto it = 
+    find_if(actuators.begin(), actuators.end(),
+        [v](ActuatorAttributesSP s)
+        { 
+          return 
+            s->target->component->name->value == v->component->name->value &&
+            s->target->name == v->name;
+        });
+
+  if(it != actuators.end()) return *it;
 
   return nullptr;
 }

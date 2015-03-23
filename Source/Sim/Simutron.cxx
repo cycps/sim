@@ -91,6 +91,7 @@ void Simutron::clisten()
 
     //TODO: need to run this through the actuator!!!!!
     double old = c[cmap[pkt.dst]];
+    Actuator &atr = amap[pkt.dst];
     double v = pkt.value;
     if((old + v) > 13.4) v = 13.4;
     if(v > 20) v = 20;
@@ -99,9 +100,10 @@ void Simutron::clisten()
     io_lg << ts() << "c[" << cmap[pkt.dst] << "] = " << v << endl;
       
     //c[cmap[pkt.dst]] = pkt.value; //last monkey wins!
-    c[cmap[pkt.dst]] = v; //last monkey wins!
-    //y = NV_DATA_S(nv_y);
-    //y[0] = v;
+    //c[cmap[pkt.dst]] = v; //last monkey wins!
+    c[cmap[pkt.dst]] = atr.clamp(v, old);
+
+    //TODO you area here test and clean up this shit
   }
 }
 

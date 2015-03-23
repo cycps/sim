@@ -25,6 +25,7 @@ struct Sim
   std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp> vars;
   std::unordered_multimap<ComponentSP, EquationSP> psys, controlResiduals;
   std::vector<SensorAttributesSP> sensors;
+  std::vector<ActuatorAttributesSP> actuators;
   std::vector<EquationSP> bindingResiduals;
   std::unordered_map<VarRefSP, double, VarRefSPNameHash, VarRefSPNameCmp> 
     initial_state,
@@ -35,6 +36,7 @@ struct Sim
   void buildPhysics();
   void addSensors();
   SensorAttributesSP getSensor(VarRefSP);
+  ActuatorAttributesSP getActuator(VarRefSP);
   void buildSystemEquations();
   void buildSymbolSet();
   void buildInitials();

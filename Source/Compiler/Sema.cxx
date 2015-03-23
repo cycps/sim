@@ -53,12 +53,50 @@ void Sema::check(ComponentSP c)
   paramsCheck(c);
 }
 
+double Sema::tryGetFloatingParam(ComponentSP c, string pname)
+{
+  double value;
+  try { value = stod(c->parameterValue(pname)); }
+  catch(std::invalid_argument &)
+  {
+    SymbolSP sym = c->parameter(pname);
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Invalid actuator "+pname+" value, floating point number is required",
+        sym->line, sym->column});
+  }
+  catch(std::out_of_range &)
+  {
+    SymbolSP sym = c->parameter(pname);
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Invalid actuator "+pname+" value, argument out of range",
+        sym->line, sym->column});
+  }
+  catch(ParameterNotFound &)
+  {
+    dr->diagnostics.push_back({
+        Diagnostic::Level::Error,
+        "Actuator instantiation requires a "+pname+" argument",
+        c->name->line, c->name->column});
+  }
+  
+  return value;
+}
+
 void Sema::typeCheck(ComponentSP c)
 {
   if(c->kind->value == "Actuator")
   {
     c->element = make_shared<Actuator>(c->name, c->kind->line, c->kind->column);
-    c->attributes = make_shared<ActuatorAttributes>();
+    auto attrs = make_shared<ActuatorAttributes>();
+    c->attributes = attrs;
+
+    attrs->min = tryGetFloatingParam(c, "Min");
+    attrs->max = tryGetFloatingParam(c, "Max");
+    attrs->dmin = tryGetFloatingParam(c, "DMin");
+    attrs->dmax = tryGetFloatingParam(c, "DMax");
+
     return;
   }
   else if(c->kind->value == "Sensor")
@@ -243,7 +281,7 @@ void Sema::check(ConnectionSP c)
     {
       dr->diagnostics.push_back({
           Diagnostic::Level::Error,
-          "Sensor instantiate requires a Rate argument",
+          "Sensor instantiation requires a Rate argument",
           to->component->name->line, to->component->name->column});
     }
     try
@@ -284,6 +322,11 @@ void Sema::check(ConnectionSP c)
           Diagnostic::Level::Error,
           "Illegal actuator connection, sensors can only sense physical objects",
           c->to->name->line, c->to->name->column});
+
+    auto attrs = 
+      static_pointer_cast<ActuatorAttributes>(from->component->attributes);
+
+    attrs->target = make_shared<VarRef>(to->component, to->subname->value);
   }
     
   if(to->component->element->kind() == Element::Kind::Actuator)
@@ -293,6 +336,11 @@ void Sema::check(ConnectionSP c)
           Diagnostic::Level::Error,
           "Illegal actuator connection, sensors can only sense physical objects",
           c->from->name->line, c->from->name->column});
+    
+    auto attrs = 
+      static_pointer_cast<ActuatorAttributes>(to->component->attributes);
+    
+    attrs->target = make_shared<VarRef>(from->component, from->subname->value);
   }
 
     
