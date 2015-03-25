@@ -29,3 +29,5 @@ Build
 *.swo
 *.swp
 
+# node.js generated stuff
+node_modules
