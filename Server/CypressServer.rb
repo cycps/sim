@@ -1,44 +1,45 @@
 # Cypress web-server /Design web-app
 
-#require 'sinatra'
+require 'trollop'
 require 'fileutils'
-#require './CyConfig.rb'
+require './CyConfig.rb'
 require 'io/console'
-require 'securerandom'
+require 'net/http'
 
-#class Design
-#  def new_exp(params)
-#    "Creating #{params[:name]} ...\r\n"
-#  end
-#end
-
-#class DesignApp < Sinatra::Base
-#  @design = Design.new
-#
-#  post '/Design/New' do
-#    @design.new_exp params
-#  end
-#
-#end
-
-
-def main
-  dir = `pwd`.chop
-  prog = "#{dir}/#{__FILE__}"
-  me = `whoami`.chop
-  puts "Hello, I am #{me}"
-  if me != "cypress"
-    puts "Switching to cypress account"
-    puts `sudo -u cypress ruby #{prog}`
-  else
-    puts "Running as cypress"
-  end
-
-  #conf = CyConfig.new
-  #conf.check
-
-  #app = DesignApp.new
-  #app.run!
+SUB_COMMANDS = %w(status start stop)
+$global_opts = Trollop::options do
+  banner "cyserv [status start stop]"
+  stop_on SUB_COMMANDS
 end
 
-main
+def status
+    begin
+      design_status = Net::HTTP.get('localhost', '/Design/Status')
+      puts "Design: \t\t" + design_status
+    rescue
+      puts "Design: \t\tDown"
+    end
+end
+
+def start
+    puts "starting server"
+end
+
+def stop
+    puts "stopping server"
+end
+
+cmd = ARGV.shift
+case cmd
+  when "status"; status
+  when "start"; start
+  when "stop"; stop
+  else; Trollop::die "unknown subcommand #{cmd}"
+end
+
+
+conf = CyConfig.new
+conf.check
+
+#puts `sudo -E -u cypress ruby Design.rb`
+

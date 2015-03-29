@@ -1,14 +1,49 @@
-require './DefaultConfig.rb'
+#require './DefaultConfig.rb'
+require 'securerandom'
+require 'io/console'
 
 class CyConfig
+
+  def initialize(config)
+    @config = config
+    require @config
+    @C = Cypress::ServerConfig
+
+    @required_dirs = [:data, :runtime, :log, :www, :etc, :lib]
+    @dir_names = {
+      :data => "Data", 
+      :runtime => "Runtime",
+      :log => "Log",
+      :www => "Web",
+      :etc => "Config",
+      :lib => "Library" }
+  end
+
   def check
     check_acct
-    check_data_dir
+    check_dirs
+    check_config
+  end
+
+  def check_dirs
+    @required_dirs.each do |x|
+      check_dir(x, @dir_names[x])
+    end
   end
 
   def remove_all
     remove_cypress_acct
-    remove_data_dir
+    remove_dirs
+  end
+
+  def remove_dirs
+    @required_dirs.each do |x|
+      remove_dir(x)
+    end
+  end
+
+  def check_config
+    check_file("#{@C::DIRS[:etc]}/server", @config)
   end
 
   def get_new_password
@@ -69,18 +104,29 @@ class CyConfig
     end
   end
 
-  def check_data_dir
-    ddir = Cypress::ServerConfig::DATA[:base_dir]
-    if not Dir.exists? ddir 
-      puts "Data directory #{ddir} does not exist, creating it"
-      `sudo mkdir -p #{ddir}`
-      `sudo chown cypress #{ddir}`
+  def check_dir(id, name)
+    dir = Cypress::ServerConfig::DIRS[id]
+    if not Dir.exists? dir 
+      puts "The #{name} directory: #{dir} does not exist, creating it"
+      `sudo mkdir -p #{dir}`
+      `sudo chown cypress #{dir}`
     end
   end
 
-  def remove_data_dir
-    ddir = Cypress::ServerConfig::DATA[:base_dir]
-    `sudo rm -rf #{ddir}`
+  def remove_dir(id)
+    dir = Cypress::ServerConfig::DIRS[id]
+    `sudo rm -rf #{dir}`
+  end
+
+  def check_file(path, source)
+    if not File.exists? path
+      puts "The file #{path} does not exist, copying from #{source}"
+      `sudo cp #{source} #{path}`
+    end
+  end
+
+  def remove_file(path)
+    `sudo rm -f #{path}`
   end
 
 end
