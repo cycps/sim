@@ -6,6 +6,8 @@ require 'fileutils'
 require '/etc/cypress/server'
 require 'net/http'
 
+$C = Cypress::ServerConfig
+
 SUB_COMMANDS = %w(status start stop)
 $global_opts = Trollop::options do
   banner "cyserv [status start stop]"
@@ -23,11 +25,16 @@ end
 
 def start
     puts "starting server"
-    `ruby #{Cypress::ServerConfig::DIRS[:lib]}/Design/launch.rb`
+    `sudo -E -u cypress ruby #{$C::DIRS[:lib]}/Design/launch.rb`
 end
 
 def stop
     puts "stopping server"
+    response = Net::HTTP.get('localhost', '/Design/Status', 7047).split
+    if(response[0] == "Running")
+      puts "Shutting down /Design running @pid #{response[1]}"
+      `sudo kill #{response[1]}`
+    end
 end
 
 cmd = ARGV.shift

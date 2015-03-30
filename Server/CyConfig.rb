@@ -134,8 +134,16 @@ class CyConfig
   end
 
   def check_file(path, source)
+    do_copy = false;
     if not File.exists? path
-      puts "The file #{path} does not exist, copying from #{source}"
+      do_copy = true
+      msg = "The file #{path} does not exist, copying from #{source}"
+    elsif File.mtime(path) < File.mtime(source)
+      do_copy = true
+      msg = "The file #{path} is out of date, copying from #{source}"
+    end
+    if do_copy
+      puts msg
       `sudo cp #{source} #{path}`
       `sudo chown cypress #{path}`
     end
