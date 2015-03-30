@@ -2,8 +2,8 @@
 
 require 'trollop'
 require 'fileutils'
-require './CyConfig.rb'
-require 'io/console'
+#require './CyConfig.rb'
+require '/etc/cypress/server'
 require 'net/http'
 
 SUB_COMMANDS = %w(status start stop)
@@ -14,7 +14,7 @@ end
 
 def status
     begin
-      design_status = Net::HTTP.get('localhost', '/Design/Status')
+      design_status = Net::HTTP.get('localhost', '/Design/Status', 7047)
       puts "Design: \t\t" + design_status
     rescue
       puts "Design: \t\tDown"
@@ -23,6 +23,7 @@ end
 
 def start
     puts "starting server"
+    `ruby #{Cypress::ServerConfig::DIRS[:lib]}/Design/launch.rb`
 end
 
 def stop
@@ -38,8 +39,8 @@ case cmd
 end
 
 
-conf = CyConfig.new
-conf.check
+#conf = CyConfig.new
+#conf.check
 
 #puts `sudo -E -u cypress ruby Design.rb`
 

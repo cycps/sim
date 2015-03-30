@@ -23,11 +23,12 @@ class CyConfig
     check_acct
     check_dirs
     check_config
+    check_libs
   end
 
   def check_dirs
     @required_dirs.each do |x|
-      check_dir(x, @dir_names[x])
+      check_dir(@C::DIRS[x], @dir_names[x])
     end
   end
 
@@ -43,8 +44,23 @@ class CyConfig
   end
 
   def check_config
-    check_file("#{@C::DIRS[:etc]}/server", @config)
+    check_file("#{@C::DIRS[:etc]}/server.rb", @config)
   end
+
+  def check_libs
+    check_design
+  end
+
+  def check_design
+    design_home = "#{@C::DIRS[:lib]}/Design"
+    check_dir(design_home, "Design-App Library")
+    check_file("#{design_home}/Design.rb", "Design.rb")
+    check_file("#{design_home}/launch.rb", "launch_design.rb")
+    check_file("#{design_home}/config.ru", "config.ru")
+
+    design_web = "#{@C::DIRS[:www]}/Design"
+    check_dir(design_web, "Design-App Web")
+  end 
 
   def get_new_password
     a = "a"
@@ -104,8 +120,7 @@ class CyConfig
     end
   end
 
-  def check_dir(id, name)
-    dir = Cypress::ServerConfig::DIRS[id]
+  def check_dir(dir, name)
     if not Dir.exists? dir 
       puts "The #{name} directory: #{dir} does not exist, creating it"
       `sudo mkdir -p #{dir}`
@@ -122,6 +137,7 @@ class CyConfig
     if not File.exists? path
       puts "The file #{path} does not exist, copying from #{source}"
       `sudo cp #{source} #{path}`
+      `sudo chown cypress #{path}`
     end
   end
 

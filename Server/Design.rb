@@ -10,7 +10,7 @@ class DesignApp < Sinatra::Base
   include Design
 
   get '/Design/Status' do
-    "Running"
+    "Running & Gunning"
   end
 
   post '/Design/New' do
