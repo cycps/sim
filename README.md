@@ -1,2 +1,1 @@
-# Cypress
-Cypress : Cyber-Physical Experimental Extensions for DeterLab
+The Cypress simulation engine
