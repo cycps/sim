@@ -8,3 +8,6 @@ target_link_libraries(CypressC
 add_executable(cyc main.cxx)
 target_link_libraries(cyc CypressC)
 
+install(TARGETS CypressC cyc
+        LIBRARY DESTINATION /usr/local/lib
+        RUNTIME DESTINATION /usr/local/bin)

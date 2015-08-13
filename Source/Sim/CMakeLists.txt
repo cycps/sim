@@ -19,3 +19,7 @@ add_executable(DummyResid DummyResid.cxx ComputeNodeMain.cxx)
 add_executable(DummyResidDirect DummyResid.cxx ComputeNodeDirectMain.cxx)
 target_link_libraries(DummyResid CypressSim CypressCore)
 target_link_libraries(DummyResidDirect CypressSim CypressCore)
+
+install(TARGETS CypressSim DummyResid DummyResidDirect
+        LIBRARY DESTINATION /usr/local/lib
+        RUNTIME DESTINATION /usr/local/bin)

@@ -59,7 +59,7 @@ string ComputeNode::emitSource()
      << "#include <cmath>" << endl
      << "#include <string>" << endl
      << "#include <array>" << endl
-     << "#include <RyMPI/runtime.hxx>" << endl
+     << "#include <RyMPI/Runtime.hxx>" << endl
      << endl;
 
   ss << "using namespace cypress;" << endl
