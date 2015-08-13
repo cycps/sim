@@ -1,6 +1,6 @@
 #include <Cypress/Sim/ComputeNode.hxx>
 #include <Cypress/Sim/Simutron.hxx>
-#include <RyMPI/runtime.hxx>
+#include <RyMPI/Runtime.hxx>
 
 #include <ida/ida.h>
 #include <ida/ida_spgmr.h>

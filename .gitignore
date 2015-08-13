@@ -24,6 +24,7 @@
 
 # Executables
 Build
+build
 
 # Vim
 *.swo
@@ -31,3 +32,4 @@ Build
 
 # node.js generated stuff
 node_modules
+

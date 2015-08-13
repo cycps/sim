@@ -3,7 +3,7 @@
 
 #include "Cypress/Core/Equation.hxx"
 //#include "Cypress/Core/Elements.hxx"
-#include <RyMPI/runtime.hxx>
+#include <RyMPI/Runtime.hxx>
 #include <sundials/sundials_types.h>
 #include <mpi.h>
 #include <string>

@@ -63,7 +63,7 @@ struct GroupOp : public Expression
 
 struct Add : public GroupOp, public std::enable_shared_from_this<Add> 
 { 
-  Kind kind() const{ return Kind::Add; } 
+  Kind kind() const override { return Kind::Add; }
   using GroupOp::GroupOp;
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -71,7 +71,7 @@ struct Add : public GroupOp, public std::enable_shared_from_this<Add>
 
 struct Subtract : public GroupOp, public std::enable_shared_from_this<Subtract>
 {
-  Kind kind() const{ return Kind::Subtract; }
+  Kind kind() const override { return Kind::Subtract; }
   using GroupOp::GroupOp;
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -91,7 +91,7 @@ struct RingOp : public Term
 
 struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
 {
-  Kind kind() const{ return Kind::Multiply; }
+  Kind kind() const override { return Kind::Multiply; }
   using RingOp::RingOp;
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -99,7 +99,7 @@ struct Multiply : public RingOp, public std::enable_shared_from_this<Multiply>
 
 struct Divide : public RingOp, public std::enable_shared_from_this<Divide>
 {
-  Kind kind() const{ return Kind::Divide; }
+  Kind kind() const override { return Kind::Divide; }
   using RingOp::RingOp;
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -113,7 +113,7 @@ struct Atom : public Factor
 struct Pow : public Factor, public std::enable_shared_from_this<Pow>
 {
   AtomSP lhs, rhs;
-  Kind kind() const{ return Kind::Pow; }
+  Kind kind() const override { return Kind::Pow; }
   Pow(AtomSP lhs, AtomSP rhs, size_t line, size_t column) 
     : Factor{line, column}, lhs{lhs}, rhs{rhs} {}
   
@@ -130,7 +130,7 @@ struct VarType : public Atom
 struct Symbol : public VarType, public std::enable_shared_from_this<Symbol>
 {
   std::string value;
-  Kind kind() const{ return Kind::Symbol; }
+  Kind kind() const override { return Kind::Symbol; }
   Symbol(std::string value, size_t line, size_t column) 
     : VarType{line, column}, value{value} {}
   void accept(Visitor &v) override;
@@ -152,7 +152,7 @@ struct SymbolEq
 struct CVar : public Atom, public std::enable_shared_from_this<CVar>
 {
   VarTypeSP value;
-  Kind kind() const{ return Kind::CVar; }
+  Kind kind() const override { return Kind::CVar; }
   CVar(VarTypeSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -161,7 +161,7 @@ struct CVar : public Atom, public std::enable_shared_from_this<CVar>
 struct CCVar : public Atom, public std::enable_shared_from_this<CCVar>
 {
   SymbolSP value;
-  Kind kind() const{ return Kind::CCVar; }
+  Kind kind() const override { return Kind::CCVar; }
   CCVar(SymbolSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -171,7 +171,7 @@ struct BoundVar : public Atom, public std::enable_shared_from_this<BoundVar>
 {
   VarTypeSP value;
   BoundSP bound;
-  Kind kind() const{ return Kind::BoundVar; }
+  Kind kind() const override { return Kind::BoundVar; }
   BoundVar(VarTypeSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -182,7 +182,7 @@ struct IOVar : public Atom, public std::enable_shared_from_this<IOVar>
   enum class IOKind { Input, Output };
   IOKind iokind;
   VarTypeSP value;
-  Kind kind() const { return Kind::IOVar; }
+  Kind kind() const override { return Kind::IOVar; }
   IOVar(VarTypeSP value) : Atom{value->line, value->column}, value{value} {}
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
@@ -192,7 +192,7 @@ struct Differentiate : public VarType,
                        public std::enable_shared_from_this<Differentiate>
 {
   SymbolSP arg;
-  Kind kind() const{ return Kind::Differentiate; }
+  Kind kind() const override { return Kind::Differentiate; }
   Differentiate(SymbolSP arg, size_t line, size_t column) 
     : VarType{line, column}, arg{arg} {}
   void accept(Visitor &v) override;
@@ -203,7 +203,7 @@ struct Differentiate : public VarType,
 struct Real : public Atom, public std::enable_shared_from_this<Real>
 {
   double value;
-  Kind kind() const{ return Kind::Real; }
+  Kind kind() const override { return Kind::Real; }
   Real(double value, size_t line, size_t column) 
     : Atom{line, column}, value{value} {}
   void accept(Visitor &v) override;
@@ -216,7 +216,7 @@ struct SubExpression : public Atom,
   ExpressionSP value;
   SubExpression(ExpressionSP value) 
     : Atom{value->line, value->column}, value{value} {}
-  Kind kind() const{ return Kind::SubExpression; }
+  Kind kind() const override { return Kind::SubExpression; }
   void accept(Visitor &v) override;
   ExpressionSP clone() override;
 };

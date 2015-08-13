@@ -1,6 +1,7 @@
 #include <fstream>
 #include <Cypress/Control/ControlNode.hxx>
 #include <string>
+#include <signal.h>
 
 using std::ofstream;
 using namespace cypress;
