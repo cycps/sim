@@ -21,3 +21,7 @@ target_link_libraries(CPacketLauncher CypressControl)
 
 add_executable(RotorSpeedController RotorSpeedController.cxx)
 target_link_libraries(RotorSpeedController CypressControl)
+
+install(TARGETS CypressControl CPacketLauncher RotorSpeedController
+        LIBRARY DESTINATION /usr/local/lib
+        RUNTIME DESTINATION /usr/local/bin)

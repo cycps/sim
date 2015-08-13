@@ -225,8 +225,8 @@ void Driver::createCypk()
   for(size_t i=0; i<sim_ex.computeNodeSources.size(); ++i)
   {
     ofs
-      << "clang++ -std=c++11 " 
-      << "Cnode"<<i<<".cxx "
+      << "clang++ -std=c++1y -stdlib=libc++ " 
+      << "CNode"<<i<<".cxx "
       << cyhome << "/Source/Sim/ComputeNodeDirectMain.cxx "
       << "-I" << cyhome << "/Include "
       << "-I" << "/usr/local/include "
@@ -320,8 +320,8 @@ void Driver::compileSource(const string &src)
     for(size_t i=0; i<sx.computeNodeSources.size(); ++i)
     {
       ofs
-        << "clang++ -std=c++11 " 
-        << "Cnode"<<i<<".cxx "
+        << "clang++ -std=c++1y -stdlib=libc++ " 
+        << "CNode"<<i<<".cxx "
         << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
         << "-I" << cyhome << "/Include "
         << "-I" << "/usr/local/include "
