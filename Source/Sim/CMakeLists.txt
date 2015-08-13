@@ -15,7 +15,7 @@ target_link_libraries(CypressSim
 #add_executable(CySimExec SimEx.cxx)
 #target_link_libraries(CySimExec CypressSim)
 
-#add_executable(DummyResid DummyResid.cxx ComputeNodeMain.cxx)
-#add_executable(DummyResidDirect DummyResid.cxx ComputeNodeDirectMain.cxx)
-#target_link_libraries(DummyResid CypressSim CypressCore /usr/local/lib/libsundials_ida.so /usr/local/lib/libsundials_nvecparallel.so)
-#target_link_libraries(DummyResidDirect CypressSim CypressCore)
+add_executable(DummyResid DummyResid.cxx ComputeNodeMain.cxx)
+add_executable(DummyResidDirect DummyResid.cxx ComputeNodeDirectMain.cxx)
+target_link_libraries(DummyResid CypressSim CypressCore)
+target_link_libraries(DummyResidDirect CypressSim CypressCore)
