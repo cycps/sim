@@ -264,12 +264,13 @@ size_t ComputeNode::varidx(VarRefSP v)
     find_if(vars.begin(), vars.end(),
         [v](VarRefSP x)
         {
+          std::cout << x->qname() << std::endl;
           return v->qname() == x->qname();
         });
 
   if(it != vars.end()) return std::distance(vars.begin(), it);
 
-  throw runtime_error{"Unkown var " + v->qname()};
+  throw runtime_error{"Unknown var " + v->qname()};
 }
 
 ostream & cypress::sim::operator << (ostream &o, const ComputeNode &n)

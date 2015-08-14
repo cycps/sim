@@ -322,13 +322,14 @@ void Driver::compileSource(const string &src)
       ofs
         << "clang++ -std=c++1y -stdlib=libc++ " 
         << "CNode"<<i<<".cxx "
-        << cyhome << "/Source/Sim/ComputeNodeMain.cxx "
+        << cyhome << "/Source/Sim/ComputeNodeDirectMain.cxx "
         << "-I" << cyhome << "/Include "
         << "-I" << "/usr/local/include "
         << "-L" << "/usr/local/lib "
+        << "-l" << "CypressSim "
         << "-lmpi "
         << "-lsundials_ida "
-        << "-lsundials_nvecparallel "
+        << "-lsundials_nvecserial "
         << "-o " << "rcomp" << i << endl;
     }
     ofs.close();
