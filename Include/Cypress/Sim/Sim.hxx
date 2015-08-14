@@ -56,6 +56,7 @@ struct Sim
 struct EqtnVarCollector : Visitor
 {
   std::unordered_set<VarRefSP, VarRefSPNameHash, VarRefSPNameCmp> vars;
+  //std::unordered_set<VarRefSP, VarRefSPHash, VarRefSPCmp> vars;
   ComponentSP component;
   void run(ComponentSP);
 

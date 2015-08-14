@@ -1,8 +1,8 @@
 //Cypress Rotor Controller Simulation
 
 Object Rotor(H)
-  w = theta'
   w' = tau - H*w^2
+  w = theta'
 
 Simulation RotorSim
   Rotor rotor(H:1.5)

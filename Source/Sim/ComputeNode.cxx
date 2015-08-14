@@ -260,12 +260,12 @@ string ComputeNode::emitSource()
 
 size_t ComputeNode::varidx(VarRefSP v)
 {
+  VarRefSPNameHash hsh{};
   auto it =
     find_if(vars.begin(), vars.end(),
-        [v](VarRefSP x)
+        [v, hsh](VarRefSP x)
         {
-          std::cout << x->qname() << std::endl;
-          return v->qname() == x->qname();
+          return hsh(v) == hsh(x);
         });
 
   if(it != vars.end()) return std::distance(vars.begin(), it);

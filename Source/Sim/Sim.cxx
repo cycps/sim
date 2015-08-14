@@ -181,15 +181,12 @@ vector<RVar> Sim::mapVariables(vector<ComputeNode> &topo)
 
   size_t L = ceil(static_cast<double>(evc.vars.size()) / N);
 
-  std::cout << "======" << std::endl;
   size_t i{0};
   for(auto v: evc.vars)
   {
-    std::cout << v->qname() << std::endl;
     m.push_back( RVar{v, DCoordinate{i/L, i, i%L}} );
     ++i;
   }
-  std::cout << "======" << std::endl;
 
   
   for(RVar v: m)
