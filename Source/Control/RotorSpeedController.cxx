@@ -8,6 +8,7 @@ using namespace cypress;
 using namespace cypress::control;
 using std::endl;
 using std::to_string;
+using std::string;
 
 struct RotorSpeedController : public Controller
 {
@@ -15,11 +16,13 @@ struct RotorSpeedController : public Controller
 
   size_t wt{6};
 
-  RotorSpeedController() : Controller("rsc")
+  RotorSpeedController(string input, string target) : Controller("rsc")
   {
     setDestination("localhost");
-    setTarget("atr_rt_u");
-    rw_idx = setInput("rotor_w");
+    //setTarget("atr_rt_u");
+    setTarget(target);
+    //rw_idx = setInput("rotor_w");
+    rw_idx = setInput(input);
   }
     
   void compute() override
@@ -32,19 +35,32 @@ struct RotorSpeedController : public Controller
   }
 };
 
-RotorSpeedController rsc;
+RotorSpeedController *rsc = nullptr;
 
 void sigh(int sig)
 {
-  rsc.k_lg << log("killed by signal: SIGINT(" + to_string(sig) + ")") << endl;
-  rsc.io_lg << log("killed by signal: SIGINT(" + to_string(sig) + ")") << endl;
-  close(rsc.sockfd);
+  rsc->k_lg << log("killed by signal: SIGINT(" + to_string(sig) + ")") << endl;
+  rsc->io_lg << log("killed by signal: SIGINT(" + to_string(sig) + ")") << endl;
+  close(rsc->sockfd);
   exit(1);
 }
   
 
-int main()
+int main(int argc, char **argv)
 {
   signal(SIGINT, sigh);
-  rsc.run();
+
+  if(argc != 3) {
+    std::cerr << "usage: RotorSpeeController <input> <target>" << std::endl;
+    return 1;
+  }
+
+  string input = std::string(argv[1]);
+  std::cout << "input = " << input << std::endl;
+  string target = std::string(argv[2]);
+  std::cout << "target = " << target << std::endl;
+
+  rsc = new RotorSpeedController(input, target);
+
+  rsc->run();
 }

@@ -43,12 +43,19 @@ bool checkInitialConds(double tol);
 void initState();
 void initIda();
 void compute();
+void writeDataHeader();
 
 int main()
 {
   initState();
   initIda();
+  writeDataHeader();
   compute();  
+}
+
+void writeDataHeader()
+{
+  rc->results << rc->dataHeader() << endl;
 }
 
 void initState()
@@ -132,6 +139,7 @@ void compute()
     }
 
     rc->results << std::setprecision(6) << std::fixed;
+    rc->results << tret << ",";
     for(size_t i=0; i<rc->N(); ++i) rc->results << rc->y[i] << ","; 
     for(size_t i=0; i<rc->N()-1; ++i) rc->results << rc->dy[i] << ","; 
     rc->results << rc->dy[rc->N()-1];

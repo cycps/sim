@@ -81,8 +81,38 @@ string ComputeNode::emitSource()
      << "  }" << endl
      << endl;
 
-  ss << "  // Local Access Variables ------------------------------------------"
+  ss << "  // Data Header -----------------------------------------------------"
+     << endl
+     << "  string dataHeader() override" << endl
+     << "  {" << endl;
+
+  ss << "    return \"t,";
+  for(size_t i=0; i<vars.size()-1; ++i)
+  {
+    string name = vars[i]->component->name->value + "_" + vars[i]->name;
+    ss << name << ",";
+  }
+  string name = vars[vars.size()-1]->component->name->value + "_" 
+    + vars[vars.size()-1]->name;
+  ss << name << ",";
+
+  for(size_t i=0; i<vars.size()-1; ++i)
+  {
+    string name = "d_"+vars[i]->component->name->value + "_" + vars[i]->name;
+    ss << name << ",";
+  }
+  name = "d_"+vars[vars.size()-1]->component->name->value + "_" 
+    + vars[vars.size()-1]->name;
+  ss << name;
+  
+  ss << "\";";
+
+  
+  ss << endl << "  }" << endl
      << endl;
+
+  ss << "  // Local Access Variables ------------------------------------------"
+      << endl;
 
   size_t i{0}, ci{0};
   for(const VarRefSP v: vars)

@@ -8,6 +8,7 @@ struct DummyResid : public Simutron
 {
   using Simutron::Simutron;
   void compute(realtype*, realtype) override {}
+  virtual std::string dataHeader() override { return ""; }
   void resolve() override {}
   string experimentInfo() override { return "DummyExperiment"; }
   void init() override {}
