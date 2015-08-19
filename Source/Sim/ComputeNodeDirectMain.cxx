@@ -45,8 +45,39 @@ void initIda();
 void compute();
 void writeDataHeader();
 
-int main()
+int main(int argc, char **argv)
 {
+  if(argc != 4) {
+    std::cerr << "usage <begin> <end> <maxStep>" << std::endl;
+    return 1;
+  }
+
+  try {
+    tstart = std::stod(std::string(argv[1]));
+  }
+  catch(std::invalid_argument) {
+    std::cerr << "invalid begin value";
+    return 1;
+  }
+  catch(std::out_of_range) {
+    std::cerr << "begin value out of range";
+    return 1;
+  }
+  
+  try {
+    tend = std::stod(std::string(argv[2]));
+  }
+  catch(std::invalid_argument) {
+    std::cerr << "invalid end value";
+    return 1;
+  }
+  catch(std::out_of_range) {
+    std::cerr << "end value out of range";
+    return 1;
+  }
+
+
+
   initState();
   initIda();
   writeDataHeader();
