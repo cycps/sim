@@ -19,9 +19,7 @@ struct RotorSpeedController : public Controller
   RotorSpeedController(string input, string target) : Controller("rsc")
   {
     setDestination("localhost");
-    //setTarget("atr_rt_u");
     setTarget(target);
-    //rw_idx = setInput("rotor_w");
     rw_idx = setInput(input);
   }
     
@@ -56,9 +54,7 @@ int main(int argc, char **argv)
   }
 
   string input = std::string(argv[1]);
-  std::cout << "input = " << input << std::endl;
   string target = std::string(argv[2]);
-  std::cout << "target = " << target << std::endl;
 
   rsc = new RotorSpeedController(input, target);
 
