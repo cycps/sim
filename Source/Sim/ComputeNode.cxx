@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <sstream>
 #include <stdexcept>
+#include <iomanip>
 
 using std::endl;
 using std::string;
@@ -188,6 +189,7 @@ string ComputeNode::emitSource()
 
   for(auto p: initials)
   {
+    ss << std::setprecision(std::numeric_limits<double>::digits10 + 1);
     ss << "    y[" << p.first << "] = " << p.second.v << ";" << endl;
     ss << "    dy[" << p.first << "] = " << p.second.d << ";" << endl;
   }

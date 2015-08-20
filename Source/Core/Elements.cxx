@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+#include <iomanip>
 
 using namespace cypress;
 using std::vector;
@@ -377,6 +378,7 @@ void CxxResidualFuncBuilder::leave(PowSP)
 
 void CxxResidualFuncBuilder::in(RealSP r) 
 { 
+  ss << std::setprecision(std::numeric_limits<double>::digits10 + 1);
   ss << r->value;
 }
 
