@@ -199,7 +199,7 @@ bool checkInitialConds(double tol)
   rc->c_lg << ts() << "Initial Check" << endl;
   for(size_t i=0; i<rc->L(); ++i)
   {
-    rc->c_lg << ts() << "r[0]: " << r[i] << endl;  
+    rc->c_lg << ts() << "r["<<i<<"]: " << r[i] << endl;  
     if(std::abs(r[i]) > tol) ok = false;
   }
   

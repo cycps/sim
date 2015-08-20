@@ -73,7 +73,7 @@ void Divide::accept(Visitor &v)
 
 ExpressionSP Divide::clone()
 {
-  return make_shared<Multiply>(
+  return make_shared<Divide>(
       static_pointer_cast<Term>(lhs->clone()), 
       static_pointer_cast<Term>(rhs->clone()),
       line, column
