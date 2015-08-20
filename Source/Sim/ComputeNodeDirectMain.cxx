@@ -197,6 +197,7 @@ bool checkInitialConds(double tol)
   bool ok{true};
 
   rc->c_lg << ts() << "Initial Check" << endl;
+  //rc->c_lg << std::setprecision(6) << std::fixed;
   for(size_t i=0; i<rc->L(); ++i)
   {
     rc->c_lg << ts() << "r["<<i<<"]: " << r[i] << endl;  

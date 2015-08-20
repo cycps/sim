@@ -353,16 +353,27 @@ void Sim::buildInitials()
 {
   for(ComponentSP c : exp->components)
   {
-    if(c->element->kind() != Decl::Kind::Object) continue;
+    if(c->element->kind() == Decl::Kind::Object) {
+      for(auto p: c->initials)
+      {
+        if(p.first->kind() == VarRef::Kind::Normal)
+          initial_state[p.first] = p.second->value;
 
-    for(auto p: c->initials)
-    {
-      if(p.first->kind() == VarRef::Kind::Normal)
-        initial_state[p.first] = p.second->value;
-
-      else if(p.first->kind() == VarRef::Kind::Derivative)
-        initial_trajectory[p.first] = p.second->value;
+        else if(p.first->kind() == VarRef::Kind::Derivative)
+          initial_trajectory[p.first] = p.second->value;
+      }
     }
+    if(c->element->kind() == Decl::Kind::Actuator) {
+      auto aa = static_pointer_cast<ActuatorAttributes>(c->attributes);
+
+      auto it = aa->target->component->initials.find(aa->target);
+      if(it != aa->target->component->initials.end()) {
+      
+        initial_state[aa->source] = it->second->value;
+        
+      }
+    }
+
   }
 }
 
