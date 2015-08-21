@@ -1,6 +1,7 @@
 #include <Cypress/Sim/ComputeNode.hxx>
 #include <Cypress/Sim/Simutron.hxx>
 
+#include <fenv.h>
 #include <ida/ida.h>
 #include <ida/ida_dense.h>
 #include <nvector/nvector_serial.h>
@@ -76,7 +77,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-
+  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
   initState();
   initIda();
