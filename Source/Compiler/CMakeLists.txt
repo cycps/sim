@@ -1,4 +1,4 @@
-add_library(CypressC SHARED Driver.cxx Parser.cxx Sema.cxx Diagnostics.cxx)
+add_library(CypressC Driver.cxx Parser.cxx Sema.cxx Diagnostics.cxx)
 target_link_libraries(CypressC 
   ${Boost_PROGRAM_OPTIONS_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
@@ -9,5 +9,5 @@ add_executable(cyc main.cxx)
 target_link_libraries(cyc CypressC)
 
 install(TARGETS CypressC cyc
-        LIBRARY DESTINATION /usr/local/lib
+        ARCHIVE DESTINATION /usr/local/lib
         RUNTIME DESTINATION /usr/local/bin)

@@ -42,6 +42,17 @@ struct CVal
     : sec{sec}, usec{usec}, v{v} {};
 };
 
+struct InputSource
+{
+  std::string variable{}, source{};
+ 
+  InputSource() = default;
+  InputSource(std::string variable, std::string source) 
+    : variable{variable}, source{source} {}
+
+  in6_addr address();
+};
+
 struct ControlBuffer
 {
   std::vector<std::vector<CVal>> buf;
@@ -83,6 +94,7 @@ struct Controller
 
   //maps a local variable index to a resolver
   std::vector<FrameVarResolver> resolvers;
+  std::vector<InputSource> sources{};
   
   ControlBuffer a_, b_;
   ControlBuffer *a{&a_}, *b{&b_};

@@ -12,7 +12,6 @@
 #target_link_libraries(DummyController CypressControl)
 
 add_library(CypressControl
-  SHARED
   ControlNode.cxx
   Packet.cxx)
 
@@ -20,8 +19,8 @@ add_executable(CPacketLauncher CPacketLauncher.cxx)
 target_link_libraries(CPacketLauncher CypressControl)
 
 add_executable(RotorSpeedController RotorSpeedController.cxx)
-target_link_libraries(RotorSpeedController CypressControl)
+target_link_libraries(RotorSpeedController CypressControl pthread /usr/local/lib/libyaml-cpp.a)
 
 install(TARGETS CypressControl CPacketLauncher RotorSpeedController
-        LIBRARY DESTINATION /usr/local/lib
+        ARCHIVE DESTINATION /usr/local/lib
         RUNTIME DESTINATION /usr/local/bin)
