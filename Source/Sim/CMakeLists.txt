@@ -1,4 +1,4 @@
-add_library(CypressSim 
+add_library(CypressSim SHARED
   Sim.cxx SimEx.cxx 
   ComputeNode.cxx Simutron.cxx
   Sensor.cxx)
@@ -6,10 +6,10 @@ add_library(CypressSim
 target_link_libraries(CypressSim 
   CypressCore
   CypressControl
-  /usr/local/lib/libsundials_ida.a 
-  /usr/local/lib/libsundials_nvecparallel.a
-  /usr/local/lib/libsundials_nvecserial.a
-  /usr/local/lib/libmpi.a)
+  /usr/local/lib/libsundials_ida.so
+  /usr/local/lib/libsundials_nvecparallel.so
+  /usr/local/lib/libsundials_nvecserial.so
+  /usr/local/lib/libmpi.so)
 
 #add_executable(CySimExec SimEx.cxx)
 #target_link_libraries(CySimExec CypressSim)
@@ -20,5 +20,5 @@ target_link_libraries(DummyResid CypressSim pthread CypressCore)
 target_link_libraries(DummyResidDirect CypressSim pthread CypressCore)
 
 install(TARGETS CypressSim DummyResid DummyResidDirect
-        ARCHIVE DESTINATION /usr/local/lib
+        LIBRARY DESTINATION /usr/local/lib
         RUNTIME DESTINATION /usr/local/bin)
