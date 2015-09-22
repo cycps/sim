@@ -112,8 +112,9 @@ sundials: mpich sundials-2.5.0
 	@cd sundials-2.5.0; \
 		./configure --enable-shared > /dev/null && \
 		make > /dev/null && \
-		make install > /dev/null
+		make install > /dev/null \
 	
+	./apply_patches.sh \
 	
 	@printf "${GREEN}Finished installing sundials${DEFAULT}\n"
 
