@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
   ssh \
   rsync \
   git \
-  language-pack-en
+  language-pack-en \
+  curl
 
 #RUN mkdir /sim
 ADD lib /deps

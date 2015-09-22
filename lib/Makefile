@@ -11,7 +11,7 @@ all: sundials boost yaml rympi
 
 #yaml --------------------------------------------------------------------------
 .PHONY: yaml
-yaml: yaml-cpp-release-0.5.2
+yaml: boost yaml-cpp-release-0.5.2
 	@printf "${BLUE}Installing libyaml${DEFAULT}\n"
 	@cd yaml-cpp-release-0.5.2; \
 		cmake \
@@ -24,9 +24,15 @@ yaml: yaml-cpp-release-0.5.2
 	
 	@printf "${GREEN}Finished installing libyaml${DEFAULT}\n"
 
-yaml-cpp-release-0.5.2:
+yaml-cpp-release-0.5.2: yaml-cpp-release-0.5.2.tar.gz
 	@printf "${BLUE}Unpacking libyaml${DEFAULT}\n"
 	@tar xzf yaml-cpp-release-0.5.2.tar.gz
+
+yaml-cpp-release-0.5.2.tar.gz:
+	@printf "${BLUE}Getting libyaml-0.5.2 from github${DEFAULT}\n"
+	@curl -Ls \
+		-o yaml-cpp-release-0.5.2.tar.gz \
+		https://github.com/jbeder/yaml-cpp/archive/release-0.5.2.tar.gz > /dev/null
 
 rympi: RyMPI-0.1
 	@printf "${BLUE}Installing rympi${DEFAULT}\n"
@@ -38,12 +44,15 @@ rympi: RyMPI-0.1
 	
 	@printf "${GREEN}Finished installing rympi${DEFAULT}\n"
 
-
-
-RyMPI-0.1:
+RyMPI-0.1: RyMPI-0.1.tar.gz
 	@printf "${BLUE}Unpacking rympi${DEFAULT}\n"
 	@tar xzf RyMPI-0.1.tar.gz
 
+RyMPI-0.1.tar.gz:
+	@printf "${BLUE}Getting RyMPI-0.1 from github${DEFAULT}\n"
+	@curl -Ls \
+		-o RyMPI-0.1.tar.gz \
+		https://github.com/rcgoodfellow/RyMPI/releases/download/0.1/RyMPI-0.1.tar.gz
 
 
 #boost -------------------------------------------------------------------------
@@ -68,9 +77,15 @@ boost: boost_1_58_0
 	
 	@printf "${GREEN}Finished installing boost libraries${DEFAULT}\n"
 	
-boost_1_58_0:
+boost_1_58_0: boost_1_58_0.tar.gz
 	@printf "${BLUE}Unpacking boost${DEFAULT}\n"
 	@tar xzf boost_1_58_0.tar.gz
+
+boost_1_58_0.tar.gz:
+	@printf "${BLUE}Getting boost-1.58 from bintray${DEFAULT}\n"
+	@curl -Ls \
+		-o boost_1_58_0.tar.gz \
+		https://bintray.com/artifact/download/cycps/core-dependencies/boost_1_58_0.tar.gz
 
 #libxml ------------------------------------------------------------------------
 .PHONY: libxml
@@ -84,9 +99,15 @@ libxml: libxml2-2.7.2
 	
 	@printf "${GREEN}Finished installing libxml${DEFAULT}\n"
 
-libxml2-2.7.2:
+libxml2-2.7.2: libxml2-2.7.2.tar.gz
 	@printf "${BLUE}Unpacking libxml${DEFAULT}\n"
 	@tar xzf libxml2-2.7.2.tar.gz 
+
+libxml2-2.7.2.tar.gz:
+	@printf "${BLUE}Getting libxml2-2.7.2 from bintray${DEFAULT}\n"
+	@curl -Ls \
+		-o libxml2-2.7.2.tar.gz \
+		https://bintray.com/artifact/download/cycps/core-dependencies/libxml2-2.7.2.tar.gz
 
 #mpich -------------------------------------------------------------------------
 .PHONY: mpich
@@ -95,14 +116,20 @@ mpich: libxml mpich-3.1.4
 	
 	@cd mpich-3.1.4; \
 		./configure --disable-fortran > /dev/null && \
-		make -g4 > /dev/null && \
+		make -j4 > /dev/null && \
 		make install > /dev/null
 	
 	@printf "${GREEN}Finished installing libmpich${DEFAULT}\n"
 
-mpich-3.1.4:
+mpich-3.1.4: mpich-3.1.4.tar.gz
 	@printf "${BLUE}Unpacking mpich${DEFAULT}\n"
 	@tar xzf mpich-3.1.4.tar.gz
+
+mpich-3.1.4.tar.gz:
+	@printf "${BLUE}Getting mpich-3.1.4 from bintray${DEFAULT}\n"
+	@curl -Ls \
+		-o mpich-3.1.4.tar.gz \
+		https://bintray.com/artifact/download/cycps/core-dependencies/mpich-3.1.4.tar.gz
 
 #sundials ----------------------------------------------------------------------
 .PHONY: sundials
@@ -118,16 +145,22 @@ sundials: mpich sundials-2.5.0
 	
 	@printf "${GREEN}Finished installing sundials${DEFAULT}\n"
 
-sundials-2.5.0:
+sundials-2.5.0: sundials-2.5.0.tar.gz
 	@printf "${BLUE}Unpacking sundials${DEFAULT}\n"
 	@tar xzf sundials-2.5.0.tar.gz
+
+sundials-2.5.0.tar.gz:
+	@printf "${BLUE}Getting sundials-2.5.0 from bintray${DEFAULT}\n"
+	@curl -Ls \
+		-o sundials-2.5.0.tar.gz \
+		https://bintray.com/artifact/download/cycps/core-dependencies/sundials-2.5.0.tar.gz
 
 
 .PHONY: clean
 clean:
-	rm -rf sundials-2.5.0
-	rm -rf libxml2-2.7.2
-	rm -rf boost_1_58_0
-	rm -rf mpich-3.1.4
-	rm -rf yaml-cpp-release-0.5.2
+	rm -rf sundials*
+	rm -rf libxml*
+	rm -rf boost*
+	rm -rf mpich*
+	rm -rf yaml*
 
