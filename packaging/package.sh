@@ -22,5 +22,7 @@ cp /usr/local/bin/parkill ${TGT}/bin/
 cp /usr/local/bin/sundials-config ${TGT}/bin/
 cp /usr/local/bin/xml* ${TGT}/bin/
 
+cp install.sh ${TGT}/
+
 tar czf "${TGT}.tar.gz" "${TGT}"
 rm -rf "${TGT}"
