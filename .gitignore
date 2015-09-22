@@ -33,3 +33,4 @@ build
 # node.js generated stuff
 node_modules
 
+CySim-*.tar.gz

@@ -95,7 +95,7 @@ mpich: libxml mpich-3.1.4
 	
 	@cd mpich-3.1.4; \
 		./configure --disable-fortran > /dev/null && \
-		make > /dev/null && \
+		make -g4 > /dev/null && \
 		make install > /dev/null
 	
 	@printf "${GREEN}Finished installing libmpich${DEFAULT}\n"
@@ -112,9 +112,9 @@ sundials: mpich sundials-2.5.0
 	@cd sundials-2.5.0; \
 		./configure --enable-shared > /dev/null && \
 		make > /dev/null && \
-		make install > /dev/null \
+		make install > /dev/null
 	
-	./apply_patches.sh \
+	@bash apply_patches.sh > /dev/null \
 	
 	@printf "${GREEN}Finished installing sundials${DEFAULT}\n"
 
