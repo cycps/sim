@@ -32,9 +32,9 @@ rympi: RyMPI-0.1
 	@printf "${BLUE}Installing rympi${DEFAULT}\n"
 	
 	@cd RyMPI-0.1; \
-		cmake -G Ninja && \
-		ninja && \
-		ninja install	
+		cmake -G Ninja > /dev/null && \
+		ninja > /dev/null && \
+		ninja > /dev/null install	
 	
 	@printf "${GREEN}Finished installing rympi${DEFAULT}\n"
 
