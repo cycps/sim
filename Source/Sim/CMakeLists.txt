@@ -22,3 +22,7 @@ target_link_libraries(DummyResidDirect CypressSim pthread CypressCore)
 install(TARGETS CypressSim DummyResid DummyResidDirect
         LIBRARY DESTINATION /usr/local/lib
         RUNTIME DESTINATION /usr/local/bin)
+
+install(FILES ComputeNodeDirectMain.cxx ComputeNodeMain.cxx 
+        DESTINATION /usr/local/src/cypress)
+

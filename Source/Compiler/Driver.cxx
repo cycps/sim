@@ -216,21 +216,21 @@ void Driver::createCypk()
 
   string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
   ofs.open(brs);
+  /*
   char *cyh_ = getenv("CYPRESS_HOME");
   if(cyh_ == nullptr)
     throw runtime_error("CYPRESS_HOME environment variable must be set");
 
   string cyhome{cyh_};
+  */
   ofs << "#!/bin/sh" << endl;
   for(size_t i=0; i<sim_ex.computeNodeSources.size(); ++i)
   {
     ofs
       << "clang++ -std=c++1y -stdlib=libc++ " 
       << "CNode"<<i<<".cxx "
-      << cyhome << "/Source/Sim/ComputeNodeDirectMain.cxx "
-      << "-I" << cyhome << "/Include "
+      << "/usr/local/source/cypress/ComputeNodeDirectMain.cxx "
       << "-I" << "/usr/local/include "
-      << "-L" << cyhome << "/Build/Source/Sim "
       << "-L" << "/usr/local/lib "
       << "-l" << "CypressSim "
       << "-lmpi "
@@ -311,19 +311,20 @@ void Driver::compileSource(const string &src)
 
     string brs{pkgdir.string() + "/" + "build_rcomp.sh"};
     ofs.open(brs);
+    /*
     char *cyh_ = getenv("CYPRESS_HOME");
     if(cyh_ == nullptr)
       throw runtime_error("CYPRESS_HOME environment variable must be set");
 
     string cyhome{cyh_};
+    */
     ofs << "#!/bin/sh" << endl;
     for(size_t i=0; i<sx.computeNodeSources.size(); ++i)
     {
       ofs
         << "clang++ -std=c++1y -stdlib=libc++ " 
         << "CNode"<<i<<".cxx "
-        << cyhome << "/Source/Sim/ComputeNodeDirectMain.cxx "
-        << "-I" << cyhome << "/Include "
+        << "/usr/local/source/cypress/ComputeNodeDirectMain.cxx "
         << "-I" << "/usr/local/include "
         << "-L" << "/usr/local/lib "
         << "-l" << "CypressSim "

@@ -21,3 +21,6 @@ find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
 add_subdirectory(gtest)
 add_subdirectory(Source)
 add_subdirectory(Test)
+
+install(DIRECTORY Include/Cypress DESTINATION /usr/local/include)
+
